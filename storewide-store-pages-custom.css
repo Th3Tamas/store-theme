@@ -40,7 +40,12 @@
    -------------------------------------------------------------------------- */
 *, *::before, *::after {
   box-sizing: border-box;
-  border-radius: 0px !important; /* Strict brutalist 0px sharp corners */
+}
+
+/* Default 0px sharp corners across cards, buttons, inputs */
+.product-card, .product-item, .payhip-product-item,
+input, textarea, select, .btn-sharp {
+  border-radius: 0px !important;
 }
 
 html {
@@ -102,14 +107,13 @@ header {
   background-color: rgba(8, 8, 8, 0.95) !important;
   backdrop-filter: blur(12px) !important;
   border-bottom: 1px solid var(--sl-border) !important;
-  padding: 1.25rem 2rem !important;
+  padding: 1.25rem 2.5rem !important;
   position: sticky !important;
   top: 0 !important;
   z-index: 9999 !important;
   box-shadow: none !important;
 }
 
-/* Logo */
 .header .logo,
 .site-header .logo,
 .store-logo,
@@ -130,7 +134,7 @@ header {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 3px 8px;
+  padding: 4px 9px;
   border: 1px solid var(--sl-border-light);
   font-family: var(--font-mono);
   font-size: 0.75rem;
@@ -139,7 +143,6 @@ header {
   background: #111111;
 }
 
-/* Navigation Links */
 .header nav a,
 .site-header nav a,
 .nav-link,
@@ -170,7 +173,6 @@ header {
   border-bottom: 2px solid var(--sl-red) !important;
 }
 
-/* Header Icons (Search, Cart, Profile) */
 .header-actions,
 .header-icons,
 .cart-wrap {
@@ -189,7 +191,6 @@ header {
   height: 18px !important;
 }
 
-/* Cart Counter Badge */
 .cart-count,
 .payhip-cart-count {
   background-color: var(--sl-red) !important;
@@ -235,7 +236,7 @@ header {
 
 .sonarline-ticker-bullet {
   color: var(--sl-red);
-  font-size: 0.9rem;
+  font-size: 0.8rem;
 }
 
 @keyframes ticker-slide {
@@ -244,187 +245,307 @@ header {
 }
 
 /* --------------------------------------------------------------------------
-   5. Product Grids & Technical Brutalist Cards
+   5. Technical Branding & Hero Utilities
    -------------------------------------------------------------------------- */
-.products-grid,
-.product-grid,
-.products-list,
-.product-list,
-.payhip-product-grid {
-  display: grid !important;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)) !important;
-  gap: 1.5rem !important;
-  padding: 2.5rem 0 !important;
-}
-
-/* Individual Product Card */
-.product-item,
-.product-card,
-.product-wrap,
-.payhip-product-item {
-  background: var(--sl-bg-card) !important;
-  border: 1px solid var(--sl-border) !important;
-  position: relative !important;
-  overflow: hidden !important;
-  display: flex !important;
-  flex-direction: column !important;
-  transition: border-color 0.25s var(--ease-brutal), transform 0.25s var(--ease-brutal), box-shadow 0.25s var(--ease-brutal) !important;
-  text-decoration: none !important;
-  color: inherit !important;
-}
-
-.product-item:hover,
-.product-card:hover,
-.payhip-product-item:hover {
-  border-color: var(--sl-border-hover) !important;
-  background: var(--sl-bg-card-hover) !important;
-  transform: translateY(-2px) !important;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45) !important;
-}
-
-/* Highlighted / Bundle Card */
-.product-item.featured,
-.product-card.featured,
-.product-item.bundle-highlight {
-  border-color: var(--sl-border-red) !important;
-}
-.product-item.featured:hover,
-.product-card.featured:hover {
-  border-color: var(--sl-red) !important;
-}
-
-/* Card Image Frame */
-.product-image,
-.product-thumb,
-.product-card-image,
-.payhip-product-image {
-  width: 100% !important;
-  aspect-ratio: 1 / 1 !important;
-  overflow: hidden !important;
-  background: #0a0a0a !important;
-  position: relative !important;
-  border-bottom: 1px solid var(--sl-border) !important;
-}
-
-.product-image img,
-.product-thumb img,
-.product-card-image img {
-  width: 100% !important;
-  height: 100% !important;
-  object-fit: cover !important;
-  filter: contrast(1.04) brightness(0.96) !important;
-  transition: transform 0.4s var(--ease-brutal), filter 0.4s var(--ease-brutal) !important;
-}
-
-.product-item:hover img,
-.product-card:hover img {
-  transform: scale(1.025) !important;
-  filter: contrast(1.08) brightness(1.02) !important;
-}
-
-/* Badges */
-.product-badge,
-.badge-new,
-.badge-bestseller,
-.badge-sale {
-  position: absolute !important;
-  top: 10px !important;
-  left: 10px !important;
-  font-family: var(--font-mono) !important;
-  font-size: 0.68rem !important;
-  font-weight: 700 !important;
-  letter-spacing: 0.12em !important;
-  text-transform: uppercase !important;
-  padding: 4px 10px !important;
-  z-index: 2 !important;
-  border: 1px solid transparent !important;
-}
-
-.badge-new,
-.product-badge.new {
-  background: #000000 !important;
-  color: #ffffff !important;
-  border: 1px solid var(--sl-border-light) !important;
-}
-
-.badge-bestseller,
-.product-badge.bestseller {
-  background: #ffffff !important;
-  color: #080808 !important;
-}
-
-.badge-sale,
-.product-badge.sale {
-  background: var(--sl-red) !important;
-  color: #ffffff !important;
-}
-
-/* Card Bottom Info Bar */
-.product-info,
-.product-card-details,
-.product-card-info {
-  padding: 1.25rem !important;
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 0.45rem !important;
-  flex-grow: 1 !important;
-  background: #111111 !important;
-}
-
-.product-category-tag {
-  font-family: var(--font-mono) !important;
-  font-size: 0.7rem !important;
-  font-weight: 600 !important;
-  letter-spacing: 0.14em !important;
-  text-transform: uppercase !important;
-  color: var(--sl-red) !important;
-  display: flex !important;
-  align-items: center !important;
-  gap: 6px !important;
-}
-
-.product-category-tag::before {
-  content: '•';
+.accent-lab {
   color: var(--sl-red);
+  font-weight: 300;
+  letter-spacing: 0.05em;
+  display: inline-block;
+  position: relative;
 }
 
-.product-title,
-.product-card-title {
-  font-family: var(--font-sans) !important;
-  font-size: 1.05rem !important;
-  font-weight: 700 !important;
-  letter-spacing: 0.05em !important;
-  text-transform: uppercase !important;
-  color: var(--sl-white) !important;
-  margin: 0 !important;
-  line-height: 1.3 !important;
+.corner-bracket {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  pointer-events: none;
 }
-
-.product-price,
-.product-card-price {
-  font-family: var(--font-mono) !important;
-  font-size: 0.95rem !important;
-  font-weight: 700 !important;
-  letter-spacing: 0.04em !important;
-  color: var(--sl-white) !important;
-  margin-top: auto !important;
-  padding-top: 0.75rem !important;
-  border-top: 1px solid rgba(255, 255, 255, 0.05) !important;
-  display: flex !important;
-  align-items: baseline !important;
-  gap: 0.5rem !important;
+.corner-bracket-tl {
+  top: -1px;
+  left: -1px;
+  border-top: 2px solid var(--sl-red);
+  border-left: 2px solid var(--sl-red);
 }
-
-.product-price-old,
-.product-card-price-compare {
-  font-size: 0.8rem !important;
-  color: var(--sl-text-muted) !important;
-  text-decoration: line-through !important;
-  font-weight: 400 !important;
+.corner-bracket-tr {
+  top: -1px;
+  right: -1px;
+  border-top: 2px solid var(--sl-red);
+  border-right: 2px solid var(--sl-red);
+}
+.corner-bracket-bl {
+  bottom: -1px;
+  left: -1px;
+  border-bottom: 2px solid var(--sl-red);
+  border-left: 2px solid var(--sl-red);
+}
+.corner-bracket-br {
+  bottom: -1px;
+  right: -1px;
+  border-bottom: 2px solid var(--sl-red);
+  border-right: 2px solid var(--sl-red);
 }
 
 /* --------------------------------------------------------------------------
-   6. Buttons & Interactive Controls
+   6. Collections 4-Directory & Circuit Lines
+   -------------------------------------------------------------------------- */
+.collections-directory-wrap {
+  position: relative;
+  margin: 3.5rem 0;
+}
+
+.collections-circuit-line {
+  position: absolute;
+  top: 50%;
+  left: 5%;
+  right: 5%;
+  height: 1px;
+  background: linear-gradient(to right, transparent, rgba(255, 59, 48, 0.3) 20%, rgba(255, 59, 48, 0.3) 80%, transparent);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.collections-directory-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+  position: relative;
+  z-index: 2;
+}
+
+@media (max-width: 900px) {
+  .collections-directory-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .collections-circuit-line {
+    display: none;
+  }
+}
+@media (max-width: 550px) {
+  .collections-directory-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Layered / Stacked Folder Card Effect */
+.folder-stack {
+  position: relative;
+  transition: transform 0.25s var(--ease-brutal);
+}
+
+.folder-stack::before,
+.folder-stack::after {
+  content: '';
+  position: absolute;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: #0e0e0e;
+  pointer-events: none;
+  transition: all 0.25s var(--ease-brutal);
+}
+
+.folder-stack::before {
+  top: -4px;
+  left: 6px;
+  right: -6px;
+  bottom: 4px;
+  z-index: -1;
+}
+
+.folder-stack::after {
+  top: -8px;
+  left: 12px;
+  right: -12px;
+  bottom: 8px;
+  z-index: -2;
+}
+
+.folder-stack:hover {
+  transform: translateY(-4px);
+}
+.folder-stack:hover::before {
+  top: -6px;
+  right: -8px;
+  border-color: rgba(255, 59, 48, 0.25);
+}
+.folder-stack:hover::after {
+  top: -12px;
+  right: -16px;
+  border-color: rgba(255, 59, 48, 0.15);
+}
+
+.collection-card {
+  background: var(--sl-bg-card);
+  border: 1px solid var(--sl-border);
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.25s var(--ease-brutal);
+  position: relative;
+  width: 100%;
+}
+
+.collection-card:hover {
+  border-color: var(--sl-border-hover);
+  background: var(--sl-bg-card-hover);
+}
+
+.collection-number {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--sl-text-muted);
+}
+
+.collection-icon {
+  width: 44px;
+  height: 44px;
+  stroke: var(--sl-text-secondary);
+  fill: none;
+  stroke-width: 1.5;
+  transition: stroke 0.2s ease;
+}
+
+.collection-card:hover .collection-icon {
+  stroke: var(--sl-white);
+}
+
+.collection-title {
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--sl-white);
+}
+
+/* --------------------------------------------------------------------------
+   7. "MOST POPULAR" Product Section
+   -------------------------------------------------------------------------- */
+.most-popular-section {
+  max-width: 1340px;
+  margin: 5rem auto;
+  padding: 0 2rem;
+}
+
+.most-popular-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--sl-border);
+  padding-bottom: 1rem;
+  margin-bottom: 2rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.most-popular-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1.25rem;
+}
+
+@media (max-width: 1100px) {
+  .most-popular-grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  }
+}
+
+.product-card-popular {
+  background: var(--sl-bg-card);
+  border: 1px solid var(--sl-border);
+  display: flex;
+  flex-direction: column;
+  text-decoration: none;
+  color: inherit;
+  position: relative;
+  transition: all 0.25s var(--ease-brutal);
+}
+
+.product-card-popular:hover {
+  border-color: var(--sl-border-hover);
+  background: var(--sl-bg-card-hover);
+  transform: translateY(-2px);
+}
+
+.product-card-popular.featured-bundle {
+  border-color: var(--sl-border-red);
+}
+.product-card-popular.featured-bundle:hover {
+  border-color: var(--sl-red);
+  box-shadow: 0 0 20px rgba(255, 59, 48, 0.25);
+}
+
+.popular-art-frame {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background: #0c0c0c;
+  border-bottom: 1px solid var(--sl-border);
+  overflow: hidden;
+  position: relative;
+}
+
+.popular-art-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s var(--ease-brutal);
+}
+
+.product-card-popular:hover .popular-art-frame img {
+  transform: scale(1.03);
+}
+
+.popular-info-bar {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  background: #111111;
+  flex-grow: 1;
+}
+
+.popular-category {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--sl-red);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.popular-title {
+  font-family: var(--font-sans);
+  font-size: 0.92rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--sl-white);
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.popular-price-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-top: auto;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--sl-white);
+}
+
+/* --------------------------------------------------------------------------
+   8. Buttons & Interactive Controls
    -------------------------------------------------------------------------- */
 button,
 .btn,
@@ -466,7 +587,6 @@ a.button:hover {
   box-shadow: 0 0 16px rgba(255, 255, 255, 0.2) !important;
 }
 
-/* Solid Inverted Button */
 .btn-solid,
 .btn-primary,
 .btn-black {
@@ -482,7 +602,6 @@ a.button:hover {
   color: #ffffff !important;
 }
 
-/* Signal Red Button */
 .btn-red {
   background: var(--sl-red) !important;
   border-color: var(--sl-red) !important;
@@ -496,14 +615,13 @@ a.button:hover {
   box-shadow: 0 0 20px rgba(255, 59, 48, 0.4) !important;
 }
 
-/* Pill Outline Buttons (Hardware Aesthetic) */
 .btn-pill {
-  border-radius: 9999px !important; /* Allowed specifically for pill CTA buttons */
+  border-radius: 9999px !important;
   padding: 10px 24px !important;
 }
 
 /* --------------------------------------------------------------------------
-   7. Form Inputs & Search
+   9. Form Inputs & Search
    -------------------------------------------------------------------------- */
 input[type="text"],
 input[type="email"],
@@ -535,81 +653,7 @@ select:focus {
 }
 
 /* --------------------------------------------------------------------------
-   8. Product Details Page Architecture
-   -------------------------------------------------------------------------- */
-.product-details-container,
-.product-view,
-.payhip-product-view {
-  max-width: 1280px !important;
-  margin: 0 auto !important;
-  padding: 3rem 2rem !important;
-}
-
-.product-view-layout {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 3.5rem;
-  align-items: start;
-}
-
-@media (max-width: 900px) {
-  .product-view-layout {
-    grid-template-columns: 1fr;
-    gap: 2.5rem;
-  }
-}
-
-.product-art-frame {
-  position: relative;
-  background: #101010;
-  border: 1px solid var(--sl-border);
-  padding: 1rem;
-}
-
-.product-art-frame img {
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  object-fit: cover;
-  display: block;
-}
-
-.product-info-panel {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.product-title-bracket {
-  font-family: var(--font-mono);
-  font-size: 1.85rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  color: var(--sl-white);
-  line-height: 1.2;
-}
-
-.product-spec-list {
-  font-family: var(--font-mono);
-  font-size: 0.85rem;
-  line-height: 1.8;
-  color: var(--sl-text-secondary);
-  border-top: 1px solid var(--sl-border);
-  border-bottom: 1px solid var(--sl-border);
-  padding: 1.25rem 0;
-  margin: 1rem 0;
-}
-
-.product-spec-list code,
-.product-spec-list pre {
-  font-family: var(--font-mono) !important;
-  background: transparent !important;
-  color: var(--sl-text-secondary) !important;
-  white-space: pre-wrap;
-  margin: 0;
-}
-
-/* --------------------------------------------------------------------------
-   9. Integrated Hardware Audio Demo Player
+   10. Integrated Hardware Audio Demo Player
    -------------------------------------------------------------------------- */
 .sonarline-audio-player-wrap {
   background: #111111;
@@ -771,79 +815,6 @@ select:focus {
 }
 
 /* --------------------------------------------------------------------------
-   10. Collections 4-Grid Directory
-   -------------------------------------------------------------------------- */
-.collections-directory-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1.5rem;
-  margin: 3rem 0;
-}
-
-@media (max-width: 900px) {
-  .collections-directory-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-@media (max-width: 550px) {
-  .collections-directory-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-.collection-card {
-  background: var(--sl-bg-card);
-  border: 1px solid var(--sl-border);
-  padding: 2.25rem 1.5rem;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1.25rem;
-  text-decoration: none;
-  color: inherit;
-  transition: all 0.25s var(--ease-brutal);
-  position: relative;
-}
-
-.collection-card:hover {
-  border-color: var(--sl-border-hover);
-  background: var(--sl-bg-card-hover);
-  transform: translateY(-2px);
-}
-
-.collection-number {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  color: var(--sl-text-muted);
-}
-
-.collection-icon {
-  width: 48px;
-  height: 48px;
-  stroke: var(--sl-text-secondary);
-  fill: none;
-  stroke-width: 1.5;
-  transition: stroke 0.2s ease;
-}
-
-.collection-card:hover .collection-icon {
-  stroke: var(--sl-white);
-}
-
-.collection-title {
-  font-family: var(--font-sans);
-  font-size: 0.95rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--sl-white);
-}
-
-/* --------------------------------------------------------------------------
    11. Newsletter Terminal Box
    -------------------------------------------------------------------------- */
 .sonarline-newsletter-box {
@@ -853,6 +824,19 @@ select:focus {
   max-width: 680px;
   margin: 4rem auto;
   text-align: center;
+  position: relative;
+}
+
+.newsletter-status-pill {
+  position: absolute;
+  top: 18px;
+  right: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: #27c93f;
 }
 
 .sonarline-newsletter-box h3 {
