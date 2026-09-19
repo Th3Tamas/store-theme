@@ -47,6 +47,9 @@
    Native Hero Section Skinning & Blueprint Grid Matrix
    -------------------------------------------------------------------------- */
 /* Target the native hero image and container */
+[data-section-key="headline"] .section-background-image,
+[data-section-key="headline"] .section-background img,
+[data-section-key="headline"] img,
 .section-hero img,
 .hero-banner img,
 .hero-image,
@@ -65,6 +68,8 @@
   border: none !important;
 }
 
+[data-section-key="headline"],
+[data-section-key="headline"] .section-background,
 .section-hero,
 .hero,
 [data-section-type="hero"],
@@ -88,6 +93,8 @@
 }
 
 /* Restyle the native text inside the hero (title & subtitle) */
+[data-section-key="headline"] h1,
+[data-section-key="headline"] .heading-text,
 .section-hero h1,
 .section-hero h2,
 .hero h1,
@@ -98,13 +105,16 @@
 .theme-tusk .banner h1,
 .theme-tusk [class*="hero"] h1,
 .theme-tusk [class*="banner"] h1 {
-  font-family: var(--font-sans) !important;
+  font-family: var(--font-sans, 'Space Grotesk', sans-serif) !important;
   text-transform: uppercase !important;
   font-weight: 800 !important;
   letter-spacing: 0.15em !important;
   color: #FFFFFF !important;
 }
 
+[data-section-key="headline"] p,
+[data-section-key="headline"] .section-contents,
+[data-section-key="headline"] .section-contents p,
 .section-hero p,
 .hero p,
 [data-section-type="hero"] p,
@@ -112,7 +122,7 @@
 .theme-tusk .banner p,
 .theme-tusk [class*="hero"] p,
 .theme-tusk [class*="banner"] p {
-  font-family: var(--font-mono) !important;
+  font-family: var(--font-mono, 'Space Mono', monospace) !important;
   color: rgba(255, 255, 255, 0.6) !important;
 }
 
@@ -427,6 +437,11 @@ h3.title {
 /* --------------------------------------------------------------------------
    5. Fix Squished Native Product Cards & Grid Architecture
    -------------------------------------------------------------------------- */
+#page-section-collection .grid-list,
+[data-section-key="collection"] .grid-list,
+.grid-list.js-grid-list,
+.grid-block .grid-list,
+.grid-list,
 .theme-tusk .collection-products,
 .collection-products,
 .product-list,
@@ -452,6 +467,10 @@ h3.title {
   box-sizing: border-box !important;
 }
 
+div.card-wrapper.product-card-wrapper,
+.card-wrapper.product-card-wrapper,
+.product-card-wrapper,
+.card-wrapper,
 .product-item,
 .payhip-collection-product-item,
 .payhip-product-item,
@@ -494,6 +513,22 @@ h3.title {
   color: inherit !important;
   transition: all 0.25s var(--ease-brutal) !important;
   box-shadow: none !important;
+}
+
+/* Collapse Native Footer Completely */
+[data-section-key="footer"],
+.section-wrapper[data-section-key="footer"],
+div.section-wrapper[data-section-key="footer"],
+div[data-section-key="footer"] {
+  display: none !important;
+  height: 0 !important;
+  min-height: 0 !important;
+  max-height: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+  visibility: hidden !important;
+  border: none !important;
 }
 
 /* Hover States on Native Product Cards */
