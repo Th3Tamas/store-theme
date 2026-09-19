@@ -283,10 +283,10 @@
     position: fixed !important;
     top: 0 !important;
     left: 0 !important;
-    width: 100% !important;
+    width: 100vw !important;
     height: 2px !important;
     background: #FF2A2A !important;
-    z-index: 10000000 !important;
+    z-index: 2147483647 !important;
     transform-origin: 0 0 !important;
     transform: scaleX(0) !important;
     will-change: transform !important;
@@ -305,7 +305,11 @@
         if (!bar) {
           bar = document.createElement('div');
           bar.id = 'sonarline-scroll-progress';
-          document.documentElement.appendChild(bar);
+          if (document.body) {
+            document.body.appendChild(bar);
+          } else {
+            document.documentElement.appendChild(bar);
+          }
         }
       }
       return bar;
@@ -313,9 +317,10 @@
 
     function updateProgress() {
       var progressBar = getBar();
-      var winScroll = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
-      var height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-      var ratio = height > 0 ? Math.min(Math.max(winScroll / height, 0), 1) : 0;
+      var scrollEl = document.scrollingElement || document.documentElement || document.body;
+      var winScroll = window.scrollY || window.pageYOffset || scrollEl.scrollTop || 0;
+      var maxScroll = Math.max(scrollEl.scrollHeight, document.body.scrollHeight, document.documentElement.scrollHeight) - window.innerHeight;
+      var ratio = maxScroll > 0 ? Math.min(Math.max(winScroll / maxScroll, 0), 1) : 0;
       if (progressBar) {
         progressBar.style.transform = 'scaleX(' + ratio + ')';
       }
@@ -330,12 +335,60 @@
     }
 
     if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', requestTick);
+      document.addEventListener('DOMContentLoaded', function() {
+        getBar();
+        requestTick();
+      });
     } else {
+      getBar();
       requestTick();
     }
     window.addEventListener('scroll', requestTick, { passive: true });
     window.addEventListener('resize', requestTick, { passive: true });
+  })();
+
+  // Product Card Image Recovery & Duplicate Title Elimination
+  (function() {
+    function cleanProductCards() {
+      var cards = document.querySelectorAll('.card-wrapper, .product-card');
+      for (var i = 0; i < cards.length; i++) {
+        var card = cards[i];
+        
+        // 1. Hide duplicate inner content inside card__inner
+        var innerContent = card.querySelectorAll('.card__inner .card__content, .card__inner .card__information');
+        for (var j = 0; j < innerContent.length; j++) {
+          innerContent[j].style.setProperty('display', 'none', 'important');
+        }
+
+        // 2. Hide duplicate headings inside card__inner
+        var headings = card.querySelectorAll('.card__heading, h3, h4');
+        if (headings.length > 1) {
+          for (var k = 0; k < headings.length; k++) {
+            if (headings[k].closest('.card__inner')) {
+              headings[k].style.setProperty('display', 'none', 'important');
+            }
+          }
+        }
+
+        // 3. Ensure images are visible, flush, and properly styled
+        var imgs = card.querySelectorAll('img');
+        for (var m = 0; m < imgs.length; m++) {
+          imgs[m].style.setProperty('display', 'block', 'important');
+          imgs[m].style.setProperty('opacity', '1', 'important');
+          imgs[m].style.setProperty('visibility', 'visible', 'important');
+          imgs[m].style.setProperty('object-fit', 'cover', 'important');
+        }
+      }
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', cleanProductCards);
+    } else {
+      cleanProductCards();
+    }
+    setTimeout(cleanProductCards, 300);
+    setTimeout(cleanProductCards, 1000);
+    setTimeout(cleanProductCards, 2500);
   })();
 
   // Header Nav Buttons & Mobile Icons Clean Guard
