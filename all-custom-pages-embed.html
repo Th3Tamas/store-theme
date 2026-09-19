@@ -27,9 +27,13 @@
     </div>
   </div>
 
-  <!-- 2. Hero Unit with Glitch / Scramble Header -->
-  <section class="sonarline-hero-section" style="padding: 3.5rem 2rem 2.25rem; text-align: center; position: relative; border-bottom: 1px solid var(--sl-border); margin-bottom: 32px;">
-    <div style="max-width: 960px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; gap: 1.6rem;">
+  <!-- 2. Hero Unit with Technical Blueprint Grid & Glitch / Scramble Header -->
+  <section class="sonarline-hero-section" style="position: relative; overflow: hidden; padding: 4rem 2rem 2.75rem; text-align: center; border-bottom: 1px solid var(--sl-border); margin-bottom: 32px; background: #0A0A0A;">
+    
+    <!-- Animated / Parallax Scrolling Blueprint Grid Canvas -->
+    <div class="sonarline-hero-grid-canvas" style="position: absolute; top: -50%; left: 0; right: 0; bottom: -50%; pointer-events: none; z-index: 1; background-image: linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px), linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px); background-size: 50px 50px; background-position: center center; will-change: transform, filter, opacity;"></div>
+
+    <div class="sonarline-hero-content" style="max-width: 960px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; gap: 1.6rem; position: relative; z-index: 2; will-change: transform, filter, opacity;">
       
       <!-- System Status Pill -->
       <div style="display: inline-flex; align-items: center; gap: 10px; font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.16em; color: var(--sl-red); background: var(--sl-red-dim); border: 1px solid var(--sl-border-red); padding: 5px 16px;">
@@ -69,43 +73,69 @@
 
 </div>
 
-<!-- Glitch / Scramble Text Effect Script -->
+<!-- Glitch / Scramble Text Effect & Parallax Scroll Script -->
 <script>
 (function() {
   var titleEl = document.getElementById('sonarline-glitch-title');
-  if (!titleEl) return;
+  if (titleEl) {
+    var chars = '!<>-_\\/[]{}—=+*^?#________';
+    var targetText = titleEl.getAttribute('data-value') || 'SONARLINE // ARCHIVE';
+    var iteration = 0;
+    var interval = null;
 
-  var chars = '!<>-_\\/[]{}—=+*^?#________';
-  var targetText = titleEl.getAttribute('data-value') || 'SONARLINE // ARCHIVE';
-  var iteration = 0;
-  var interval = null;
+    function runScramble() {
+      iteration = 0;
+      clearInterval(interval);
+      interval = setInterval(function() {
+        titleEl.innerText = targetText.split('').map(function(letter, index) {
+          if (index < iteration) {
+            return targetText[index];
+          }
+          return chars[Math.floor(Math.random() * chars.length)];
+        }).join('');
 
-  function runScramble() {
-    iteration = 0;
-    clearInterval(interval);
-    interval = setInterval(function() {
-      titleEl.innerText = targetText.split('').map(function(letter, index) {
-        if (index < iteration) {
-          return targetText[index];
+        if (iteration >= targetText.length) {
+          clearInterval(interval);
         }
-        return chars[Math.floor(Math.random() * chars.length)];
-      }).join('');
+        iteration += 1 / 3;
+      }, 28);
+    }
 
-      if (iteration >= targetText.length) {
-        clearInterval(interval);
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', runScramble);
+    } else {
+      runScramble();
+    }
+
+    titleEl.addEventListener('mouseenter', runScramble);
+  }
+
+  // Parallax / Scroll Reaction on Blueprint Grid & Hero Content
+  var heroGrid = document.querySelector('.sonarline-hero-grid-canvas');
+  var heroContent = document.querySelector('.sonarline-hero-content');
+  if (heroGrid && heroContent) {
+    var ticking = false;
+    window.addEventListener('scroll', function() {
+      if (!ticking) {
+        window.requestAnimationFrame(function() {
+          var scrollY = window.pageYOffset || document.documentElement.scrollTop;
+          if (scrollY < 0) scrollY = 0;
+          var translateY = scrollY * 0.4;
+          var blurVal = Math.min(scrollY / 30, 10);
+          var opacityVal = Math.max(1 - (scrollY / 400), 0);
+
+          heroGrid.style.transform = 'translate3d(0, ' + translateY + 'px, 0)';
+          heroGrid.style.filter = 'blur(' + blurVal + 'px)';
+          heroGrid.style.opacity = opacityVal;
+
+          heroContent.style.transform = 'translate3d(0, ' + (scrollY * 0.2) + 'px, 0)';
+          heroContent.style.filter = 'blur(' + (blurVal * 0.7) + 'px)';
+          heroContent.style.opacity = opacityVal;
+          ticking = false;
+        });
+        ticking = true;
       }
-      iteration += 1 / 3;
-    }, 28);
+    }, { passive: true });
   }
-
-  // Trigger once on DOM load
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', runScramble);
-  } else {
-    runScramble();
-  }
-
-  // Also trigger on hover for interactive tactile feel
-  titleEl.addEventListener('mouseenter', runScramble);
 })();
 </script>

@@ -120,3 +120,32 @@
     }, 1250);
   })();
 </script>
+
+<!-- Top Red Scroll Indicator (Storewide) -->
+<div id="sonarline-scroll-progress"></div>
+<style>
+  #sonarline-scroll-progress {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    height: 2px !important;
+    background: #FF2A2A !important;
+    z-index: 100000 !important;
+    width: 0%;
+    pointer-events: none !important;
+    transition: width 0.05s ease-out;
+  }
+</style>
+<script>
+  (function() {
+    function updateScrollProgress() {
+      var winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+      var height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+      var scrolled = height > 0 ? (winScroll / height) * 100 : 0;
+      var bar = document.getElementById('sonarline-scroll-progress');
+      if (bar) bar.style.width = scrolled + '%';
+    }
+    window.addEventListener('scroll', updateScrollProgress, { passive: true });
+    window.addEventListener('resize', updateScrollProgress, { passive: true });
+  })();
+</script>

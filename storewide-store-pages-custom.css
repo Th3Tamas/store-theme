@@ -29,6 +29,44 @@
 }
 
 /* --------------------------------------------------------------------------
+   Top Red Scroll Indicator (Storewide)
+   -------------------------------------------------------------------------- */
+#sonarline-scroll-progress {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  height: 2px !important;
+  background: #FF2A2A !important;
+  z-index: 100000 !important;
+  width: 0%;
+  pointer-events: none !important;
+  transition: width 0.05s ease-out;
+}
+
+/* --------------------------------------------------------------------------
+   Hide Native Payhip Mountain Banner / Scenery Images
+   -------------------------------------------------------------------------- */
+.banner,
+.banner-image,
+.banner-container,
+.header-banner,
+.home-banner,
+.store-banner,
+.theme-tusk .banner,
+.theme-tusk .banner-image,
+.theme-tusk .banner-container,
+[class*="banner"] img,
+.banner img,
+.header-banner img {
+  display: none !important;
+  height: 0 !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: none !important;
+}
+
+/* --------------------------------------------------------------------------
    2. Blueprint Background Grid Matrix & Global Reset
    -------------------------------------------------------------------------- */
 *, *::before, *::after {
@@ -248,17 +286,19 @@ h3.title {
 }
 
 /* --------------------------------------------------------------------------
-   5. Native Product Grid & Product Cards
+   5. Fix Squished Native Product Cards & Grid Architecture
    -------------------------------------------------------------------------- */
-/* Grid Container */
-.products-grid,
-.product-grid,
-.products-list,
 .product-list,
+.payhip-product-list,
+.product-grid,
+.products-grid,
 .product-items,
 .collection-products,
 .store-products,
 .theme-products,
+.theme-tusk .collection-products,
+.theme-tusk .grid,
+.theme-tusk .product-list,
 [class*="product-grid"],
 [class*="products-grid"],
 [class*="product-list"],
@@ -266,19 +306,21 @@ h3.title {
 [class*="products-container"],
 [class*="product-items"] {
   display: grid !important;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)) !important;
-  gap: 1.75rem !important;
-  max-width: 1280px !important;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)) !important;
+  gap: 24px !important;
+  width: 100% !important;
+  max-width: 1200px !important;
   margin: 0 auto 4rem !important;
-  padding: 0 2rem !important;
+  padding: 0 20px !important;
+  box-sizing: border-box !important;
 }
 
-/* Native Product Card Containers */
-.product-card,
 .product-item,
+.payhip-collection-product-item,
+.payhip-product-item,
+.product-card,
 .product-wrap,
 .product-holder,
-.payhip-product-item,
 .payhip-product,
 .payhip-item,
 .display-product,
@@ -289,18 +331,23 @@ h3.title {
 [class*="product-item"],
 [class*="product-card"],
 [class*="product-holder"],
-/* Direct child cards in Payhip grids */
 .product-grid > div,
 .products-grid > div,
 .product-list > div,
 .products-list > div,
 .collection-products > div,
+.theme-tusk .grid > div,
 [class*="products-grid"] > div,
 [class*="product-grid"] > div {
-  background-color: var(--sl-bg-card) !important;
-  border: 1px solid var(--sl-border) !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  flex: none !important;
+  box-sizing: border-box !important;
+  background: #101010 !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
   border-radius: 0px !important;
-  padding: 1.25rem !important;
+  padding: 16px !important;
   display: flex !important;
   flex-direction: column !important;
   position: relative !important;
@@ -314,6 +361,7 @@ h3.title {
 /* Hover States on Native Product Cards */
 .product-card:hover,
 .product-item:hover,
+.payhip-collection-product-item:hover,
 .product-wrap:hover,
 .product-holder:hover,
 .payhip-product-item:hover,
@@ -334,6 +382,7 @@ h3.title {
 /* Native Product Image Frame */
 .product-card img,
 .product-item img,
+.payhip-collection-product-item img,
 .product-wrap img,
 .product-holder img,
 .payhip-product-item img,
@@ -343,6 +392,7 @@ h3.title {
 [class*="product-thumb"] img,
 [class*="product"] img {
   width: 100% !important;
+  height: auto !important;
   aspect-ratio: 1 / 1 !important;
   object-fit: cover !important;
   border-radius: 0px !important;
