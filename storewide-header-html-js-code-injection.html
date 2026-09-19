@@ -605,10 +605,19 @@
   // Native Hero Enhancement: Status Pill, Glitch Title Scramble, Subtitle Red Bullets, Terminal Prompt
   (function() {
     function enhanceNativeHero() {
-      // Clean up any lingering post-added embed hero sections
-      var postHeroes = document.querySelectorAll('.sonarline-hero-section');
-      for (var p = 0; p < postHeroes.length; p++) {
-        postHeroes[p].remove();
+      // Clean up old embedded hero sections and their parent Payhip wrappers
+      var embeds = document.querySelectorAll('.sonarline-hero-section, .sonarline-homepage-experience');
+      for (var p = 0; p < embeds.length; p++) {
+        // Also hide the closest Payhip section wrapper containing the embed
+        var payhipWrap = embeds[p].closest('.section-wrapper, [data-section-key], [data-section-type]');
+        if (payhipWrap && !payhipWrap.getAttribute('data-section-key')) {
+          payhipWrap.style.setProperty('display', 'none', 'important');
+          payhipWrap.style.setProperty('height', '0', 'important');
+          payhipWrap.style.setProperty('overflow', 'hidden', 'important');
+        }
+        embeds[p].style.setProperty('display', 'none', 'important');
+        embeds[p].style.setProperty('height', '0', 'important');
+        try { embeds[p].remove(); } catch(e) {}
       }
 
       var heroContents = document.querySelector('[data-section-key="headline"] .section-contents, #content-section-LBNmnP42zK .section-contents, .section-hero .section-contents');
