@@ -193,8 +193,26 @@ header svg {
 }
 
 /* --------------------------------------------------------------------------
-   4. Native Section Headings ("All Products", "Collections", etc.)
+   4. Native Section Headings & Spacing Clamps
    -------------------------------------------------------------------------- */
+/* Hero embed vertical spacing clamp */
+.sonarline-homepage-experience,
+.sonarline-hero-section {
+  margin-bottom: 32px !important;
+}
+
+/* Tighten native product section & wrapper top spacing */
+#all-products,
+.payhip-product-list,
+.payhip-store-content-wrapper,
+.product-collection-wrapper,
+.products-wrapper,
+[id*="product"],
+[class*="product-wrap-outer"] {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+
 .section-header,
 .section-title,
 .collection-title,
@@ -212,7 +230,7 @@ h3.title {
   text-transform: uppercase !important;
   color: var(--sl-white) !important;
   text-align: center !important;
-  margin: 3.5rem auto 2rem !important;
+  margin: 1.25rem auto 1.5rem !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
@@ -251,7 +269,7 @@ h3.title {
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)) !important;
   gap: 1.75rem !important;
   max-width: 1280px !important;
-  margin: 2rem auto 5rem !important;
+  margin: 0 auto 4rem !important;
   padding: 0 2rem !important;
 }
 
