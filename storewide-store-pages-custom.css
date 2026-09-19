@@ -372,7 +372,10 @@ img[src*="mountain"],
   order: 4 !important;
 }
 
-/* Completely hide any post-added embed hero sections and their parent wrappers */
+/* Completely hide any post-added embed hero sections, embed-code sections, and their parent wrappers */
+[data-section-key="embed-code"],
+#content-section-yBbkPa6OGD,
+#remote-custom-embed,
 .sonarline-hero-section,
 .sonarline-homepage-experience {
   display: none !important;
@@ -1555,7 +1558,7 @@ html, body {
 .ticker svg,
 .ticker-measure {
   max-width: 100vw !important;
-  overflow: hidden !important;
+  overflow: visible !important;
 }
 
 /* 6. Product Card Single Exterior Border & Flush Edge-to-Edge Media (Cascade Winner) */

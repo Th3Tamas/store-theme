@@ -464,6 +464,147 @@
     setTimeout(cleanProductCards, 3000);
   })();
 
+  // ==========================================================================
+  // Immediate UI Stabilization: Gap Elimination, Ticker Overflow & Glow
+  // (Injected dynamically to bypass jsDelivr CDN caching delays)
+  // ==========================================================================
+  (function() {
+    function injectImmediateStyles() {
+      var styleId = 'sonarline-immediate-critical-overrides';
+      if (!document.getElementById(styleId)) {
+        var styleTag = document.createElement('style');
+        styleTag.id = styleId;
+        styleTag.textContent = [
+          '/* 1. Eliminate gap between navbar and ticker */',
+          '[data-section-key="embed-code"],',
+          '#content-section-yBbkPa6OGD,',
+          '#remote-custom-embed,',
+          '.sonarline-hero-section,',
+          '.sonarline-homepage-experience {',
+          '  display: none !important;',
+          '  height: 0 !important;',
+          '  min-height: 0 !important;',
+          '  max-height: 0 !important;',
+          '  padding: 0 !important;',
+          '  margin: 0 !important;',
+          '  border: none !important;',
+          '  overflow: hidden !important;',
+          '  visibility: hidden !important;',
+          '  pointer-events: none !important;',
+          '}',
+          '/* 2. Ticker container with glowing borders & breathing room */',
+          '[data-section-key="ticker"],',
+          '#content-section-QW9Kn45mB6,',
+          '.announcement-bar,',
+          '.theme-tusk .marquee,',
+          '.marquee {',
+          '  background-color: #080808 !important;',
+          '  border-top: 1px solid #FF2A2A !important;',
+          '  border-bottom: 1px solid #FF2A2A !important;',
+          '  box-shadow: 0 -2px 10px rgba(255, 42, 42, 0.4), 0 2px 10px rgba(255, 42, 42, 0.4) !important;',
+          '  padding-top: 10px !important;',
+          '  padding-bottom: 14px !important;',
+          '  margin-top: 0 !important;',
+          '  margin-bottom: 0 !important;',
+          '  overflow-x: hidden !important;',
+          '  overflow-y: visible !important;',
+          '}',
+          '/* 3. Allow SVG to overflow vertically so text is never cut in half */',
+          '[data-section-key="ticker"] svg,',
+          '.ticker svg,',
+          '.js-ticker-svg,',
+          '.ticker-display,',
+          '.js-ticker-svg-wrapper,',
+          '.ticker-measure {',
+          '  overflow: visible !important;',
+          '  filter: drop-shadow(0 0 4px rgba(255, 42, 42, 0.35)) !important;',
+          '}',
+          '/* 4. Ticker text with subtle refined glow */',
+          '[data-section-key="ticker"] text,',
+          '[data-section-key="ticker"] tspan,',
+          '[data-section-key="ticker"] textPath,',
+          '.ticker text,',
+          '.ticker tspan {',
+          '  fill: #FF2A2A !important;',
+          '  color: #FF2A2A !important;',
+          '  text-shadow: 0 0 4px rgba(255, 42, 42, 0.4) !important;',
+          '  filter: none !important;',
+          '}'
+        ].join('\n');
+        (document.head || document.documentElement).appendChild(styleTag);
+      }
+    }
+
+    function applyDOMFixes() {
+      // Hide embed code section (the 297px gap)
+      var embeds = document.querySelectorAll(
+        '[data-section-key="embed-code"], #content-section-yBbkPa6OGD, #remote-custom-embed, .sonarline-hero-section, .sonarline-homepage-experience'
+      );
+      for (var i = 0; i < embeds.length; i++) {
+        var em = embeds[i];
+        em.style.setProperty('display', 'none', 'important');
+        em.style.setProperty('height', '0px', 'important');
+        em.style.setProperty('min-height', '0px', 'important');
+        em.style.setProperty('max-height', '0px', 'important');
+        em.style.setProperty('padding', '0px', 'important');
+        em.style.setProperty('margin', '0px', 'important');
+        em.style.setProperty('border', 'none', 'important');
+        em.style.setProperty('overflow', 'hidden', 'important');
+        em.style.setProperty('visibility', 'hidden', 'important');
+        em.style.setProperty('pointer-events', 'none', 'important');
+      }
+
+      // Restore ticker SVG and container
+      var tickerWrappers = document.querySelectorAll(
+        '[data-section-key="ticker"], #content-section-QW9Kn45mB6, .announcement-bar, .marquee, .ticker'
+      );
+      for (var t = 0; t < tickerWrappers.length; t++) {
+        var tw = tickerWrappers[t];
+        tw.style.setProperty('margin-top', '0px', 'important');
+        tw.style.setProperty('margin-bottom', '0px', 'important');
+        tw.style.setProperty('padding-top', '10px', 'important');
+        tw.style.setProperty('padding-bottom', '14px', 'important');
+        tw.style.setProperty('overflow-x', 'hidden', 'important');
+        tw.style.setProperty('overflow-y', 'visible', 'important');
+        tw.style.setProperty('border-top', '1px solid #FF2A2A', 'important');
+        tw.style.setProperty('border-bottom', '1px solid #FF2A2A', 'important');
+        tw.style.setProperty('box-shadow', '0 -2px 10px rgba(255, 42, 42, 0.4), 0 2px 10px rgba(255, 42, 42, 0.4)', 'important');
+        tw.style.setProperty('background-color', '#080808', 'important');
+      }
+
+      var svgs = document.querySelectorAll(
+        '[data-section-key="ticker"] svg, .ticker svg, .js-ticker-svg, .ticker-display, .js-ticker-svg-wrapper, .ticker-measure'
+      );
+      for (var s = 0; s < svgs.length; s++) {
+        svgs[s].style.setProperty('overflow', 'visible', 'important');
+        svgs[s].style.setProperty('filter', 'drop-shadow(0 0 4px rgba(255, 42, 42, 0.35))', 'important');
+      }
+
+      var texts = document.querySelectorAll(
+        '[data-section-key="ticker"] text, [data-section-key="ticker"] tspan, [data-section-key="ticker"] textPath, .ticker text, .ticker tspan'
+      );
+      for (var x = 0; x < texts.length; x++) {
+        texts[x].style.setProperty('fill', '#FF2A2A', 'important');
+        texts[x].style.setProperty('color', '#FF2A2A', 'important');
+        texts[x].style.setProperty('text-shadow', '0 0 4px rgba(255, 42, 42, 0.4)', 'important');
+      }
+    }
+
+    injectImmediateStyles();
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', function() {
+        injectImmediateStyles();
+        applyDOMFixes();
+      });
+    } else {
+      applyDOMFixes();
+    }
+    setTimeout(function() { injectImmediateStyles(); applyDOMFixes(); }, 50);
+    setTimeout(function() { injectImmediateStyles(); applyDOMFixes(); }, 200);
+    setTimeout(function() { injectImmediateStyles(); applyDOMFixes(); }, 600);
+    setTimeout(function() { injectImmediateStyles(); applyDOMFixes(); }, 1500);
+    setTimeout(function() { injectImmediateStyles(); applyDOMFixes(); }, 3000);
+  })();
 
   // Header Nav Buttons & Mobile Icons Clean Guard
   (function() {
@@ -605,19 +746,21 @@
   // Native Hero Enhancement: Status Pill, Glitch Title Scramble, Subtitle Red Bullets, Terminal Prompt
   (function() {
     function enhanceNativeHero() {
-      // Clean up old embedded hero sections and their parent Payhip wrappers
-      var embeds = document.querySelectorAll('.sonarline-hero-section, .sonarline-homepage-experience');
+      // Clean up old embedded hero sections, embed-code section, and remote custom embed
+      var embeds = document.querySelectorAll(
+        '[data-section-key="embed-code"], #content-section-yBbkPa6OGD, #remote-custom-embed, .sonarline-hero-section, .sonarline-homepage-experience'
+      );
       for (var p = 0; p < embeds.length; p++) {
-        // Also hide the closest Payhip section wrapper containing the embed
-        var payhipWrap = embeds[p].closest('.section-wrapper, [data-section-key], [data-section-type]');
-        if (payhipWrap && !payhipWrap.getAttribute('data-section-key')) {
-          payhipWrap.style.setProperty('display', 'none', 'important');
-          payhipWrap.style.setProperty('height', '0', 'important');
-          payhipWrap.style.setProperty('overflow', 'hidden', 'important');
-        }
         embeds[p].style.setProperty('display', 'none', 'important');
-        embeds[p].style.setProperty('height', '0', 'important');
-        try { embeds[p].remove(); } catch(e) {}
+        embeds[p].style.setProperty('height', '0px', 'important');
+        embeds[p].style.setProperty('min-height', '0px', 'important');
+        embeds[p].style.setProperty('max-height', '0px', 'important');
+        embeds[p].style.setProperty('padding', '0px', 'important');
+        embeds[p].style.setProperty('margin', '0px', 'important');
+        embeds[p].style.setProperty('border', 'none', 'important');
+        embeds[p].style.setProperty('overflow', 'hidden', 'important');
+        embeds[p].style.setProperty('visibility', 'hidden', 'important');
+        embeds[p].style.setProperty('pointer-events', 'none', 'important');
       }
 
       var heroContents = document.querySelector('[data-section-key="headline"] .section-contents, #content-section-LBNmnP42zK .section-contents, .section-hero .section-contents');
