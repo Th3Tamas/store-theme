@@ -149,7 +149,7 @@
     window.addEventListener('resize', updateScrollProgress, { passive: true });
   })();
 
-  // Header Nav Buttons Deduplication & Ordering Guard
+  // Header Nav Buttons & Mobile Icons Clean Guard
   (function() {
     function cleanHeaderButtons() {
       // 1. Hide mobile header icons on desktop
@@ -174,20 +174,18 @@
         }
       }
 
-      // 3. Deduplicate Search Buttons
-      var searchItems = document.querySelectorAll('header .live-search-button-search, header a[href*="search"], header [class*="search-btn"], header [class*="search-icon"], header .search-wrap');
-      if (searchItems.length > 1) {
-        for (var i = 1; i < searchItems.length; i++) {
-          searchItems[i].style.setProperty('display', 'none', 'important');
-        }
+      // 3. Ensure Cart and Action Buttons remain fully visible and operational
+      var cartButtons = document.querySelectorAll('.header-cart-icon-button, .header-actions .cart-wrap');
+      for (var c = 0; c < cartButtons.length; c++) {
+        cartButtons[c].style.removeProperty('display');
+        cartButtons[c].style.setProperty('visibility', 'visible', 'important');
+        cartButtons[c].style.setProperty('opacity', '1', 'important');
       }
 
-      // 4. Deduplicate Cart Buttons
-      var cartItems = document.querySelectorAll('header .header-cart-icon-button, header a[href*="cart"], header [class*="cart-btn"], header [class*="cart-icon"], header .cart-wrap');
-      if (cartItems.length > 1) {
-        for (var j = 1; j < cartItems.length; j++) {
-          cartItems[j].style.setProperty('display', 'none', 'important');
-        }
+      // 4. Hide duplicate desktop search if both full search form and icon button are present outside nav
+      var navSearchLinks = document.querySelectorAll('.header-nav a[href*="search"], .navbar-nav a[href*="search"]');
+      for (var s = 0; s < navSearchLinks.length; s++) {
+        navSearchLinks[s].style.setProperty('display', 'none', 'important');
       }
     }
 
@@ -202,18 +200,24 @@
     window.addEventListener('resize', cleanHeaderButtons);
   })();
 
-  // Native Hero Scroll Blur & Opacity Effect
+  // Unconditionally Nuke Mountain Images Across All Browsers
   (function() {
-    function updateHeroScroll() {
-      var heroEl = document.querySelector('[data-section-key="headline"], .section-hero, .hero, [data-section-type="hero"], .theme-tusk .banner, .theme-tusk .hero');
-      if (!heroEl) return;
-      var scrollY = window.pageYOffset || document.documentElement.scrollTop;
-      if (scrollY < 0) scrollY = 0;
-      var blurVal = scrollY * 0.03;
-      var opacityVal = Math.max(1 - scrollY / 400, 0);
-      heroEl.style.filter = 'blur(' + blurVal + 'px)';
-      heroEl.style.opacity = opacityVal;
+    function nukeMountainImages() {
+      var imgs = document.querySelectorAll('.section-hero img, .hero-banner img, .hero img, [data-section-type="hero"] img, .theme-tusk .hero-media img, .hero__image, [data-section-key="headline"] .section-background-image, [data-section-key="headline"] .section-background img, [data-section-key="headline"] img, .section-background-image, img.section-background-image, img[src*="mountain"]');
+      for (var i = 0; i < imgs.length; i++) {
+        imgs[i].style.setProperty('display', 'none', 'important');
+        imgs[i].style.setProperty('visibility', 'hidden', 'important');
+        imgs[i].style.setProperty('opacity', '0', 'important');
+        imgs[i].style.setProperty('height', '0px', 'important');
+        imgs[i].style.setProperty('width', '0px', 'important');
+      }
     }
-    window.addEventListener('scroll', updateHeroScroll, { passive: true });
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', nukeMountainImages);
+    } else {
+      nukeMountainImages();
+    }
+    setTimeout(nukeMountainImages, 300);
+    setTimeout(nukeMountainImages, 1000);
   })();
 </script>

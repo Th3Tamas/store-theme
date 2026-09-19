@@ -46,14 +46,19 @@
 /* --------------------------------------------------------------------------
    Native Hero Section Skinning & Blueprint Grid Matrix
    -------------------------------------------------------------------------- */
-/* Target the native hero image and container */
+/* Completely hide native hero img element across all browsers (Firefox, Chrome, Safari, Edge) */
+.section-hero img,
+.hero-banner img,
+.hero img,
+[data-section-type="hero"] img,
+.theme-tusk .hero-media img,
+.hero__image,
 [data-section-key="headline"] .section-background-image,
 [data-section-key="headline"] .section-background img,
 [data-section-key="headline"] img,
-.section-hero img,
-.hero-banner img,
-.hero-image,
-.theme-tusk .hero-media,
+.section-background-image,
+img.section-background-image,
+img[src*="mountain"],
 .theme-tusk .banner-image,
 .theme-tusk .banner img,
 [class*="banner"] img,
@@ -61,11 +66,16 @@
 .header-banner img {
   display: none !important;
   visibility: hidden !important;
+  opacity: 0 !important;
   height: 0 !important;
-  min-height: 0 !important;
+  width: 0 !important;
+  max-height: 0 !important;
+  max-width: 0 !important;
   padding: 0 !important;
   margin: 0 !important;
   border: none !important;
+  pointer-events: none !important;
+  position: absolute !important;
 }
 
 [data-section-key="headline"],
@@ -139,6 +149,40 @@
 .collection-card, .collection-item, .theme-card, .theme-product,
 input, textarea, select, button, .btn, .payhip-btn, [class*="card"] {
   border-radius: 0px !important;
+}
+
+/* Eliminate Horizontal Overflow across all containers */
+html,
+body,
+#app,
+.theme-tusk,
+.main-content,
+#main,
+.main,
+.main-wrapper,
+.store-wrapper,
+.page-wrapper,
+.content-main-wrapper {
+  overflow-x: hidden !important;
+  max-width: 100vw !important;
+  box-sizing: border-box !important;
+}
+
+/* Header and section overflow guards */
+header,
+#header,
+.header-outer,
+.header-inner,
+.section-wrapper,
+[data-section-key="ticker"] {
+  max-width: 100vw !important;
+  overflow-x: hidden !important;
+  box-sizing: border-box !important;
+}
+
+.live-search-results {
+  max-width: calc(100vw - 32px) !important;
+  right: 16px !important;
 }
 
 html, body {
@@ -359,11 +403,36 @@ nav.navbar a[href*="cart"] {
 .header-icons svg,
 .cart-icon svg,
 .payhip-cart-icon svg,
+.header-login-icon-link svg,
+.live-search-button-search svg,
+.header-cart-icon-button svg,
 header svg {
-  stroke: var(--sl-white) !important;
-  fill: none !important;
+  fill: currentColor !important;
+  stroke: none !important;
+  color: #ffffff !important;
   width: 18px !important;
   height: 18px !important;
+  display: inline-block !important;
+  vertical-align: middle !important;
+}
+
+.header-actions svg path,
+.header-icons svg path,
+header svg path {
+  fill: currentColor !important;
+}
+
+/* Ensure nav action buttons remain visible and properly aligned */
+.header-cart-icon-button,
+.header-login-icon-link,
+.live-search-button-search {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: #ffffff !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  cursor: pointer !important;
 }
 
 .cart-count,
