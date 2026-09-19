@@ -492,22 +492,31 @@
           '  visibility: hidden !important;',
           '  pointer-events: none !important;',
           '}',
-          '/* 2. Ticker container with glowing borders & breathing room */',
+          '/* 2. Ticker container with single glowing hairline border (outermost only) */',
           '[data-section-key="ticker"],',
-          '#content-section-QW9Kn45mB6,',
-          '.announcement-bar,',
-          '.theme-tusk .marquee,',
-          '.marquee {',
+          '#content-section-QW9Kn45mB6 {',
           '  background-color: #080808 !important;',
           '  border-top: 1px solid #FF2A2A !important;',
           '  border-bottom: 1px solid #FF2A2A !important;',
-          '  box-shadow: 0 -2px 10px rgba(255, 42, 42, 0.4), 0 2px 10px rgba(255, 42, 42, 0.4) !important;',
+          '  box-shadow: 0 -2px 8px rgba(255, 42, 42, 0.4), 0 2px 8px rgba(255, 42, 42, 0.4) !important;',
           '  padding-top: 10px !important;',
           '  padding-bottom: 14px !important;',
           '  margin-top: 0 !important;',
           '  margin-bottom: 0 !important;',
           '  overflow-x: hidden !important;',
           '  overflow-y: visible !important;',
+          '}',
+          '/* Remove borders from inner ticker elements to prevent double border */',
+          '[data-section-key="ticker"] .ticker,',
+          '[data-section-key="ticker"] .marquee,',
+          '[data-section-key="ticker"] .ticker-display,',
+          '[data-section-key="ticker"] .js-ticker-svg-wrapper,',
+          '.ticker,',
+          '.marquee {',
+          '  border: none !important;',
+          '  border-top: none !important;',
+          '  border-bottom: none !important;',
+          '  box-shadow: none !important;',
           '}',
           '/* 3. Allow SVG to overflow vertically so text is never cut in half */',
           '[data-section-key="ticker"] svg,',
@@ -554,12 +563,12 @@
         em.style.setProperty('pointer-events', 'none', 'important');
       }
 
-      // Restore ticker SVG and container
-      var tickerWrappers = document.querySelectorAll(
-        '[data-section-key="ticker"], #content-section-QW9Kn45mB6, .announcement-bar, .marquee, .ticker'
+      // Outer ticker wrapper ONLY receives the single border
+      var outerTickers = document.querySelectorAll(
+        '[data-section-key="ticker"], #content-section-QW9Kn45mB6'
       );
-      for (var t = 0; t < tickerWrappers.length; t++) {
-        var tw = tickerWrappers[t];
+      for (var t = 0; t < outerTickers.length; t++) {
+        var tw = outerTickers[t];
         tw.style.setProperty('margin-top', '0px', 'important');
         tw.style.setProperty('margin-bottom', '0px', 'important');
         tw.style.setProperty('padding-top', '10px', 'important');
@@ -568,8 +577,19 @@
         tw.style.setProperty('overflow-y', 'visible', 'important');
         tw.style.setProperty('border-top', '1px solid #FF2A2A', 'important');
         tw.style.setProperty('border-bottom', '1px solid #FF2A2A', 'important');
-        tw.style.setProperty('box-shadow', '0 -2px 10px rgba(255, 42, 42, 0.4), 0 2px 10px rgba(255, 42, 42, 0.4)', 'important');
+        tw.style.setProperty('box-shadow', '0 -2px 8px rgba(255, 42, 42, 0.4), 0 2px 8px rgba(255, 42, 42, 0.4)', 'important');
         tw.style.setProperty('background-color', '#080808', 'important');
+      }
+
+      // Inner ticker elements: strip all borders to eliminate double-border
+      var innerTickers = document.querySelectorAll(
+        '[data-section-key="ticker"] .ticker, [data-section-key="ticker"] .marquee, [data-section-key="ticker"] .ticker-display, [data-section-key="ticker"] .js-ticker-svg-wrapper, .ticker, .marquee'
+      );
+      for (var it = 0; it < innerTickers.length; it++) {
+        innerTickers[it].style.setProperty('border', 'none', 'important');
+        innerTickers[it].style.setProperty('border-top', 'none', 'important');
+        innerTickers[it].style.setProperty('border-bottom', 'none', 'important');
+        innerTickers[it].style.setProperty('box-shadow', 'none', 'important');
       }
 
       var svgs = document.querySelectorAll(
