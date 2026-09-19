@@ -1,71 +1,73 @@
 /* ==========================================================================
-   SONARLINE // ARCHIVE - TECHNICAL BRUTALIST STORE DESIGN SYSTEM
-   Boutique Hardware Sound Lab & Audio Architecture Theme
-   Target: Payhip Storefront (sonarlineaudio.space / payhip.com/sonarlineaudio)
+   SONARLINE // ARCHIVE - TECHNICAL BRUTALIST NATIVE STORE OVERRIDES
+   Target: Native Payhip Elements (sonarlineaudio.space / payhip.com/sonarlineaudio)
    ========================================================================== */
 
 /* --------------------------------------------------------------------------
-   1. Design Tokens & CSS Variables
+   1. Design Tokens & Root Variables
    -------------------------------------------------------------------------- */
 :root {
   --sl-bg: #080808;
-  --sl-bg-elevated: #111111;
-  --sl-bg-card: #121212;
-  --sl-bg-card-hover: #171717;
-  --sl-bg-translucent: rgba(12, 12, 12, 0.9);
+  --sl-bg-card: #0F0F0F;
+  --sl-bg-card-hover: #151515;
 
   --sl-border: rgba(255, 255, 255, 0.08);
   --sl-border-light: rgba(255, 255, 255, 0.16);
-  --sl-border-hover: rgba(255, 255, 255, 0.28);
+  --sl-border-hover: rgba(255, 255, 255, 0.25);
   --sl-border-red: rgba(255, 59, 48, 0.45);
 
   --sl-red: #ff3b30;
   --sl-red-hover: #ff5247;
-  --sl-red-dim: rgba(255, 59, 48, 0.12);
-
   --sl-white: #f5f5f5;
-  --sl-text-primary: #ececec;
   --sl-text-secondary: #8e8e8e;
   --sl-text-muted: #555555;
 
   --font-sans: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'Space Mono', 'JetBrains Mono', monospace;
-  --font-display: 'Space Grotesk', 'Syne', sans-serif;
 
   --ease-brutal: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* --------------------------------------------------------------------------
-   2. Blueprint Background Grid & Global Reset
+   2. Blueprint Background Grid Matrix & Global Reset
    -------------------------------------------------------------------------- */
 *, *::before, *::after {
   box-sizing: border-box;
 }
 
-/* Strict 0px sharp corners across all store elements */
-*, .product-card, .product-item, .payhip-product-item,
-input, textarea, select, button, .btn {
+/* Force strict 0px sharp corners across all Payhip store elements */
+*, 
+.product-card, .product-item, .product-wrap, .payhip-product-item,
+.collection-card, .collection-item, .theme-card, .theme-product,
+input, textarea, select, button, .btn, .payhip-btn, [class*="card"] {
   border-radius: 0px !important;
 }
 
-html {
+html, body {
   background-color: #080808 !important;
-  color: var(--sl-text-primary) !important;
+  color: var(--sl-white) !important;
   font-family: var(--font-sans) !important;
   letter-spacing: -0.01em;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-body {
-  background-color: #080808 !important;
-  color: var(--sl-text-primary) !important;
-  font-family: var(--font-sans) !important;
   margin: 0;
   padding: 0;
   min-height: 100vh;
-  position: relative;
-  /* Blueprint Background Grid */
+}
+
+/* Blueprint Background Grid Matrix on Body & Main Wrappers */
+body,
+#main,
+.main,
+.main-wrapper,
+.store-wrapper,
+.page-wrapper,
+.container,
+.view-page,
+.theme-wrapper,
+.store-content,
+.content-wrapper,
+[class*="page-wrap"],
+[class*="store-wrap"] {
+  background-color: #080808 !important;
   background-image: 
     linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px) !important;
@@ -84,7 +86,7 @@ body {
   height: 5px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--sl-bg);
+  background: #080808;
   border-left: 1px solid var(--sl-border);
 }
 ::-webkit-scrollbar-thumb {
@@ -95,7 +97,7 @@ body {
 }
 
 /* --------------------------------------------------------------------------
-   3. Store Header & Navigation
+   3. Native Store Header & Navigation
    -------------------------------------------------------------------------- */
 .header,
 .site-header,
@@ -103,7 +105,9 @@ body {
 .payhip-header,
 .store-header,
 nav.navbar,
-header {
+header,
+[class*="site-header"],
+[class*="store-header"] {
   background-color: rgba(8, 8, 8, 0.95) !important;
   backdrop-filter: blur(12px) !important;
   border-bottom: 1px solid var(--sl-border) !important;
@@ -114,47 +118,24 @@ header {
   box-shadow: none !important;
 }
 
-.header .logo,
-.site-header .logo,
-.store-logo,
-.brand-logo {
-  font-family: var(--font-sans) !important;
-  font-weight: 700 !important;
-  font-size: 1.15rem !important;
-  letter-spacing: 0.18em !important;
-  text-transform: uppercase !important;
-  color: var(--sl-white) !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  gap: 8px !important;
-  text-decoration: none !important;
-}
-
-.store-logo-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 3px 8px;
-  border: 1px solid var(--sl-border-light);
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  letter-spacing: 0.1em;
-  color: var(--sl-white);
-  background: #111111;
-}
-
+/* Header Navigation Links */
 .header nav a,
 .site-header nav a,
 .nav-link,
 .header-nav a,
-.navbar-nav a {
+.navbar-nav a,
+header a,
+nav a,
+.header-menu a,
+.nav-item a,
+[class*="nav-link"] {
   font-family: var(--font-mono) !important;
-  font-size: 0.8rem !important;
-  font-weight: 500 !important;
+  font-size: 0.82rem !important;
+  font-weight: 700 !important;
   text-transform: uppercase !important;
-  letter-spacing: 0.14em !important;
+  letter-spacing: 0.16em !important;
   color: var(--sl-text-secondary) !important;
-  padding: 0.5rem 1rem !important;
+  padding: 0.5rem 1.25rem !important;
   transition: all 0.2s var(--ease-brutal) !important;
   text-decoration: none !important;
   position: relative !important;
@@ -163,19 +144,25 @@ header {
 .header nav a:hover,
 .site-header nav a:hover,
 .nav-link:hover,
-.header-nav a:hover {
-  color: var(--sl-white) !important;
+.header-nav a:hover,
+header a:hover,
+nav a:hover {
+  color: #ffffff !important;
 }
 
 .header nav a.active,
-.nav-link.active {
-  color: var(--sl-white) !important;
+.nav-link.active,
+header a.active {
+  color: #ffffff !important;
   border-bottom: 2px solid var(--sl-red) !important;
 }
 
+/* Header Icons (Search, Profile, Cart) */
 .header-actions,
 .header-icons,
-.cart-wrap {
+.cart-wrap,
+[class*="header-action"],
+[class*="header-icon"] {
   display: flex !important;
   align-items: center !important;
   gap: 1.25rem !important;
@@ -184,7 +171,8 @@ header {
 .header-actions svg,
 .header-icons svg,
 .cart-icon svg,
-.payhip-cart-icon svg {
+.payhip-cart-icon svg,
+header svg {
   stroke: var(--sl-white) !important;
   fill: none !important;
   width: 18px !important;
@@ -192,7 +180,8 @@ header {
 }
 
 .cart-count,
-.payhip-cart-count {
+.payhip-cart-count,
+[class*="cart-count"] {
   background-color: var(--sl-red) !important;
   color: #ffffff !important;
   font-family: var(--font-mono) !important;
@@ -204,7 +193,323 @@ header {
 }
 
 /* --------------------------------------------------------------------------
-   4. Ticker Marquee Bar
+   4. Native Section Headings ("All Products", "Collections", etc.)
+   -------------------------------------------------------------------------- */
+.section-header,
+.section-title,
+.collection-title,
+.category-title,
+[class*="section-header"],
+[class*="section-title"],
+[class*="collection-title"],
+.page-title,
+h2.title,
+h3.title {
+  font-family: var(--font-mono) !important;
+  font-size: 0.85rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.2em !important;
+  text-transform: uppercase !important;
+  color: var(--sl-white) !important;
+  text-align: center !important;
+  margin: 3.5rem auto 2rem !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  border-bottom: none !important;
+  text-decoration: none !important;
+}
+
+.section-header::before,
+.section-title::before,
+[class*="section-title"]::before {
+  content: '■';
+  color: var(--sl-red);
+  font-size: 0.75rem;
+}
+
+/* --------------------------------------------------------------------------
+   5. Native Product Grid & Product Cards
+   -------------------------------------------------------------------------- */
+/* Grid Container */
+.products-grid,
+.product-grid,
+.products-list,
+.product-list,
+.product-items,
+.collection-products,
+.store-products,
+.theme-products,
+[class*="product-grid"],
+[class*="products-grid"],
+[class*="product-list"],
+[class*="products-list"],
+[class*="products-container"],
+[class*="product-items"] {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)) !important;
+  gap: 1.75rem !important;
+  max-width: 1280px !important;
+  margin: 2rem auto 5rem !important;
+  padding: 0 2rem !important;
+}
+
+/* Native Product Card Containers */
+.product-card,
+.product-item,
+.product-wrap,
+.product-holder,
+.payhip-product-item,
+.payhip-product,
+.payhip-item,
+.display-product,
+.theme-product,
+.theme-card,
+[data-product-id],
+[data-item-id],
+[class*="product-item"],
+[class*="product-card"],
+[class*="product-holder"],
+/* Direct child cards in Payhip grids */
+.product-grid > div,
+.products-grid > div,
+.product-list > div,
+.products-list > div,
+.collection-products > div,
+[class*="products-grid"] > div,
+[class*="product-grid"] > div {
+  background-color: var(--sl-bg-card) !important;
+  border: 1px solid var(--sl-border) !important;
+  border-radius: 0px !important;
+  padding: 1.25rem !important;
+  display: flex !important;
+  flex-direction: column !important;
+  position: relative !important;
+  overflow: hidden !important;
+  text-decoration: none !important;
+  color: inherit !important;
+  transition: all 0.25s var(--ease-brutal) !important;
+  box-shadow: none !important;
+}
+
+/* Hover States on Native Product Cards */
+.product-card:hover,
+.product-item:hover,
+.product-wrap:hover,
+.product-holder:hover,
+.payhip-product-item:hover,
+.payhip-product:hover,
+.display-product:hover,
+[data-product-id]:hover,
+[class*="product-item"]:hover,
+[class*="product-card"]:hover,
+.product-grid > div:hover,
+.products-grid > div:hover,
+[class*="products-grid"] > div:hover {
+  background-color: var(--sl-bg-card-hover) !important;
+  border-color: var(--sl-border-hover) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.65) !important;
+}
+
+/* Native Product Image Frame */
+.product-card img,
+.product-item img,
+.product-wrap img,
+.product-holder img,
+.payhip-product-item img,
+.display-product img,
+[data-product-id] img,
+[class*="product-image"] img,
+[class*="product-thumb"] img,
+[class*="product"] img {
+  width: 100% !important;
+  aspect-ratio: 1 / 1 !important;
+  object-fit: cover !important;
+  border-radius: 0px !important;
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  display: block !important;
+  filter: contrast(1.04) brightness(0.96) !important;
+  transition: transform 0.4s var(--ease-brutal), filter 0.4s var(--ease-brutal) !important;
+}
+
+.product-card:hover img,
+.product-item:hover img,
+[data-product-id]:hover img,
+[class*="product-card"]:hover img {
+  transform: scale(1.025) !important;
+  filter: contrast(1.08) brightness(1.02) !important;
+}
+
+/* Native Product Titles */
+.product-title,
+.product-name,
+.product-card h3,
+.product-item h3,
+.product-card h4,
+.product-item h4,
+[data-product-id] h3,
+[data-product-id] h4,
+[class*="product-title"],
+[class*="product-name"],
+.product-card a,
+.product-item a,
+[data-product-id] a {
+  font-family: var(--font-sans) !important;
+  font-size: 1.05rem !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.06em !important;
+  color: var(--sl-white) !important;
+  margin-top: 14px !important;
+  margin-bottom: 6px !important;
+  line-height: 1.3 !important;
+  text-decoration: none !important;
+}
+
+/* Native Product Prices */
+.product-price,
+.price,
+.product-card .price,
+.product-item .price,
+[data-product-id] .price,
+[class*="product-price"],
+[class*="price"] {
+  font-family: var(--font-mono) !important;
+  font-size: 0.88rem !important;
+  font-weight: 700 !important;
+  color: var(--sl-white) !important;
+  letter-spacing: 0.06em !important;
+  text-transform: uppercase !important;
+  margin-top: auto !important;
+  padding-top: 0.5rem !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.04) !important;
+}
+
+/* Native Badges (Sale, New, Out of Stock) */
+.product-badge,
+.badge,
+[class*="product-badge"],
+[class*="badge"] {
+  font-family: var(--font-mono) !important;
+  font-size: 0.68rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase !important;
+  border-radius: 0px !important;
+  padding: 4px 10px !important;
+  border: 1px solid transparent !important;
+}
+
+/* --------------------------------------------------------------------------
+   6. Native Buttons & Controls
+   -------------------------------------------------------------------------- */
+button,
+.btn,
+.payhip-btn,
+.payhip-buy-btn,
+.btn-primary,
+.btn-secondary,
+.product-buy-button,
+a.button,
+[class*="buy-btn"],
+[class*="payhip-btn"] {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  border: 1px solid #ffffff !important;
+  background: transparent !important;
+  color: #ffffff !important;
+  font-family: var(--font-mono) !important;
+  font-size: 0.8rem !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.12em !important;
+  border-radius: 0px !important;
+  padding: 12px 26px !important;
+  cursor: pointer !important;
+  transition: all 0.2s var(--ease-brutal) !important;
+  text-decoration: none !important;
+  outline: none !important;
+}
+
+button:hover,
+.btn:hover,
+.payhip-btn:hover,
+.payhip-buy-btn:hover,
+.btn-secondary:hover,
+a.button:hover {
+  background: #ffffff !important;
+  color: #080808 !important;
+  border-color: #ffffff !important;
+  box-shadow: 0 0 16px rgba(255, 255, 255, 0.2) !important;
+}
+
+.btn-solid,
+.btn-primary,
+.btn-black {
+  background: #ffffff !important;
+  color: #080808 !important;
+  border: 1px solid #ffffff !important;
+}
+
+.btn-solid:hover,
+.btn-primary:hover,
+.btn-black:hover {
+  background: transparent !important;
+  color: #ffffff !important;
+}
+
+.btn-red {
+  background: var(--sl-red) !important;
+  border: 1px solid var(--sl-red) !important;
+  color: #ffffff !important;
+}
+
+.btn-red:hover {
+  background: var(--sl-red-hover) !important;
+  border-color: var(--sl-red-hover) !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 20px rgba(255, 59, 48, 0.4) !important;
+}
+
+/* --------------------------------------------------------------------------
+   7. Form Inputs & Search
+   -------------------------------------------------------------------------- */
+input[type="text"],
+input[type="email"],
+input[type="search"],
+textarea,
+select {
+  background: transparent !important;
+  border: 1px solid var(--sl-border) !important;
+  color: var(--sl-white) !important;
+  font-family: var(--font-mono) !important;
+  font-size: 0.85rem !important;
+  border-radius: 0px !important;
+  padding: 12px 16px !important;
+  outline: none !important;
+  transition: border-color 0.2s ease !important;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="search"]:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--sl-border-hover) !important;
+  box-shadow: 0 0 0 1px var(--sl-border-light) !important;
+}
+
+::placeholder {
+  color: var(--sl-text-muted) !important;
+  font-family: var(--font-mono) !important;
+}
+
+/* --------------------------------------------------------------------------
+   8. Technical Utilities (Ticker, Brackets, Corner Markers)
    -------------------------------------------------------------------------- */
 .sonarline-ticker-bar {
   background: #0d0d0d;
@@ -244,9 +549,6 @@ header {
   100% { transform: translateX(-50%); }
 }
 
-/* --------------------------------------------------------------------------
-   5. Technical Framing & Utilities
-   -------------------------------------------------------------------------- */
 .corner-bracket {
   position: absolute;
   width: 10px;
@@ -276,317 +578,4 @@ header {
   right: -1px;
   border-bottom: 2px solid var(--sl-red);
   border-right: 2px solid var(--sl-red);
-}
-
-/* --------------------------------------------------------------------------
-   6. Collections Directory & Circuit Line
-   -------------------------------------------------------------------------- */
-.collections-directory-wrap {
-  position: relative;
-  margin: 3.5rem 0;
-}
-
-.collections-circuit-line {
-  position: absolute;
-  top: 50%;
-  left: 5%;
-  right: 5%;
-  height: 1px;
-  background: linear-gradient(to right, transparent, rgba(255, 59, 48, 0.3) 20%, rgba(255, 59, 48, 0.3) 80%, transparent);
-  z-index: 1;
-  pointer-events: none;
-}
-
-.collections-directory-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1.5rem;
-  position: relative;
-  z-index: 2;
-}
-
-@media (max-width: 900px) {
-  .collections-directory-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  .collections-circuit-line {
-    display: none;
-  }
-}
-@media (max-width: 550px) {
-  .collections-directory-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-.collection-card {
-  background: var(--sl-bg-card);
-  border: 1px solid var(--sl-border);
-  padding: 2.5rem 1.5rem;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1.25rem;
-  text-decoration: none;
-  color: inherit;
-  transition: all 0.25s var(--ease-brutal);
-  position: relative;
-  width: 100%;
-}
-
-.collection-card:hover {
-  border-color: var(--sl-border-hover);
-  background: var(--sl-bg-card-hover);
-  transform: translateY(-2px);
-}
-
-.collection-number {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  color: var(--sl-text-muted);
-}
-
-.collection-icon {
-  width: 44px;
-  height: 44px;
-  stroke: var(--sl-text-secondary);
-  fill: none;
-  stroke-width: 1.5;
-  transition: stroke 0.2s ease;
-}
-
-.collection-card:hover .collection-icon {
-  stroke: var(--sl-white);
-}
-
-.collection-title {
-  font-family: var(--font-sans);
-  font-size: 0.95rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--sl-white);
-}
-
-/* --------------------------------------------------------------------------
-   7. Product Grid & Brutalist Card Architecture
-   -------------------------------------------------------------------------- */
-.products-grid,
-.product-grid,
-.products-list,
-.product-list,
-.payhip-product-grid {
-  display: grid !important;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)) !important;
-  gap: 1.5rem !important;
-  padding: 2.5rem 0 !important;
-}
-
-.product-item,
-.product-card,
-.product-wrap,
-.payhip-product-item {
-  background: var(--sl-bg-card) !important;
-  border: 1px solid var(--sl-border) !important;
-  position: relative !important;
-  overflow: hidden !important;
-  display: flex !important;
-  flex-direction: column !important;
-  transition: border-color 0.25s var(--ease-brutal), transform 0.25s var(--ease-brutal), box-shadow 0.25s var(--ease-brutal) !important;
-  text-decoration: none !important;
-  color: inherit !important;
-}
-
-.product-item:hover,
-.product-card:hover,
-.payhip-product-item:hover {
-  border-color: var(--sl-border-hover) !important;
-  background: var(--sl-bg-card-hover) !important;
-  transform: translateY(-2px) !important;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45) !important;
-}
-
-.product-image,
-.product-thumb,
-.product-card-image,
-.payhip-product-image {
-  width: 100% !important;
-  aspect-ratio: 1 / 1 !important;
-  overflow: hidden !important;
-  background: #0a0a0a !important;
-  position: relative !important;
-  border-bottom: 1px solid var(--sl-border) !important;
-}
-
-.product-image img,
-.product-thumb img,
-.product-card-image img {
-  width: 100% !important;
-  height: 100% !important;
-  object-fit: cover !important;
-  filter: contrast(1.04) brightness(0.96) !important;
-  transition: transform 0.4s var(--ease-brutal), filter 0.4s var(--ease-brutal) !important;
-}
-
-.product-item:hover img,
-.product-card:hover img {
-  transform: scale(1.025) !important;
-  filter: contrast(1.08) brightness(1.02) !important;
-}
-
-.product-info,
-.product-card-details,
-.product-card-info {
-  padding: 1.25rem !important;
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 0.45rem !important;
-  flex-grow: 1 !important;
-  background: #111111 !important;
-}
-
-.product-category-tag {
-  font-family: var(--font-mono) !important;
-  font-size: 0.7rem !important;
-  font-weight: 600 !important;
-  letter-spacing: 0.14em !important;
-  text-transform: uppercase !important;
-  color: var(--sl-red) !important;
-  display: flex !important;
-  align-items: center !important;
-  gap: 6px !important;
-}
-
-.product-title,
-.product-card-title {
-  font-family: var(--font-sans) !important;
-  font-size: 1.05rem !important;
-  font-weight: 700 !important;
-  letter-spacing: 0.05em !important;
-  text-transform: uppercase !important;
-  color: var(--sl-white) !important;
-  margin: 0 !important;
-  line-height: 1.3 !important;
-}
-
-.product-price,
-.product-card-price {
-  font-family: var(--font-mono) !important;
-  font-size: 0.95rem !important;
-  font-weight: 700 !important;
-  letter-spacing: 0.04em !important;
-  color: var(--sl-white) !important;
-  margin-top: auto !important;
-  padding-top: 0.75rem !important;
-  border-top: 1px solid rgba(255, 255, 255, 0.05) !important;
-  display: flex !important;
-  align-items: baseline !important;
-  gap: 0.5rem !important;
-}
-
-/* --------------------------------------------------------------------------
-   8. Buttons & Controls
-   -------------------------------------------------------------------------- */
-button,
-.btn,
-.payhip-btn,
-.payhip-buy-btn,
-.btn-primary,
-.btn-secondary,
-.product-buy-button,
-a.button {
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: 8px !important;
-  border: 1px solid #ffffff !important;
-  background: transparent !important;
-  color: #ffffff !important;
-  font-family: var(--font-mono) !important;
-  font-size: 0.8rem !important;
-  font-weight: 700 !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.12em !important;
-  padding: 12px 26px !important;
-  cursor: pointer !important;
-  transition: all 0.2s var(--ease-brutal) !important;
-  text-decoration: none !important;
-  outline: none !important;
-  line-height: 1 !important;
-}
-
-button:hover,
-.btn:hover,
-.payhip-btn:hover,
-.payhip-buy-btn:hover,
-.btn-secondary:hover,
-a.button:hover {
-  background: #ffffff !important;
-  color: #080808 !important;
-  border-color: #ffffff !important;
-  box-shadow: 0 0 16px rgba(255, 255, 255, 0.2) !important;
-}
-
-.btn-solid,
-.btn-primary,
-.btn-black {
-  background: #ffffff !important;
-  color: #080808 !important;
-  border: 1px solid #ffffff !important;
-}
-
-.btn-solid:hover,
-.btn-primary:hover,
-.btn-black:hover {
-  background: transparent !important;
-  color: #ffffff !important;
-}
-
-.btn-red {
-  background: var(--sl-red) !important;
-  border-color: var(--sl-red) !important;
-  color: #ffffff !important;
-}
-
-.btn-red:hover {
-  background: var(--sl-red-hover) !important;
-  border-color: var(--sl-red-hover) !important;
-  color: #ffffff !important;
-  box-shadow: 0 0 20px rgba(255, 59, 48, 0.4) !important;
-}
-
-/* --------------------------------------------------------------------------
-   9. Form Inputs & Search
-   -------------------------------------------------------------------------- */
-input[type="text"],
-input[type="email"],
-input[type="search"],
-textarea,
-select {
-  background: transparent !important;
-  border: 1px solid var(--sl-border) !important;
-  color: var(--sl-white) !important;
-  font-family: var(--font-mono) !important;
-  font-size: 0.85rem !important;
-  padding: 12px 16px !important;
-  outline: none !important;
-  transition: border-color 0.2s ease !important;
-}
-
-input[type="text"]:focus,
-input[type="email"]:focus,
-input[type="search"]:focus,
-textarea:focus,
-select:focus {
-  border-color: var(--sl-border-hover) !important;
-  box-shadow: 0 0 0 1px var(--sl-border-light) !important;
-}
-
-::placeholder {
-  color: var(--sl-text-muted) !important;
-  font-family: var(--font-mono) !important;
 }
