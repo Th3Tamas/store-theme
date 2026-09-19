@@ -1,6 +1,6 @@
 /* ==========================================================================
-   SONARLINE AUDIO - TECHNICAL BRUTALIST STORE DESIGN SYSTEM
-   High-End Boutique Hardware Sound Lab Theme
+   SONARLINE // ARCHIVE - TECHNICAL BRUTALIST STORE DESIGN SYSTEM
+   Boutique Hardware Sound Lab & Audio Architecture Theme
    Target: Payhip Storefront (sonarlineaudio.space / payhip.com/sonarlineaudio)
    ========================================================================== */
 
@@ -10,11 +10,11 @@
 :root {
   --sl-bg: #080808;
   --sl-bg-elevated: #111111;
-  --sl-bg-card: #131313;
-  --sl-bg-card-hover: #181818;
-  --sl-bg-translucent: rgba(14, 14, 14, 0.85);
+  --sl-bg-card: #121212;
+  --sl-bg-card-hover: #171717;
+  --sl-bg-translucent: rgba(12, 12, 12, 0.9);
 
-  --sl-border: rgba(255, 255, 255, 0.09);
+  --sl-border: rgba(255, 255, 255, 0.08);
   --sl-border-light: rgba(255, 255, 255, 0.16);
   --sl-border-hover: rgba(255, 255, 255, 0.28);
   --sl-border-red: rgba(255, 59, 48, 0.45);
@@ -25,7 +25,7 @@
 
   --sl-white: #f5f5f5;
   --sl-text-primary: #ececec;
-  --sl-text-secondary: #909090;
+  --sl-text-secondary: #8e8e8e;
   --sl-text-muted: #555555;
 
   --font-sans: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -36,20 +36,20 @@
 }
 
 /* --------------------------------------------------------------------------
-   2. Global Reset & Brutalist Architecture
+   2. Blueprint Background Grid & Global Reset
    -------------------------------------------------------------------------- */
 *, *::before, *::after {
   box-sizing: border-box;
 }
 
-/* Default 0px sharp corners across cards, buttons, inputs */
-.product-card, .product-item, .payhip-product-item,
-input, textarea, select, .btn-sharp {
+/* Strict 0px sharp corners across all store elements */
+*, .product-card, .product-item, .payhip-product-item,
+input, textarea, select, button, .btn {
   border-radius: 0px !important;
 }
 
 html {
-  background-color: var(--sl-bg) !important;
+  background-color: #080808 !important;
   color: var(--sl-text-primary) !important;
   font-family: var(--font-sans) !important;
   letter-spacing: -0.01em;
@@ -58,17 +58,18 @@ html {
 }
 
 body {
-  background-color: var(--sl-bg) !important;
+  background-color: #080808 !important;
   color: var(--sl-text-primary) !important;
   font-family: var(--font-sans) !important;
   margin: 0;
   padding: 0;
   min-height: 100vh;
   position: relative;
+  /* Blueprint Background Grid */
   background-image: 
-    linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px) !important;
-  background-size: 48px 48px !important;
+    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px) !important;
+  background-size: 60px 60px !important;
   background-position: center top !important;
 }
 
@@ -79,16 +80,15 @@ body {
 
 /* Custom minimal brutalist scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 ::-webkit-scrollbar-track {
   background: var(--sl-bg);
   border-left: 1px solid var(--sl-border);
 }
 ::-webkit-scrollbar-thumb {
-  background: #262626;
-  border: 1px solid var(--sl-border);
+  background: #252525;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--sl-red);
@@ -110,7 +110,7 @@ header {
   padding: 1.25rem 2.5rem !important;
   position: sticky !important;
   top: 0 !important;
-  z-index: 9999 !important;
+  z-index: 999 !important;
   box-shadow: none !important;
 }
 
@@ -134,10 +134,10 @@ header {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 4px 9px;
+  padding: 3px 8px;
   border: 1px solid var(--sl-border-light);
   font-family: var(--font-mono);
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   letter-spacing: 0.1em;
   color: var(--sl-white);
   background: #111111;
@@ -204,7 +204,7 @@ header {
 }
 
 /* --------------------------------------------------------------------------
-   4. Marquee / Ticker Strip
+   4. Ticker Marquee Bar
    -------------------------------------------------------------------------- */
 .sonarline-ticker-bar {
   background: #0d0d0d;
@@ -245,16 +245,8 @@ header {
 }
 
 /* --------------------------------------------------------------------------
-   5. Technical Branding & Hero Utilities
+   5. Technical Framing & Utilities
    -------------------------------------------------------------------------- */
-.accent-lab {
-  color: var(--sl-red);
-  font-weight: 300;
-  letter-spacing: 0.05em;
-  display: inline-block;
-  position: relative;
-}
-
 .corner-bracket {
   position: absolute;
   width: 10px;
@@ -287,7 +279,7 @@ header {
 }
 
 /* --------------------------------------------------------------------------
-   6. Collections 4-Directory & Circuit Lines
+   6. Collections Directory & Circuit Line
    -------------------------------------------------------------------------- */
 .collections-directory-wrap {
   position: relative;
@@ -327,52 +319,6 @@ header {
   }
 }
 
-/* Layered / Stacked Folder Card Effect */
-.folder-stack {
-  position: relative;
-  transition: transform 0.25s var(--ease-brutal);
-}
-
-.folder-stack::before,
-.folder-stack::after {
-  content: '';
-  position: absolute;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  background: #0e0e0e;
-  pointer-events: none;
-  transition: all 0.25s var(--ease-brutal);
-}
-
-.folder-stack::before {
-  top: -4px;
-  left: 6px;
-  right: -6px;
-  bottom: 4px;
-  z-index: -1;
-}
-
-.folder-stack::after {
-  top: -8px;
-  left: 12px;
-  right: -12px;
-  bottom: 8px;
-  z-index: -2;
-}
-
-.folder-stack:hover {
-  transform: translateY(-4px);
-}
-.folder-stack:hover::before {
-  top: -6px;
-  right: -8px;
-  border-color: rgba(255, 59, 48, 0.25);
-}
-.folder-stack:hover::after {
-  top: -12px;
-  right: -16px;
-  border-color: rgba(255, 59, 48, 0.15);
-}
-
 .collection-card {
   background: var(--sl-bg-card);
   border: 1px solid var(--sl-border);
@@ -392,6 +338,7 @@ header {
 .collection-card:hover {
   border-color: var(--sl-border-hover);
   background: var(--sl-bg-card-hover);
+  transform: translateY(-2px);
 }
 
 .collection-number {
@@ -426,126 +373,123 @@ header {
 }
 
 /* --------------------------------------------------------------------------
-   7. "MOST POPULAR" Product Section
+   7. Product Grid & Brutalist Card Architecture
    -------------------------------------------------------------------------- */
-.most-popular-section {
-  max-width: 1340px;
-  margin: 5rem auto;
-  padding: 0 2rem;
+.products-grid,
+.product-grid,
+.products-list,
+.product-list,
+.payhip-product-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)) !important;
+  gap: 1.5rem !important;
+  padding: 2.5rem 0 !important;
 }
 
-.most-popular-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid var(--sl-border);
-  padding-bottom: 1rem;
-  margin-bottom: 2rem;
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+.product-item,
+.product-card,
+.product-wrap,
+.payhip-product-item {
+  background: var(--sl-bg-card) !important;
+  border: 1px solid var(--sl-border) !important;
+  position: relative !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+  transition: border-color 0.25s var(--ease-brutal), transform 0.25s var(--ease-brutal), box-shadow 0.25s var(--ease-brutal) !important;
+  text-decoration: none !important;
+  color: inherit !important;
 }
 
-.most-popular-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 1.25rem;
+.product-item:hover,
+.product-card:hover,
+.payhip-product-item:hover {
+  border-color: var(--sl-border-hover) !important;
+  background: var(--sl-bg-card-hover) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45) !important;
 }
 
-@media (max-width: 1100px) {
-  .most-popular-grid {
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  }
+.product-image,
+.product-thumb,
+.product-card-image,
+.payhip-product-image {
+  width: 100% !important;
+  aspect-ratio: 1 / 1 !important;
+  overflow: hidden !important;
+  background: #0a0a0a !important;
+  position: relative !important;
+  border-bottom: 1px solid var(--sl-border) !important;
 }
 
-.product-card-popular {
-  background: var(--sl-bg-card);
-  border: 1px solid var(--sl-border);
-  display: flex;
-  flex-direction: column;
-  text-decoration: none;
-  color: inherit;
-  position: relative;
-  transition: all 0.25s var(--ease-brutal);
+.product-image img,
+.product-thumb img,
+.product-card-image img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  filter: contrast(1.04) brightness(0.96) !important;
+  transition: transform 0.4s var(--ease-brutal), filter 0.4s var(--ease-brutal) !important;
 }
 
-.product-card-popular:hover {
-  border-color: var(--sl-border-hover);
-  background: var(--sl-bg-card-hover);
-  transform: translateY(-2px);
+.product-item:hover img,
+.product-card:hover img {
+  transform: scale(1.025) !important;
+  filter: contrast(1.08) brightness(1.02) !important;
 }
 
-.product-card-popular.featured-bundle {
-  border-color: var(--sl-border-red);
-}
-.product-card-popular.featured-bundle:hover {
-  border-color: var(--sl-red);
-  box-shadow: 0 0 20px rgba(255, 59, 48, 0.25);
-}
-
-.popular-art-frame {
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  background: #0c0c0c;
-  border-bottom: 1px solid var(--sl-border);
-  overflow: hidden;
-  position: relative;
+.product-info,
+.product-card-details,
+.product-card-info {
+  padding: 1.25rem !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.45rem !important;
+  flex-grow: 1 !important;
+  background: #111111 !important;
 }
 
-.popular-art-frame img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.4s var(--ease-brutal);
+.product-category-tag {
+  font-family: var(--font-mono) !important;
+  font-size: 0.7rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.14em !important;
+  text-transform: uppercase !important;
+  color: var(--sl-red) !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
 }
 
-.product-card-popular:hover .popular-art-frame img {
-  transform: scale(1.03);
+.product-title,
+.product-card-title {
+  font-family: var(--font-sans) !important;
+  font-size: 1.05rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.05em !important;
+  text-transform: uppercase !important;
+  color: var(--sl-white) !important;
+  margin: 0 !important;
+  line-height: 1.3 !important;
 }
 
-.popular-info-bar {
-  padding: 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-  background: #111111;
-  flex-grow: 1;
-}
-
-.popular-category {
-  font-family: var(--font-mono);
-  font-size: 0.65rem;
-  color: var(--sl-red);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.popular-title {
-  font-family: var(--font-sans);
-  font-size: 0.92rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  color: var(--sl-white);
-  text-transform: uppercase;
-  margin: 0;
-}
-
-.popular-price-row {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  margin-top: auto;
-  padding-top: 0.5rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.04);
-  font-family: var(--font-mono);
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: var(--sl-white);
+.product-price,
+.product-card-price {
+  font-family: var(--font-mono) !important;
+  font-size: 0.95rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.04em !important;
+  color: var(--sl-white) !important;
+  margin-top: auto !important;
+  padding-top: 0.75rem !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.05) !important;
+  display: flex !important;
+  align-items: baseline !important;
+  gap: 0.5rem !important;
 }
 
 /* --------------------------------------------------------------------------
-   8. Buttons & Interactive Controls
+   8. Buttons & Controls
    -------------------------------------------------------------------------- */
 button,
 .btn,
@@ -615,11 +559,6 @@ a.button:hover {
   box-shadow: 0 0 20px rgba(255, 59, 48, 0.4) !important;
 }
 
-.btn-pill {
-  border-radius: 9999px !important;
-  padding: 10px 24px !important;
-}
-
 /* --------------------------------------------------------------------------
    9. Form Inputs & Search
    -------------------------------------------------------------------------- */
@@ -628,7 +567,7 @@ input[type="email"],
 input[type="search"],
 textarea,
 select {
-  background: #111111 !important;
+  background: transparent !important;
   border: 1px solid var(--sl-border) !important;
   color: var(--sl-white) !important;
   font-family: var(--font-mono) !important;
@@ -650,259 +589,4 @@ select:focus {
 ::placeholder {
   color: var(--sl-text-muted) !important;
   font-family: var(--font-mono) !important;
-}
-
-/* --------------------------------------------------------------------------
-   10. Integrated Hardware Audio Demo Player
-   -------------------------------------------------------------------------- */
-.sonarline-audio-player-wrap {
-  background: #111111;
-  border: 1px solid var(--sl-border);
-  padding: 1.75rem;
-  margin: 2.5rem 0;
-  position: relative;
-}
-
-.sonarline-player-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 1.25rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  padding-bottom: 1rem;
-}
-
-.sonarline-player-track-info {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.sonarline-player-track-title {
-  font-family: var(--font-mono);
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: var(--sl-white);
-}
-
-.sonarline-player-track-meta {
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  color: var(--sl-red);
-  background: var(--sl-red-dim);
-  border: 1px solid var(--sl-border-red);
-  padding: 2px 8px;
-}
-
-.sonarline-player-controls {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
-.player-btn {
-  background: transparent;
-  border: 1px solid var(--sl-border-light);
-  color: var(--sl-white);
-  width: 36px;
-  height: 36px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  padding: 0 !important;
-}
-
-.player-btn:hover {
-  background: var(--sl-white);
-  color: var(--sl-bg);
-  border-color: var(--sl-white);
-}
-
-.player-btn.play-toggle {
-  background: var(--sl-white);
-  color: var(--sl-bg);
-  width: 42px;
-  height: 42px;
-}
-
-.player-btn.play-toggle:hover {
-  background: var(--sl-red);
-  border-color: var(--sl-red);
-  color: #ffffff;
-}
-
-.sonarline-player-scrubber-wrap {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin: 1.25rem 0;
-}
-
-.player-time {
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  color: var(--sl-text-muted);
-  min-width: 40px;
-}
-
-.player-progress-bar {
-  flex-grow: 1;
-  height: 6px;
-  background: #222222;
-  position: relative;
-  cursor: pointer;
-  border: 1px solid var(--sl-border);
-}
-
-.player-progress-fill {
-  height: 100%;
-  background: var(--sl-red);
-  width: 32%;
-  position: relative;
-}
-
-.player-progress-fill::after {
-  content: '';
-  position: absolute;
-  right: -4px;
-  top: -4px;
-  width: 12px;
-  height: 12px;
-  background: #ffffff;
-  border: 1px solid #000;
-}
-
-.sonarline-tracklist-drawer {
-  background: #0c0c0c;
-  border: 1px solid var(--sl-border);
-  margin-top: 1rem;
-}
-
-.tracklist-folder-header {
-  padding: 10px 16px;
-  font-family: var(--font-mono);
-  font-size: 0.78rem;
-  color: var(--sl-text-secondary);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.tracklist-item {
-  padding: 10px 16px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-family: var(--font-mono);
-  font-size: 0.8rem;
-  color: var(--sl-text-secondary);
-  cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-}
-
-.tracklist-item:hover,
-.tracklist-item.active {
-  background: #171717;
-  color: var(--sl-white);
-}
-
-.tracklist-item.active {
-  border-left: 2px solid var(--sl-red);
-}
-
-/* --------------------------------------------------------------------------
-   11. Newsletter Terminal Box
-   -------------------------------------------------------------------------- */
-.sonarline-newsletter-box {
-  background: #111111;
-  border: 1px solid var(--sl-border);
-  padding: 2.5rem;
-  max-width: 680px;
-  margin: 4rem auto;
-  text-align: center;
-  position: relative;
-}
-
-.newsletter-status-pill {
-  position: absolute;
-  top: 18px;
-  right: 20px;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  color: #27c93f;
-}
-
-.sonarline-newsletter-box h3 {
-  font-family: var(--font-sans);
-  font-size: 1.3rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--sl-white);
-  margin-bottom: 0.5rem;
-}
-
-.sonarline-newsletter-box p {
-  font-family: var(--font-mono);
-  font-size: 0.78rem;
-  color: var(--sl-text-secondary);
-  margin-bottom: 1.5rem;
-}
-
-.sonarline-newsletter-form {
-  display: flex;
-  gap: 8px;
-  max-width: 480px;
-  margin: 0 auto;
-}
-
-.sonarline-newsletter-form input {
-  flex-grow: 1;
-}
-
-/* --------------------------------------------------------------------------
-   12. Footer
-   -------------------------------------------------------------------------- */
-.footer,
-.site-footer,
-.profile-page-footer,
-footer {
-  background: #080808 !important;
-  border-top: 1px solid var(--sl-border) !important;
-  padding: 3.5rem 2rem 2.5rem !important;
-  text-align: center !important;
-}
-
-.footer a,
-.site-footer a,
-.profile-page-footer a {
-  font-family: var(--font-mono) !important;
-  font-size: 0.75rem !important;
-  letter-spacing: 0.14em !important;
-  text-transform: uppercase !important;
-  color: var(--sl-text-secondary) !important;
-  text-decoration: none !important;
-  padding: 0.4rem 0.8rem !important;
-  transition: color 0.15s ease !important;
-}
-
-.footer a:hover,
-.site-footer a:hover,
-.profile-page-footer a:hover {
-  color: var(--sl-white) !important;
-}
-
-.footer-copyright {
-  font-family: var(--font-mono) !important;
-  font-size: 0.7rem !important;
-  color: var(--sl-text-muted) !important;
-  margin-top: 2rem !important;
-  letter-spacing: 0.08em !important;
 }

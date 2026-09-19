@@ -1,11 +1,64 @@
 <!-- ==========================================================================
-     SONARLINE AUDIO - STOREWIDE FOOTER INJECTION
-     Lab Diagnostics, Dynamic Timecode & Hardware Audio Player Engine
+     SONARLINE // ARCHIVE - STOREWIDE FOOTER INJECTION
+     Brutalist Minimal Footer, Newsletter Terminal & Lab Runtime Engine
      ========================================================================== -->
 
+<!-- Brutalist Minimal Footer -->
+<footer class="sonarline-storewide-footer" style="background: #080808; border-top: 1px solid rgba(255, 255, 255, 0.08); padding: 5rem 2rem 3.5rem; text-align: center; position: relative;">
+  <div style="max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; gap: 2.5rem;">
+    
+    <!-- Brand Monogram & Status -->
+    <div style="display: flex; align-items: center; gap: 12px; font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--sl-text-secondary);">
+      <span class="store-logo-badge">SL</span>
+      <span>SONARLINE AUDIO LABS</span>
+      <span style="color: var(--sl-red);">●</span>
+      <span>ARCHIVE SYSTEM</span>
+    </div>
+
+    <!-- Newsletter Input & Subscribe Button -->
+    <div style="width: 100%; max-width: 520px;">
+      <form id="sonarline-newsletter-form" onsubmit="event.preventDefault(); alert('Subscribed to Sonarline Archive Drops.'); this.reset();" style="display: flex; gap: 0; width: 100%; border: 1px solid rgba(255, 255, 255, 0.15); background: transparent;">
+        <input type="email" placeholder="[ ENTER EMAIL FOR ARCHIVE ACCESS ]" required style="flex-grow: 1; background: transparent !important; border: none !important; color: #ffffff !important; font-family: 'Space Mono', monospace !important; font-size: 0.78rem !important; padding: 14px 18px !important; outline: none !important;">
+        <button type="submit" style="background: #ffffff !important; color: #080808 !important; border: none !important; font-family: 'Space Mono', monospace !important; font-size: 0.75rem !important; font-weight: 700 !important; letter-spacing: 0.14em !important; padding: 0 24px !important; cursor: pointer !important; text-transform: uppercase !important; transition: all 0.2s ease !important;">
+          SUBSCRIBE
+        </button>
+      </form>
+      <div style="font-family: var(--font-mono); font-size: 0.65rem; color: var(--sl-text-muted); margin-top: 8px; letter-spacing: 0.08em; text-align: left;">
+        // private sample drops, discount codes, zero spam.
+      </div>
+    </div>
+
+    <!-- Format Tags & Technical Metadata -->
+    <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 18px; font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--sl-text-muted); border-top: 1px solid rgba(255, 255, 255, 0.05); border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding: 1rem 0; width: 100%;">
+      <span>WAV / STEMS / 24-BIT</span>
+      <span style="color: var(--sl-red);">•</span>
+      <span>48kHz MASTER AUDIO</span>
+      <span style="color: var(--sl-red);">•</span>
+      <span>INSTANT DIGITAL TRANSFER</span>
+      <span style="color: var(--sl-red);">•</span>
+      <span>ROYALTY FREE</span>
+    </div>
+
+    <!-- Navigation Links & System Copyright -->
+    <div style="display: flex; flex-direction: column; gap: 1rem;">
+      <div style="display: flex; justify-content: center; gap: 2rem; font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.15em; text-transform: uppercase;">
+        <a href="/kits" style="color: var(--sl-text-secondary); text-decoration: none; transition: color 0.15s ease;">KITS</a>
+        <a href="/samples" style="color: var(--sl-text-secondary); text-decoration: none; transition: color 0.15s ease;">SAMPLES</a>
+        <a href="/bundles" style="color: var(--sl-text-secondary); text-decoration: none; transition: color 0.15s ease;">BUNDLES</a>
+        <a href="/terms" style="color: var(--sl-text-secondary); text-decoration: none; transition: color 0.15s ease;">TERMS</a>
+      </div>
+      <div style="font-family: var(--font-mono); font-size: 0.68rem; color: var(--sl-text-muted); letter-spacing: 0.1em;">
+        © 2026 SONARLINE AUDIO. ALL RIGHTS RESERVED.
+      </div>
+    </div>
+
+  </div>
+</footer>
+
+<!-- Runtime Engine Scripts -->
 <script>
 (function() {
-  // 1. Live Lab Timecode (Terminal Clock)
+  // 1. Live Terminal Clock Engine
   function updateLabClock() {
     var clockEl = document.getElementById('sonarline-live-clock');
     if (!clockEl) return;

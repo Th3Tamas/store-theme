@@ -1,6 +1,6 @@
 <!-- ==========================================================================
      SONARLINE AUDIO - STOREWIDE HEADER INJECTION
-     Boutique Hardware Sound Lab & Brutalist Design Architecture
+     Boutique Hardware Sound Lab & Brutalist Architecture
      ========================================================================== -->
 
 <!-- Meta & Theme -->
@@ -10,14 +10,113 @@
 <!-- Typography: Space Grotesk, Space Mono, Syne -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+
+<style>
+  /* Terminal / HUD Preloader Overlay */
+  #sonarline-hud-preloader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: #080808;
+    z-index: 999999;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Space Mono', 'JetBrains Mono', monospace;
+    color: #ff3b30;
+    transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    pointer-events: all;
+    user-select: none;
+  }
+  .hud-terminal-box {
+    max-width: 520px;
+    width: 90%;
+    border: 1px solid rgba(255, 59, 48, 0.3);
+    background: #0d0d0d;
+    padding: 1.75rem 2rem;
+    box-shadow: 0 0 40px rgba(255, 59, 48, 0.12);
+  }
+  .hud-terminal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 59, 48, 0.2);
+    padding-bottom: 0.75rem;
+    margin-bottom: 1.25rem;
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    color: rgba(255, 255, 255, 0.6);
+  }
+  .hud-terminal-logs {
+    font-size: 0.8rem;
+    line-height: 1.8;
+    letter-spacing: 0.08em;
+  }
+  .hud-log-line {
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity 0.15s ease, transform 0.15s ease;
+  }
+  .hud-log-line.active {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .hud-log-line.success {
+    color: #27c93f;
+  }
+</style>
+
+<div id="sonarline-hud-preloader">
+  <div class="hud-terminal-box">
+    <div class="hud-terminal-header">
+      <span>SONARLINE // KERNEL BOOT</span>
+      <span>v2026.1</span>
+    </div>
+    <div class="hud-terminal-logs">
+      <div class="hud-log-line" id="hud-line-1">&gt; INITIALIZING AUDIO ARCHIVE...</div>
+      <div class="hud-log-line" id="hud-line-2">&gt; MOUNTING KERNEL: 48kHz / 24-BIT...</div>
+      <div class="hud-log-line" id="hud-line-3">&gt; BUFFER ALLOCATED: 1024 SAMPLES</div>
+      <div class="hud-log-line success" id="hud-line-4">&gt; STATUS: ONLINE [READY]</div>
+    </div>
+  </div>
+</div>
 
 <script>
-  // Lab Environment Diagnostics
-  window.__SONARLINE_CONFIG__ = {
-    version: '2026.1.0',
-    theme: 'technical-brutalist',
-    labStatus: 'ONLINE',
-    debug: false
-  };
+  (function() {
+    var preloader = document.getElementById('sonarline-hud-preloader');
+    if (!preloader) return;
+
+    // Check if session has already booted
+    if (sessionStorage.getItem('sonarline_booted') === '1') {
+      preloader.style.display = 'none';
+      if (preloader.parentNode) preloader.parentNode.removeChild(preloader);
+      return;
+    }
+
+    var lines = [
+      document.getElementById('hud-line-1'),
+      document.getElementById('hud-line-2'),
+      document.getElementById('hud-line-3'),
+      document.getElementById('hud-line-4')
+    ];
+
+    // Sequence timing: total ~1.2s
+    setTimeout(function() { if (lines[0]) lines[0].classList.add('active'); }, 150);
+    setTimeout(function() { if (lines[1]) lines[1].classList.add('active'); }, 400);
+    setTimeout(function() { if (lines[2]) lines[2].classList.add('active'); }, 700);
+    setTimeout(function() { if (lines[3]) lines[3].classList.add('active'); }, 950);
+
+    setTimeout(function() {
+      preloader.style.opacity = '0';
+      preloader.style.pointerEvents = 'none';
+      sessionStorage.setItem('sonarline_booted', '1');
+      setTimeout(function() {
+        if (preloader.parentNode) preloader.parentNode.removeChild(preloader);
+      }, 500);
+    }, 1250);
+  })();
 </script>
