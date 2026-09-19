@@ -130,7 +130,7 @@
     left: 0 !important;
     height: 2px !important;
     background: #FF2A2A !important;
-    z-index: 100000 !important;
+    z-index: 10000000 !important;
     width: 0%;
     pointer-events: none !important;
     transition: width 0.05s ease-out;
@@ -139,7 +139,7 @@
 <script>
   (function() {
     function updateScrollProgress() {
-      var winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+      var winScroll = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
       var height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
       var scrolled = height > 0 ? (winScroll / height) * 100 : 0;
       var bar = document.getElementById('sonarline-scroll-progress');
@@ -147,6 +147,7 @@
     }
     window.addEventListener('scroll', updateScrollProgress, { passive: true });
     window.addEventListener('resize', updateScrollProgress, { passive: true });
+    updateScrollProgress();
   })();
 
   // Header Nav Buttons & Mobile Icons Clean Guard
@@ -219,5 +220,48 @@
     }
     setTimeout(nukeMountainImages, 300);
     setTimeout(nukeMountainImages, 1000);
+  })();
+
+  // Subtask 4: Interactive Hero Parallax Grid & Title Blur/Fade
+  (function() {
+    var ticking = false;
+    function updateHeroParallax() {
+      var heroEl = document.querySelector('[data-section-key="headline"], #content-section-LBNmnP42zK');
+      var headingEl = document.querySelector('[data-section-key="headline"] .heading-text, [data-section-key="headline"] h1');
+      var subtitleEl = document.querySelector('[data-section-key="headline"] .section-contents p, [data-section-key="headline"] p');
+
+      if (heroEl) {
+        var scrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
+        if (scrollY < 0) scrollY = 0;
+
+        // Translate grid background with subtle parallax
+        var bgOffsetY = scrollY * 0.25;
+        heroEl.style.backgroundPosition = 'center ' + bgOffsetY + 'px';
+
+        // Blur and opacity fade as hero recedes behind content
+        var fadeProgress = Math.min(scrollY / 450, 1);
+        var blurPx = (fadeProgress * 6).toFixed(1);
+        var opacityVal = Math.max(1 - fadeProgress * 0.85, 0.15).toFixed(2);
+
+        if (headingEl) {
+          headingEl.style.filter = 'blur(' + blurPx + 'px)';
+          headingEl.style.opacity = opacityVal;
+          headingEl.style.transform = 'translateY(' + (scrollY * 0.12) + 'px)';
+        }
+        if (subtitleEl) {
+          subtitleEl.style.filter = 'blur(' + (blurPx * 0.75).toFixed(1) + 'px)';
+          subtitleEl.style.opacity = opacityVal;
+          subtitleEl.style.transform = 'translateY(' + (scrollY * 0.12) + 'px)';
+        }
+      }
+      ticking = false;
+    }
+
+    window.addEventListener('scroll', function() {
+      if (!ticking) {
+        window.requestAnimationFrame(updateHeroParallax);
+        ticking = true;
+      }
+    }, { passive: true });
   })();
 </script>

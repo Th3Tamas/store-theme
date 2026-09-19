@@ -253,60 +253,101 @@ header,
   background-color: rgba(8, 8, 8, 0.95) !important;
   backdrop-filter: blur(12px) !important;
   border-bottom: 1px solid var(--sl-border) !important;
-  padding: 1.25rem 2.5rem !important;
+  padding: 1rem 2.5rem !important;
   position: sticky !important;
   top: 0 !important;
   z-index: 999 !important;
   box-shadow: none !important;
 }
 
-/* Header Navigation Links */
+/* Revert "SHOP" and header nav links back to clean native Payhip styling */
 .header nav a,
 .site-header nav a,
 .nav-link,
 .header-nav a,
 .navbar-nav a,
 header a,
-nav a,
-.header-menu a,
-.nav-item a,
-[class*="nav-link"] {
-  font-family: var(--font-mono) !important;
-  font-size: 0.82rem !important;
-  font-weight: 700 !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.16em !important;
-  color: var(--sl-text-secondary) !important;
-  padding: 0.5rem 1.25rem !important;
-  transition: all 0.2s var(--ease-brutal) !important;
+nav a {
+  border-bottom: none !important;
   text-decoration: none !important;
-  position: relative !important;
 }
-
-.header nav a:hover,
-.site-header nav a:hover,
-.nav-link:hover,
-.header-nav a:hover,
-header a:hover,
-nav a:hover {
-  color: #ffffff !important;
-}
-
 .header nav a.active,
 .nav-link.active,
 header a.active {
-  color: #ffffff !important;
-  border-bottom: 2px solid var(--sl-red) !important;
+  border-bottom: none !important;
 }
 
-/* Header Icons (Search, Profile, Cart) & Nav Button Deduplication */
+/* Ticker Section - Tighten vertical spacing & eliminate dead space */
+[data-section-key="ticker"],
+.section-wrapper[data-section-key="ticker"],
+#content-section-QW9Kn45mB6,
+[data-section-key="ticker"] .section-contents-wrapper,
+[data-section-key="ticker"] .section-contents,
+[data-section-key="ticker"] .section-background {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  min-height: 0 !important;
+  height: auto !important;
+  overflow: hidden !important;
+}
+
+[data-section-key="ticker"] svg,
+[data-section-key="ticker"] .ticker,
+.ticker-block,
+.ticker-wrapper {
+  max-width: 100vw !important;
+  overflow: hidden !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  padding: 6px 0 !important;
+}
+
+/* Header Icons (Search, Profile, Cart) & Nav Controls */
 .header-actions,
 .header-icons,
 .header-right {
   display: flex !important;
   align-items: center !important;
-  gap: 1.25rem !important;
+  gap: 1.5rem !important;
   order: 3 !important;
+}
+
+/* Subtask 1: Remove artificial outline boxes & padding injected around search and cart buttons */
+header button,
+.header-actions button,
+.header-actions-action,
+.header-cart-icon-button,
+.live-search-button-search,
+.live-search-form-button-search,
+.header-login-icon-link {
+  border: none !important;
+  background: transparent !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  box-shadow: none !important;
+  outline: none !important;
+  border-radius: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  height: 32px !important;
+  width: 32px !important;
+  color: #ffffff !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  cursor: pointer !important;
+  transition: opacity 0.2s ease !important;
+}
+
+.header-cart-icon-button:hover,
+.header-login-icon-link:hover,
+.live-search-button-search:hover {
+  opacity: 0.75 !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
 }
 
 /* Hide mobile header icons on desktop & suppress duplicate .show-on-mobile */
@@ -506,6 +547,18 @@ h3.title {
 /* --------------------------------------------------------------------------
    5. Fix Squished Native Product Cards & Grid Architecture
    -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+   5. Product Card Reconstruction (Cross-Browser Parity: Chrome & Firefox)
+   -------------------------------------------------------------------------- */
+#page-section-collection,
+[data-section-key="collection"],
+.collection-main-wrapper,
+.grid-block,
+.grid-list {
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
 #page-section-collection .grid-list,
 [data-section-key="collection"] .grid-list,
 .grid-list.js-grid-list,
@@ -527,8 +580,8 @@ h3.title {
 [class*="products-container"],
 [class*="product-items"] {
   display: grid !important;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)) !important;
-  gap: 24px !important;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)) !important;
+  gap: 32px !important;
   width: 100% !important;
   max-width: 1200px !important;
   margin: 40px auto !important;
@@ -536,6 +589,9 @@ h3.title {
   box-sizing: border-box !important;
 }
 
+/* Firefox & Chrome Layout Parity: prevent flex/grid item collapse */
+#page-section-collection .card-wrapper,
+[data-section-key="collection"] .card-wrapper,
 div.card-wrapper.product-card-wrapper,
 .card-wrapper.product-card-wrapper,
 .product-card-wrapper,
@@ -568,20 +624,140 @@ div.card-wrapper.product-card-wrapper,
   width: 100% !important;
   min-width: 0 !important;
   max-width: 100% !important;
-  flex: none !important;
+  flex: 1 1 auto !important;
   box-sizing: border-box !important;
-  background: #111111 !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+/* Dark Brutalist Panel Styling */
+div.card-wrapper.product-card-wrapper,
+.card-wrapper.product-card-wrapper,
+.card-wrapper .card,
+.product-card,
+.product-item,
+.display-product {
+  background: #0f0f0f !important;
   border: 1px solid rgba(255, 255, 255, 0.08) !important;
   border-radius: 0px !important;
-  padding: 16px !important;
+  padding: 20px !important;
   display: flex !important;
   flex-direction: column !important;
   position: relative !important;
   overflow: hidden !important;
   text-decoration: none !important;
   color: inherit !important;
-  transition: all 0.25s var(--ease-brutal) !important;
+  transition: border-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease !important;
   box-shadow: none !important;
+  box-sizing: border-box !important;
+}
+
+/* Hover States on Native Product Cards */
+div.card-wrapper.product-card-wrapper:hover,
+.card-wrapper:hover .card,
+.product-card:hover,
+.product-item:hover,
+.payhip-collection-product-item:hover,
+.product-wrap:hover,
+.product-holder:hover,
+.payhip-product-item:hover,
+.payhip-product:hover,
+.display-product:hover,
+[data-product-id]:hover,
+[class*="product-item"]:hover,
+[class*="product-card"]:hover,
+.product-grid > div:hover,
+.products-grid > div:hover,
+[class*="products-grid"] > div:hover {
+  background-color: #151515 !important;
+  border-color: rgba(255, 255, 255, 0.28) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.75) !important;
+}
+
+/* Native Product Image Frame - 1:1 Square Ratio */
+.card-wrapper img,
+.product-card img,
+.product-item img,
+.payhip-collection-product-item img,
+.product-wrap img,
+.product-holder img,
+.payhip-product-item img,
+.display-product img,
+[data-product-id] img,
+[class*="product-image"] img,
+[class*="product-thumb"] img,
+[class*="product"] img,
+.card-wrapper .card__inner img {
+  width: 100% !important;
+  height: auto !important;
+  aspect-ratio: 1 / 1 !important;
+  object-fit: cover !important;
+  border-radius: 0px !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  display: block !important;
+  filter: contrast(1.04) brightness(0.96) !important;
+  transition: transform 0.4s var(--ease-brutal), filter 0.4s var(--ease-brutal) !important;
+}
+
+.product-card:hover img,
+.product-item:hover img,
+[data-product-id]:hover img,
+[class*="product-card"]:hover img,
+.card-wrapper:hover img {
+  transform: scale(1.02) !important;
+  filter: contrast(1.08) brightness(1.02) !important;
+}
+
+/* Native Product Titles - Uppercase Sans-Serif */
+.card-wrapper .card__heading,
+.card-wrapper .card__heading a,
+.card-wrapper .product-title,
+.card-wrapper .product-name,
+.card-wrapper h3,
+.card-wrapper h4,
+.product-card h3,
+.product-card h4,
+.product-title,
+.product-name,
+[data-product-id] h3,
+[data-product-id] h4,
+[class*="product-title"],
+[class*="product-name"],
+.product-card a,
+.product-item a,
+[data-product-id] a {
+  font-family: var(--font-sans, 'Space Grotesk', sans-serif) !important;
+  font-size: 1.1rem !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.08em !important;
+  color: #ffffff !important;
+  margin-top: 16px !important;
+  margin-bottom: 8px !important;
+  line-height: 1.3 !important;
+  text-decoration: none !important;
+}
+
+/* Native Product Prices - Clean Monospace */
+.card-wrapper .price,
+.card-wrapper [class*="price"],
+.product-price,
+.price,
+.product-card .price,
+.product-item .price,
+[data-product-id] .price,
+[class*="product-price"],
+[class*="price"] {
+  font-family: var(--font-mono, 'Space Mono', monospace) !important;
+  font-size: 0.9rem !important;
+  font-weight: 700 !important;
+  color: #ff3b30 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  margin-top: auto !important;
+  padding-top: 12px !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.06) !important;
 }
 
 /* Collapse Native Footer Completely */
@@ -598,103 +774,6 @@ div[data-section-key="footer"] {
   overflow: hidden !important;
   visibility: hidden !important;
   border: none !important;
-}
-
-/* Hover States on Native Product Cards */
-.product-card:hover,
-.product-item:hover,
-.payhip-collection-product-item:hover,
-.product-wrap:hover,
-.product-holder:hover,
-.payhip-product-item:hover,
-.payhip-product:hover,
-.display-product:hover,
-[data-product-id]:hover,
-[class*="product-item"]:hover,
-[class*="product-card"]:hover,
-.product-grid > div:hover,
-.products-grid > div:hover,
-[class*="products-grid"] > div:hover {
-  background-color: var(--sl-bg-card-hover) !important;
-  border-color: var(--sl-border-hover) !important;
-  transform: translateY(-2px) !important;
-  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.65) !important;
-}
-
-/* Native Product Image Frame */
-.product-card img,
-.product-item img,
-.payhip-collection-product-item img,
-.product-wrap img,
-.product-holder img,
-.payhip-product-item img,
-.display-product img,
-[data-product-id] img,
-[class*="product-image"] img,
-[class*="product-thumb"] img,
-[class*="product"] img {
-  width: 100% !important;
-  height: auto !important;
-  aspect-ratio: 1 / 1 !important;
-  object-fit: cover !important;
-  border-radius: 0px !important;
-  border: 1px solid rgba(255, 255, 255, 0.05) !important;
-  display: block !important;
-  filter: contrast(1.04) brightness(0.96) !important;
-  transition: transform 0.4s var(--ease-brutal), filter 0.4s var(--ease-brutal) !important;
-}
-
-.product-card:hover img,
-.product-item:hover img,
-[data-product-id]:hover img,
-[class*="product-card"]:hover img {
-  transform: scale(1.025) !important;
-  filter: contrast(1.08) brightness(1.02) !important;
-}
-
-/* Native Product Titles */
-.product-title,
-.product-name,
-.product-card h3,
-.product-item h3,
-.product-card h4,
-.product-item h4,
-[data-product-id] h3,
-[data-product-id] h4,
-[class*="product-title"],
-[class*="product-name"],
-.product-card a,
-.product-item a,
-[data-product-id] a {
-  font-family: var(--font-sans) !important;
-  font-size: 1.05rem !important;
-  font-weight: 700 !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.06em !important;
-  color: var(--sl-white) !important;
-  margin-top: 14px !important;
-  margin-bottom: 6px !important;
-  line-height: 1.3 !important;
-  text-decoration: none !important;
-}
-
-/* Native Product Prices */
-.product-price,
-.price,
-.product-card .price,
-.product-item .price,
-[data-product-id] .price,
-[class*="product-price"],
-[class*="price"] {
-  font-family: var(--font-mono) !important;
-  font-size: 0.88rem !important;
-  font-weight: 700 !important;
-  color: var(--sl-white) !important;
-  letter-spacing: 0.06em !important;
-  text-transform: uppercase !important;
-  margin-top: auto !important;
-  padding-top: 0.5rem !important;
-  border-top: 1px solid rgba(255, 255, 255, 0.04) !important;
 }
 
 /* Native Badges (Sale, New, Out of Stock) */
