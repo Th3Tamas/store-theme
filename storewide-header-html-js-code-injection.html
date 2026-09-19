@@ -392,18 +392,18 @@
           innerContent[j].style.setProperty('overflow', 'hidden', 'important');
         }
 
-        // 2. Fix card__inner: ensure it has position:relative and aspect-ratio works
+        // 2. Fix card__inner: use padding-bottom:100% + height:0 ratio pattern
+        // (NOT aspect-ratio - Payhip's theme uses padding-bottom trick; all children are position:absolute)
         var cardInner = card.querySelector('.card__inner');
         if (cardInner) {
           cardInner.style.setProperty('position', 'relative', 'important');
           cardInner.style.setProperty('overflow', 'hidden', 'important');
           cardInner.style.setProperty('display', 'block', 'important');
-          cardInner.style.setProperty('padding-bottom', '0', 'important');
-          // Remove any padding-top ratio trick the theme uses
-          var computedPb = window.getComputedStyle(cardInner).paddingBottom;
-          if (computedPb && computedPb !== '0px') {
-            cardInner.style.setProperty('padding-bottom', '0', 'important');
-          }
+          cardInner.style.setProperty('width', '100%', 'important');
+          cardInner.style.setProperty('height', '0', 'important');
+          cardInner.style.setProperty('padding-top', '0', 'important');
+          cardInner.style.setProperty('padding-bottom', '100%', 'important');
+          cardInner.style.setProperty('box-sizing', 'content-box', 'important');
         }
 
         // 3. Fix card__media: force absolute positioning
