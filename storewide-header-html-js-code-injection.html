@@ -152,27 +152,53 @@
   // Header Nav Buttons Deduplication & Ordering Guard
   (function() {
     function cleanHeaderButtons() {
-      // 1. Deduplicate Search Buttons
-      var searchItems = document.querySelectorAll('header a[href*="search"], header [class*="search-btn"], header [class*="search-icon"], header .search-wrap');
-      if (searchItems.length > 1) {
-        for (var i = 1; i < searchItems.length; i++) {
-          searchItems[i].style.display = 'none';
+      // 1. Hide mobile header icons on desktop
+      if (window.innerWidth >= 769) {
+        var mobileElems = document.querySelectorAll('.header-display-desktop .show-on-mobile, .show-on-mobile');
+        for (var m = 0; m < mobileElems.length; m++) {
+          mobileElems[m].style.setProperty('display', 'none', 'important');
         }
       }
-      // 2. Deduplicate Cart Buttons
-      var cartItems = document.querySelectorAll('header a[href*="cart"], header [class*="cart-btn"], header [class*="cart-icon"], header .cart-wrap');
+
+      // 2. Remove newsletter form if present in DOM
+      var newsletterForm = document.getElementById('sonarline-newsletter-form');
+      if (newsletterForm) {
+        var parentBox = newsletterForm.parentElement;
+        if (parentBox && parentBox.classList.contains('sonarline-newsletter-box')) {
+          parentBox.remove();
+        } else if (parentBox) {
+          parentBox.style.setProperty('display', 'none', 'important');
+          newsletterForm.remove();
+        } else {
+          newsletterForm.remove();
+        }
+      }
+
+      // 3. Deduplicate Search Buttons
+      var searchItems = document.querySelectorAll('header .live-search-button-search, header a[href*="search"], header [class*="search-btn"], header [class*="search-icon"], header .search-wrap');
+      if (searchItems.length > 1) {
+        for (var i = 1; i < searchItems.length; i++) {
+          searchItems[i].style.setProperty('display', 'none', 'important');
+        }
+      }
+
+      // 4. Deduplicate Cart Buttons
+      var cartItems = document.querySelectorAll('header .header-cart-icon-button, header a[href*="cart"], header [class*="cart-btn"], header [class*="cart-icon"], header .cart-wrap');
       if (cartItems.length > 1) {
         for (var j = 1; j < cartItems.length; j++) {
-          cartItems[j].style.display = 'none';
+          cartItems[j].style.setProperty('display', 'none', 'important');
         }
       }
     }
+
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', cleanHeaderButtons);
     } else {
       cleanHeaderButtons();
     }
-    setTimeout(cleanHeaderButtons, 500);
-    setTimeout(cleanHeaderButtons, 1500);
+    setTimeout(cleanHeaderButtons, 300);
+    setTimeout(cleanHeaderButtons, 1000);
+    setTimeout(cleanHeaderButtons, 2500);
+    window.addEventListener('resize', cleanHeaderButtons);
   })();
 </script>

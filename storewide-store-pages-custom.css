@@ -205,7 +205,49 @@ header a.active {
   order: 3 !important;
 }
 
+/* Hide mobile header icons on desktop & suppress duplicate .show-on-mobile */
+@media (min-width: 769px) {
+  .show-on-mobile,
+  .header-display-desktop .show-on-mobile,
+  [class*="show-on-mobile"],
+  .mobile-header,
+  .header-mobile,
+  .mobile-actions,
+  .mobile-icons,
+  .header-mobile-icons,
+  .header-icons-mobile,
+  [class*="mobile-header"],
+  [class*="header-mobile"],
+  [class*="mobile-action"],
+  [class*="mobile-icon"] {
+    display: none !important;
+  }
+
+  .show-on-desktop,
+  .header-display-desktop .show-on-desktop {
+    display: flex !important;
+    align-items: center !important;
+    gap: 1.25rem !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .show-on-desktop,
+  .header-display-desktop .show-on-desktop,
+  [class*="show-on-desktop"] {
+    display: none !important;
+  }
+
+  .show-on-mobile,
+  .header-display-desktop .show-on-mobile {
+    display: flex !important;
+    align-items: center !important;
+    gap: 1.25rem !important;
+  }
+}
+
 /* Precise ordering of header buttons: Search -> Account -> Cart */
+.live-search-button-search,
 .header-actions a[href*="search"],
 .header-actions [class*="search"],
 .header-icons a[href*="search"],
@@ -214,6 +256,7 @@ header a.active {
   order: 1 !important;
 }
 
+.header-login-icon-link,
 .header-actions a[href*="account"],
 .header-actions a[href*="login"],
 .header-actions [class*="account"],
@@ -224,6 +267,7 @@ header a.active {
   order: 2 !important;
 }
 
+.header-cart-icon-button,
 .header-actions .cart-wrap,
 .header-actions [class*="cart"],
 .header-actions a[href*="cart"],
@@ -244,20 +288,11 @@ nav.navbar a[href*="cart"] {
   display: none !important;
 }
 
-/* Hide duplicate mobile header icons on desktop */
-@media (min-width: 769px) {
-  .mobile-header,
-  .header-mobile,
-  .mobile-actions,
-  .mobile-icons,
-  .header-mobile-icons,
-  .header-icons-mobile,
-  [class*="mobile-header"],
-  [class*="header-mobile"],
-  [class*="mobile-action"],
-  [class*="mobile-icon"] {
-    display: none !important;
-  }
+/* Hide newsletter form if present anywhere in DOM */
+#sonarline-newsletter-form,
+.sonarline-newsletter-form,
+.sonarline-newsletter-box {
+  display: none !important;
 }
 
 .header-actions svg,
