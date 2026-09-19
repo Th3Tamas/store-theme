@@ -148,4 +148,31 @@
     window.addEventListener('scroll', updateScrollProgress, { passive: true });
     window.addEventListener('resize', updateScrollProgress, { passive: true });
   })();
+
+  // Header Nav Buttons Deduplication & Ordering Guard
+  (function() {
+    function cleanHeaderButtons() {
+      // 1. Deduplicate Search Buttons
+      var searchItems = document.querySelectorAll('header a[href*="search"], header [class*="search-btn"], header [class*="search-icon"], header .search-wrap');
+      if (searchItems.length > 1) {
+        for (var i = 1; i < searchItems.length; i++) {
+          searchItems[i].style.display = 'none';
+        }
+      }
+      // 2. Deduplicate Cart Buttons
+      var cartItems = document.querySelectorAll('header a[href*="cart"], header [class*="cart-btn"], header [class*="cart-icon"], header .cart-wrap');
+      if (cartItems.length > 1) {
+        for (var j = 1; j < cartItems.length; j++) {
+          cartItems[j].style.display = 'none';
+        }
+      }
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', cleanHeaderButtons);
+    } else {
+      cleanHeaderButtons();
+    }
+    setTimeout(cleanHeaderButtons, 500);
+    setTimeout(cleanHeaderButtons, 1500);
+  })();
 </script>

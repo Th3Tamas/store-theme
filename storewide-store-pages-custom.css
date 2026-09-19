@@ -195,15 +195,69 @@ header a.active {
   border-bottom: 2px solid var(--sl-red) !important;
 }
 
-/* Header Icons (Search, Profile, Cart) */
+/* Header Icons (Search, Profile, Cart) & Nav Button Deduplication */
 .header-actions,
 .header-icons,
-.cart-wrap,
-[class*="header-action"],
-[class*="header-icon"] {
+.header-right {
   display: flex !important;
   align-items: center !important;
   gap: 1.25rem !important;
+  order: 3 !important;
+}
+
+/* Precise ordering of header buttons: Search -> Account -> Cart */
+.header-actions a[href*="search"],
+.header-actions [class*="search"],
+.header-icons a[href*="search"],
+.header-icons [class*="search"],
+.header-right a[href*="search"] {
+  order: 1 !important;
+}
+
+.header-actions a[href*="account"],
+.header-actions a[href*="login"],
+.header-actions [class*="account"],
+.header-actions [class*="user"],
+.header-icons a[href*="account"],
+.header-icons [class*="account"],
+.header-right a[href*="account"] {
+  order: 2 !important;
+}
+
+.header-actions .cart-wrap,
+.header-actions [class*="cart"],
+.header-actions a[href*="cart"],
+.header-icons .cart-wrap,
+.header-icons [class*="cart"],
+.header-icons a[href*="cart"],
+.header-right .cart-wrap {
+  order: 3 !important;
+}
+
+/* Hide duplicate search & cart in nav if present in header actions */
+.header-nav a[href*="search"],
+.header-nav a[href*="cart"],
+.navbar-nav a[href*="search"],
+.navbar-nav a[href*="cart"],
+nav.navbar a[href*="search"],
+nav.navbar a[href*="cart"] {
+  display: none !important;
+}
+
+/* Hide duplicate mobile header icons on desktop */
+@media (min-width: 769px) {
+  .mobile-header,
+  .header-mobile,
+  .mobile-actions,
+  .mobile-icons,
+  .header-mobile-icons,
+  .header-icons-mobile,
+  [class*="mobile-header"],
+  [class*="header-mobile"],
+  [class*="mobile-action"],
+  [class*="mobile-icon"] {
+    display: none !important;
+  }
 }
 
 .header-actions svg,
