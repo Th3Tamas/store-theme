@@ -121,41 +121,65 @@
   })();
 </script>
 
-<!-- Top Red Scroll Indicator (Storewide) -->
+<!-- Top Red Scroll Indicator (Storewide) - Fluid Sub-pixel ScaleX with requestAnimationFrame -->
 <style>
   #sonarline-scroll-progress {
     position: fixed !important;
     top: 0 !important;
     left: 0 !important;
+    width: 100% !important;
     height: 2px !important;
     background: #FF2A2A !important;
     z-index: 10000000 !important;
-    width: 0%;
+    transform-origin: 0 0 !important;
+    transform: scaleX(0) !important;
+    will-change: transform !important;
     pointer-events: none !important;
-    transition: width 0.05s ease-out;
+    transition: transform 0.08s cubic-bezier(0.25, 1, 0.5, 1) !important;
   }
 </style>
 <script>
   (function() {
-    function ensureAndTrackScrollProgress() {
-      var bar = document.getElementById('sonarline-scroll-progress');
+    var ticking = false;
+    var bar = null;
+
+    function getBar() {
       if (!bar) {
-        bar = document.createElement('div');
-        bar.id = 'sonarline-scroll-progress';
-        document.documentElement.appendChild(bar);
+        bar = document.getElementById('sonarline-scroll-progress');
+        if (!bar) {
+          bar = document.createElement('div');
+          bar.id = 'sonarline-scroll-progress';
+          document.documentElement.appendChild(bar);
+        }
       }
+      return bar;
+    }
+
+    function updateProgress() {
+      var progressBar = getBar();
       var winScroll = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
       var height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-      var scrolled = height > 0 ? (winScroll / height) * 100 : 0;
-      bar.style.width = scrolled + '%';
+      var ratio = height > 0 ? Math.min(Math.max(winScroll / height, 0), 1) : 0;
+      if (progressBar) {
+        progressBar.style.transform = 'scaleX(' + ratio + ')';
+      }
+      ticking = false;
     }
+
+    function requestTick() {
+      if (!ticking) {
+        window.requestAnimationFrame(updateProgress);
+        ticking = true;
+      }
+    }
+
     if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', ensureAndTrackScrollProgress);
+      document.addEventListener('DOMContentLoaded', requestTick);
     } else {
-      ensureAndTrackScrollProgress();
+      requestTick();
     }
-    window.addEventListener('scroll', ensureAndTrackScrollProgress, { passive: true });
-    window.addEventListener('resize', ensureAndTrackScrollProgress, { passive: true });
+    window.addEventListener('scroll', requestTick, { passive: true });
+    window.addEventListener('resize', requestTick, { passive: true });
   })();
 
   // Header Nav Buttons & Mobile Icons Clean Guard
@@ -252,9 +276,9 @@
   (function() {
     var ticking = false;
     function updateHeroParallax() {
-      var heroEl = document.querySelector('[data-section-key="headline"], #content-section-LBNmnP42zK');
-      var headingEl = document.querySelector('[data-section-key="headline"] .heading-text, [data-section-key="headline"] h1');
-      var subtitleEl = document.querySelector('[data-section-key="headline"] .section-contents p, [data-section-key="headline"] p');
+      var heroEl = document.querySelector('[data-section-key="headline"], #content-section-LBNmnP42zK, .sonarline-hero-section');
+      var headingEl = document.querySelector('[data-section-key="headline"] .heading-text, [data-section-key="headline"] h1, #sonarline-glitch-title');
+      var subtitleEl = document.querySelector('[data-section-key="headline"] .section-contents p, [data-section-key="headline"] p, .sonarline-hero-content > div:last-child');
 
       if (heroEl) {
         var scrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
@@ -273,17 +297,25 @@
           headingEl.style.filter = 'blur(' + blurPx + 'px)';
           headingEl.style.opacity = opacityVal;
           headingEl.style.transform = 'translateY(' + (scrollY * 0.12) + 'px)';
+          headingEl.style.pointerEvents = fadeProgress >= 0.9 ? 'none' : 'auto';
         }
         if (subtitleEl) {
           subtitleEl.style.filter = 'blur(' + (blurPx * 0.75).toFixed(1) + 'px)';
           subtitleEl.style.opacity = opacityVal;
           subtitleEl.style.transform = 'translateY(' + (scrollY * 0.12) + 'px)';
+          subtitleEl.style.pointerEvents = fadeProgress >= 0.9 ? 'none' : 'auto';
         }
       }
       ticking = false;
     }
 
     window.addEventListener('scroll', function() {
+      if (!ticking) {
+        window.requestAnimationFrame(updateHeroParallax);
+        ticking = true;
+      }
+    }, { passive: true });
+    window.addEventListener('resize', function() {
       if (!ticking) {
         window.requestAnimationFrame(updateHeroParallax);
         ticking = true;
