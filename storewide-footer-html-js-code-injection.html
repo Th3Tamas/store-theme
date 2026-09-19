@@ -1,0 +1,120 @@
+<!-- ==========================================================================
+     SONARLINE AUDIO - STOREWIDE FOOTER INJECTION
+     Lab Diagnostics, Dynamic Timecode & Hardware Audio Player Engine
+     ========================================================================== -->
+
+<script>
+(function() {
+  // 1. Live Lab Timecode (Terminal Clock)
+  function updateLabClock() {
+    var clockEl = document.getElementById('sonarline-live-clock');
+    if (!clockEl) return;
+    var now = new Date();
+    var h = String(now.getHours()).padStart(2, '0');
+    var m = String(now.getMinutes()).padStart(2, '0');
+    var s = String(now.getSeconds()).padStart(2, '0');
+    clockEl.textContent = h + ':' + m + ':' + s;
+  }
+  setInterval(updateLabClock, 1000);
+  updateLabClock();
+
+  // 2. Hardware Audio Preview Player Engine
+  document.addEventListener('DOMContentLoaded', function() {
+    var player = document.getElementById('sonarline-audio-player');
+    if (!player) return;
+
+    var isPlaying = false;
+    var currentTrackIndex = 0;
+    var playBtn = document.getElementById('sl-btn-play');
+    var iconPlay = document.getElementById('sl-icon-play');
+    var iconPause = document.getElementById('sl-icon-pause');
+    var prevBtn = document.getElementById('sl-btn-prev');
+    var nextBtn = document.getElementById('sl-btn-next');
+    var titleEl = document.getElementById('sl-current-title');
+    var metaEl = document.getElementById('sl-current-meta');
+    var progressBar = document.getElementById('sl-progress-bar');
+    var progressFill = document.getElementById('sl-progress-fill');
+    var elapsedEl = document.getElementById('sl-time-elapsed');
+    var trackItems = document.querySelectorAll('.tracklist-item');
+
+    var timer = null;
+    var currentSeconds = 19;
+    var totalSeconds = 45;
+
+    function formatTime(sec) {
+      var m = Math.floor(sec / 60);
+      var s = sec % 60;
+      return m + ':' + String(s).padStart(2, '0');
+    }
+
+    function togglePlay() {
+      isPlaying = !isPlaying;
+      if (isPlaying) {
+        if (iconPlay) iconPlay.style.display = 'none';
+        if (iconPause) iconPause.style.display = 'block';
+        timer = setInterval(function() {
+          currentSeconds++;
+          if (currentSeconds > totalSeconds) {
+            currentSeconds = 0;
+          }
+          var pct = (currentSeconds / totalSeconds) * 100;
+          if (progressFill) progressFill.style.width = pct + '%';
+          if (elapsedEl) elapsedEl.textContent = formatTime(currentSeconds);
+        }, 1000);
+      } else {
+        if (iconPlay) iconPlay.style.display = 'block';
+        if (iconPause) iconPause.style.display = 'none';
+        if (timer) clearInterval(timer);
+      }
+    }
+
+    function loadTrack(index) {
+      if (index < 0) index = trackItems.length - 1;
+      if (index >= trackItems.length) index = 0;
+      currentTrackIndex = index;
+
+      trackItems.forEach(function(item, idx) {
+        if (idx === currentTrackIndex) {
+          item.classList.add('active');
+          var t = item.getAttribute('data-title');
+          var m = item.getAttribute('data-meta');
+          if (titleEl && t) titleEl.textContent = t;
+          if (metaEl && m) metaEl.textContent = m;
+        } else {
+          item.classList.remove('active');
+        }
+      });
+
+      currentSeconds = 0;
+      if (progressFill) progressFill.style.width = '0%';
+      if (elapsedEl) elapsedEl.textContent = '0:00';
+    }
+
+    if (playBtn) playBtn.addEventListener('click', togglePlay);
+    if (prevBtn) prevBtn.addEventListener('click', function() {
+      loadTrack(currentTrackIndex - 1);
+    });
+    if (nextBtn) nextBtn.addEventListener('click', function() {
+      loadTrack(currentTrackIndex + 1);
+    });
+
+    if (progressBar) {
+      progressBar.addEventListener('click', function(e) {
+        var rect = progressBar.getBoundingClientRect();
+        var clickX = e.clientX - rect.left;
+        var pct = Math.max(0, Math.min(1, clickX / rect.width));
+        currentSeconds = Math.floor(pct * totalSeconds);
+        if (progressFill) progressFill.style.width = (pct * 100) + '%';
+        if (elapsedEl) elapsedEl.textContent = formatTime(currentSeconds);
+      });
+    }
+
+    trackItems.forEach(function(item, idx) {
+      item.addEventListener('click', function() {
+        loadTrack(idx);
+        if (!isPlaying) togglePlay();
+      });
+    });
+  });
+})();
+</script>

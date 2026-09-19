@@ -1,1 +1,13 @@
-./reference
+# Ignore reference materials
+reference/
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.mp4
+*.webp
+
+# Ignore OS / Editor files
+.DS_Store
+Thumbs.db
+*.log
