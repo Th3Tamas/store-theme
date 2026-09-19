@@ -322,4 +322,106 @@
       }
     }, { passive: true });
   })();
+
+  // Native Hero Enhancement: Status Pill, Glitch Title Scramble, Subtitle Red Bullets, Terminal Prompt
+  (function() {
+    function enhanceNativeHero() {
+      // Clean up any lingering post-added embed hero sections
+      var postHeroes = document.querySelectorAll('.sonarline-hero-section');
+      for (var p = 0; p < postHeroes.length; p++) {
+        postHeroes[p].remove();
+      }
+
+      var heroContents = document.querySelector('[data-section-key="headline"] .section-contents, #content-section-LBNmnP42zK .section-contents, .section-hero .section-contents');
+      if (!heroContents) return;
+
+      var h1 = heroContents.querySelector('h1, .heading-text');
+      if (!h1) return;
+
+      // 1. Inject Status Pill above H1
+      var statusPill = heroContents.querySelector('.sonarline-status-pill');
+      if (!statusPill) {
+        statusPill = document.createElement('div');
+        statusPill.className = 'sonarline-status-pill';
+        statusPill.innerHTML = '<span class="sonarline-status-dot"></span>' +
+          '<span>ARCHIVE ONLINE</span>' +
+          '<span class="sonarline-status-sep">|</span>' +
+          '<span class="sonarline-status-clock" id="sonarline-native-clock">00:00:00</span>' +
+          '<span class="sonarline-status-sep">|</span>' +
+          '<span>48kHz / 24-BIT</span>';
+        heroContents.insertBefore(statusPill, h1);
+      }
+
+      // Live clock updater
+      function updateClock() {
+        var clockEl = document.getElementById('sonarline-native-clock');
+        if (clockEl) {
+          var now = new Date();
+          var timeStr = now.toTimeString().split(' ')[0];
+          clockEl.textContent = timeStr;
+        }
+      }
+      updateClock();
+      if (!window._sonarlineClockInterval) {
+        window._sonarlineClockInterval = setInterval(updateClock, 1000);
+      }
+
+      // 2. Glitch / Scramble Effect on Native H1
+      if (!h1.getAttribute('data-scramble-bound')) {
+        h1.setAttribute('data-scramble-bound', 'true');
+        var chars = '!<>-_\\/[]{}—=+*^?#________';
+        var targetText = h1.innerText.trim();
+        var iteration = 0;
+        var interval = null;
+
+        function runScramble() {
+          iteration = 0;
+          clearInterval(interval);
+          interval = setInterval(function() {
+            h1.innerText = targetText.split('').map(function(letter, index) {
+              if (index < iteration) {
+                return targetText[index];
+              }
+              return chars[Math.floor(Math.random() * chars.length)];
+            }).join('');
+
+            if (iteration >= targetText.length) {
+              clearInterval(interval);
+            }
+            iteration += 1 / 3;
+          }, 28);
+        }
+
+        runScramble();
+        h1.addEventListener('mouseenter', runScramble);
+      }
+
+      // 3. Format Subtitle Bullets
+      var subtitleP = heroContents.querySelector('p, .richtext p');
+      if (subtitleP && !subtitleP.getAttribute('data-bullets-styled')) {
+        subtitleP.setAttribute('data-bullets-styled', 'true');
+        var rawHtml = subtitleP.innerHTML;
+        var formattedHtml = rawHtml.replace(/[•·]/g, '<span style="color: #ff3b30; font-size: 0.9rem; margin: 0 4px;">&bull;</span>');
+        subtitleP.innerHTML = formattedHtml;
+      }
+
+      // 4. Inject Terminal Prompt below subtitle
+      var terminalPrompt = heroContents.querySelector('.sonarline-terminal-prompt');
+      if (!terminalPrompt) {
+        terminalPrompt = document.createElement('div');
+        terminalPrompt.className = 'sonarline-terminal-prompt';
+        terminalPrompt.innerHTML = '<span style="color: #ff3b30;">root@sonarline:~$</span> <span style="color: #ffffff;">archive --status active</span>';
+        heroContents.appendChild(terminalPrompt);
+      }
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', enhanceNativeHero);
+    } else {
+      enhanceNativeHero();
+    }
+    setTimeout(enhanceNativeHero, 300);
+    setTimeout(enhanceNativeHero, 1000);
+    setTimeout(enhanceNativeHero, 2500);
+  })();
 </script>

@@ -81,8 +81,12 @@ img[src*="mountain"],
   position: absolute !important;
 }
 
+/* --------------------------------------------------------------------------
+   Native Hero Section: Transformed to Sonarline Blueprint Grid Hero
+   -------------------------------------------------------------------------- */
 [data-section-key="headline"],
 [data-section-key="headline"] .section-background,
+#content-section-LBNmnP42zK,
 .section-hero,
 .hero,
 [data-section-type="hero"],
@@ -97,20 +101,66 @@ img[src*="mountain"],
     linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px) !important;
   background-size: 50px 50px !important;
-  min-height: 420px !important;
+  min-height: 440px !important;
   display: flex !important;
+  flex-direction: column !important;
   align-items: center !important;
   justify-content: center !important;
   position: relative !important;
   overflow: hidden !important;
   margin-top: 0 !important;
-  margin-bottom: 24px !important;
-  padding: 40px 20px !important;
+  margin-bottom: 32px !important;
+  padding: 4rem 2rem 3rem !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  text-align: center !important;
 }
 
-/* Restyle the native text inside the hero (title & subtitle) */
+[data-section-key="headline"] .section-contents,
+#content-section-LBNmnP42zK .section-contents,
+.section-hero .section-contents {
+  max-width: 960px !important;
+  margin: 0 auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 1.6rem !important;
+  position: relative !important;
+  z-index: 2 !important;
+  width: 100% !important;
+}
+
+/* System Status Pill */
+.sonarline-status-pill {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  font-family: var(--font-mono, monospace) !important;
+  font-size: 0.72rem !important;
+  letter-spacing: 0.16em !important;
+  color: #ff3b30 !important;
+  background: rgba(255, 59, 48, 0.08) !important;
+  border: 1px solid rgba(255, 59, 48, 0.45) !important;
+  padding: 5px 16px !important;
+  order: 1 !important;
+}
+
+.sonarline-status-pill .sonarline-status-dot {
+  display: inline-block !important;
+  width: 6px !important;
+  height: 6px !important;
+  background: #ff3b30 !important;
+  box-shadow: 0 0 10px #ff3b30 !important;
+}
+
+.sonarline-status-pill .sonarline-status-sep {
+  color: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Native Title: Space Grotesk, Clamp size, Bold, Uppercase */
 [data-section-key="headline"] h1,
 [data-section-key="headline"] .heading-text,
+#content-section-LBNmnP42zK h1,
+#content-section-LBNmnP42zK .heading-text,
 .section-hero h1,
 .section-hero h2,
 .hero h1,
@@ -118,28 +168,60 @@ img[src*="mountain"],
 [data-section-type="hero"] h1,
 [data-section-type="hero"] h2,
 .theme-tusk .hero h1,
-.theme-tusk .banner h1,
-.theme-tusk [class*="hero"] h1,
-.theme-tusk [class*="banner"] h1 {
+.theme-tusk .banner h1 {
   font-family: var(--font-sans, 'Space Grotesk', sans-serif) !important;
-  text-transform: uppercase !important;
+  font-size: clamp(2.6rem, 7.5vw, 5.8rem) !important;
   font-weight: 800 !important;
-  letter-spacing: 0.15em !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  margin: 0 !important;
+  line-height: 1.05 !important;
   color: #FFFFFF !important;
+  cursor: crosshair !important;
+  user-select: none !important;
+  order: 2 !important;
 }
 
+/* Native Subtitle: Space Mono, Uppercase, Secondary text */
 [data-section-key="headline"] p,
-[data-section-key="headline"] .section-contents,
+[data-section-key="headline"] .text,
+[data-section-key="headline"] .richtext,
 [data-section-key="headline"] .section-contents p,
+#content-section-LBNmnP42zK p,
 .section-hero p,
 .hero p,
 [data-section-type="hero"] p,
 .theme-tusk .hero p,
-.theme-tusk .banner p,
-.theme-tusk [class*="hero"] p,
-.theme-tusk [class*="banner"] p {
+.theme-tusk .banner p {
   font-family: var(--font-mono, 'Space Mono', monospace) !important;
-  color: rgba(255, 255, 255, 0.6) !important;
+  font-size: 0.75rem !important;
+  letter-spacing: 0.18em !important;
+  text-transform: uppercase !important;
+  color: #8e8e8e !important;
+  margin: 0.5rem auto 0 !important;
+  display: flex !important;
+  flex-wrap: wrap !important;
+  justify-content: center !important;
+  align-items: center !important;
+  gap: 14px !important;
+  order: 3 !important;
+}
+
+/* Terminal Prompt */
+.sonarline-terminal-prompt {
+  font-family: var(--font-mono, monospace) !important;
+  font-size: 0.85rem !important;
+  color: #555555 !important;
+  margin-top: 0.5rem !important;
+  order: 4 !important;
+}
+
+/* Completely hide any post-added embed hero sections */
+.sonarline-hero-section {
+  display: none !important;
+  height: 0 !important;
+  visibility: hidden !important;
+  overflow: hidden !important;
 }
 
 /* --------------------------------------------------------------------------
@@ -536,9 +618,8 @@ header svg path {
    4. Native Section Headings & Spacing Clamps
    -------------------------------------------------------------------------- */
 /* Hero embed vertical spacing clamp */
-.sonarline-homepage-experience,
-.sonarline-hero-section {
-  margin-bottom: 32px !important;
+.sonarline-homepage-experience {
+  margin-bottom: 0 !important;
 }
 
 /* Tighten native product section & wrapper top spacing */
