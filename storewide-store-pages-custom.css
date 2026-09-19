@@ -794,7 +794,7 @@ div[data-section-key="footer"] {
 /* --------------------------------------------------------------------------
    6. Native Buttons & Controls
    -------------------------------------------------------------------------- */
-button,
+button:not(header button):not(.live-search-button-search):not(.header-cart-icon-button):not(.header-actions button),
 .btn,
 .payhip-btn,
 .payhip-buy-btn,
@@ -968,3 +968,142 @@ select:focus {
   border-bottom: 2px solid var(--sl-red);
   border-right: 2px solid var(--sl-red);
 }
+
+/* ==========================================================================
+   9. ZERO-TOLERANCE ATOMIC QA & PRODUCTION FIX OVERRIDES (CASCADE WINNER)
+   ========================================================================== */
+
+/* 1. Header Action Buttons: Zero artificial outline boxes, zero padding, clean unbordered look */
+header button,
+header .header-actions button,
+header .header-actions a,
+header .live-search-button-search,
+header .header-cart-icon-button,
+.header-actions-action button,
+.header-actions-action a,
+.header-login-icon-link,
+.live-search-button-search,
+.header-cart-icon-button {
+  border: 0px none transparent !important;
+  border-width: 0px !important;
+  border-style: none !important;
+  background: transparent !important;
+  padding: 0px !important;
+  margin: 0px !important;
+  box-shadow: none !important;
+  outline: none !important;
+  border-radius: 0 !important;
+  color: #ffffff !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  height: 32px !important;
+  width: 32px !important;
+}
+
+.header-login-icon-link,
+.header-login-icon-link svg,
+.header-login-icon-link svg path {
+  color: #ffffff !important;
+  fill: currentColor !important;
+}
+
+/* 2. Revert "SHOP" nav link to native unbordered styling */
+.js-header-nav-item-link-level0,
+.js-header-nav-item-link-level0.active,
+a.js-header-nav-item-link-level0,
+a.js-header-nav-item-link-level0.active,
+.header nav a,
+.header nav a.active,
+header a.active,
+.nav-link.active {
+  border-bottom: 0px none transparent !important;
+  border: 0px none transparent !important;
+  box-shadow: none !important;
+  text-decoration: none !important;
+}
+
+/* 3. Product Titles: Uppercase Space Grotesk Bold */
+.card__heading,
+.card__heading a,
+.card__heading span,
+h3.card__heading,
+h4.card__heading,
+.font-section-collection-productName,
+.card-wrapper .card__heading,
+.card-wrapper .card__heading a,
+.card-wrapper h3,
+.card-wrapper h4,
+.product-card h3,
+.product-card h4,
+.product-title,
+.product-name,
+[data-product-id] h3,
+[data-product-id] h4 {
+  font-family: var(--font-sans, 'Space Grotesk', sans-serif) !important;
+  font-size: 1.1rem !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.08em !important;
+  color: #ffffff !important;
+  text-decoration: none !important;
+}
+
+/* 4. Product Prices: Monospace Red (#ff3b30) */
+.card-wrapper .price,
+.card-wrapper [class*="price"],
+.product-price,
+.price,
+.price-item,
+.price__regular,
+.product-card .price,
+.product-item .price,
+[data-product-id] .price,
+[class*="product-price"],
+[class*="price"] {
+  font-family: var(--font-mono, 'Space Mono', monospace) !important;
+  font-size: 0.9rem !important;
+  font-weight: 700 !important;
+  color: #ff3b30 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+}
+
+/* 5. Eliminate Horizontal Overflow across Desktop and Mobile Viewports */
+html, body {
+  overflow-x: hidden !important;
+  width: 100% !important;
+  max-width: 100vw !important;
+  position: relative !important;
+}
+
+[data-section-key="ticker"],
+.section-wrapper[data-section-key="ticker"],
+#content-section-QW9Kn45mB6,
+.announcement-bar-dropzone,
+.announcement-bar,
+.ticker-wrapper,
+.ticker-block,
+.ticker-measure,
+.live-search-results,
+.live-search-block {
+  overflow: hidden !important;
+  overflow-x: hidden !important;
+  max-width: 100vw !important;
+  box-sizing: border-box !important;
+}
+
+.live-search-results {
+  right: 0 !important;
+  left: auto !important;
+  max-width: 100vw !important;
+  box-sizing: border-box !important;
+}
+
+[data-section-key="ticker"] svg,
+.ticker svg,
+.ticker-measure {
+  max-width: 100vw !important;
+  overflow: hidden !important;
+}
+

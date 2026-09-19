@@ -122,7 +122,6 @@
 </script>
 
 <!-- Top Red Scroll Indicator (Storewide) -->
-<div id="sonarline-scroll-progress"></div>
 <style>
   #sonarline-scroll-progress {
     position: fixed !important;
@@ -138,16 +137,25 @@
 </style>
 <script>
   (function() {
-    function updateScrollProgress() {
+    function ensureAndTrackScrollProgress() {
+      var bar = document.getElementById('sonarline-scroll-progress');
+      if (!bar) {
+        bar = document.createElement('div');
+        bar.id = 'sonarline-scroll-progress';
+        document.documentElement.appendChild(bar);
+      }
       var winScroll = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
       var height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
       var scrolled = height > 0 ? (winScroll / height) * 100 : 0;
-      var bar = document.getElementById('sonarline-scroll-progress');
-      if (bar) bar.style.width = scrolled + '%';
+      bar.style.width = scrolled + '%';
     }
-    window.addEventListener('scroll', updateScrollProgress, { passive: true });
-    window.addEventListener('resize', updateScrollProgress, { passive: true });
-    updateScrollProgress();
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', ensureAndTrackScrollProgress);
+    } else {
+      ensureAndTrackScrollProgress();
+    }
+    window.addEventListener('scroll', ensureAndTrackScrollProgress, { passive: true });
+    window.addEventListener('resize', ensureAndTrackScrollProgress, { passive: true });
   })();
 
   // Header Nav Buttons & Mobile Icons Clean Guard
@@ -175,15 +183,33 @@
         }
       }
 
-      // 3. Ensure Cart and Action Buttons remain fully visible and operational
-      var cartButtons = document.querySelectorAll('.header-cart-icon-button, .header-actions .cart-wrap');
-      for (var c = 0; c < cartButtons.length; c++) {
-        cartButtons[c].style.removeProperty('display');
-        cartButtons[c].style.setProperty('visibility', 'visible', 'important');
-        cartButtons[c].style.setProperty('opacity', '1', 'important');
+      // 3. Ensure Cart and Action Buttons remain fully visible, unbordered, and padding-free
+      var actionButtons = document.querySelectorAll('.header-cart-icon-button, .live-search-button-search, .header-actions .cart-wrap, .header-actions button');
+      for (var c = 0; c < actionButtons.length; c++) {
+        actionButtons[c].style.removeProperty('display');
+        actionButtons[c].style.setProperty('border', 'none', 'important');
+        actionButtons[c].style.setProperty('outline', 'none', 'important');
+        actionButtons[c].style.setProperty('padding', '0px', 'important');
+        actionButtons[c].style.setProperty('background', 'transparent', 'important');
+        actionButtons[c].style.setProperty('box-shadow', 'none', 'important');
+        actionButtons[c].style.setProperty('visibility', 'visible', 'important');
+        actionButtons[c].style.setProperty('opacity', '1', 'important');
       }
 
-      // 4. Hide duplicate desktop search if both full search form and icon button are present outside nav
+      // 4. Ensure Login link icon is white
+      var loginLinks = document.querySelectorAll('.header-login-icon-link');
+      for (var l = 0; l < loginLinks.length; l++) {
+        loginLinks[l].style.setProperty('color', '#ffffff', 'important');
+        loginLinks[l].style.setProperty('border', 'none', 'important');
+      }
+
+      // 5. Revert SHOP link to native unbordered
+      var shopLinks = document.querySelectorAll('.js-header-nav-item-link-level0, .js-header-nav-item-link-level0.active, header nav a');
+      for (var k = 0; k < shopLinks.length; k++) {
+        shopLinks[k].style.setProperty('border-bottom', 'none', 'important');
+      }
+
+      // 6. Hide duplicate desktop search if both full search form and icon button are present outside nav
       var navSearchLinks = document.querySelectorAll('.header-nav a[href*="search"], .navbar-nav a[href*="search"]');
       for (var s = 0; s < navSearchLinks.length; s++) {
         navSearchLinks[s].style.setProperty('display', 'none', 'important');
