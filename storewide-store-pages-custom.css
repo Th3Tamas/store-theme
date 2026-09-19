@@ -365,48 +365,61 @@ header a.active {
   border-bottom: none !important;
 }
 
-/* Ticker Section - Marquee Ticker Glow, Hairline Divider Accents & Anti-Clipping */
+/* --------------------------------------------------------------------------
+   Native Payhip Announcement Bar & Ticker Styling (Chrome + Firefox Cross-Browser)
+   -------------------------------------------------------------------------- */
 [data-section-key="ticker"],
 .section-wrapper[data-section-key="ticker"],
 #content-section-QW9Kn45mB6,
 .announcement-bar-dropzone,
-.announcement-bar {
-  padding-top: 0 !important;
-  padding-bottom: 0 !important;
-  margin-top: 0 !important;
-  margin-bottom: 0 !important;
+.announcement-bar,
+[data-section-type="announcement"],
+.theme-tusk .marquee,
+.marquee,
+.marquee-wrapper {
+  padding: 0 !important;
+  margin: 0 !important;
   min-height: 0 !important;
   height: auto !important;
   overflow: hidden !important;
   border-top: 1px solid rgba(255, 42, 42, 0.25) !important;
   border-bottom: 1px solid rgba(255, 42, 42, 0.25) !important;
   background-color: #080808 !important;
+  box-sizing: border-box !important;
+  max-width: 100vw !important;
 }
 
 [data-section-key="ticker"] .section-contents-wrapper,
 [data-section-key="ticker"] .section-contents,
-[data-section-key="ticker"] .section-background {
-  padding-top: 0 !important;
-  padding-bottom: 0 !important;
-  margin-top: 0 !important;
-  margin-bottom: 0 !important;
+[data-section-key="ticker"] .section-background,
+.announcement-bar-inner,
+.announcement-bar-content {
+  padding: 0 !important;
+  margin: 0 !important;
   min-height: 0 !important;
   height: auto !important;
   background: transparent !important;
 }
 
+/* Inner text container: ample vertical breathing room so font descenders (g, y, p, q) have full clearance */
 [data-section-key="ticker"] svg,
 [data-section-key="ticker"] .ticker,
 .ticker-block,
-.ticker-wrapper {
+.ticker-wrapper,
+.ticker-measure,
+.ticker,
+.announcement-bar svg,
+.theme-tusk .marquee-content {
   max-width: 100vw !important;
   margin-top: 0 !important;
   margin-bottom: 0 !important;
   padding: 10px 0 !important;
-  line-height: 1.6 !important;
+  line-height: 1.5 !important;
   overflow: visible !important;
+  box-sizing: content-box !important;
 }
 
+/* Red Glow (Chrome + Firefox Cross-Browser) with multiple text-shadow layers */
 [data-section-key="ticker"] text,
 [data-section-key="ticker"] tspan,
 [data-section-key="ticker"] textPath,
@@ -418,15 +431,21 @@ header a.active {
 .ticker tspan,
 .ticker p,
 .ticker a,
-.sonarline-ticker-item {
+.ticker-block,
+.ticker-measure,
+.announcement-bar p,
+.announcement-bar span,
+.announcement-bar a,
+[data-section-type="announcement"] * {
   color: #FF2A2A !important;
   fill: #FF2A2A !important;
-  text-shadow: 0 0 10px rgba(255, 42, 42, 0.4) !important;
-  filter: drop-shadow(0 0 10px rgba(255, 42, 42, 0.4)) !important;
-  font-family: var(--font-mono, 'Space Mono', monospace) !important;
-  font-weight: 600 !important;
+  text-shadow: 0 0 8px rgba(255, 42, 42, 0.7), 0 0 16px rgba(255, 42, 42, 0.3) !important;
+  filter: drop-shadow(0 0 8px rgba(255, 42, 42, 0.7)) drop-shadow(0 0 16px rgba(255, 42, 42, 0.3)) !important;
+  font-family: 'Space Mono', monospace !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
   letter-spacing: 0.18em !important;
-  line-height: 1.6 !important;
+  line-height: 1.5 !important;
 }
 
 /* Header Icons (Search, Profile, Cart) & Nav Controls */
@@ -1347,15 +1366,29 @@ div.card-wrapper.product-card-wrapper,
   border: none !important;
 }
 
-/* 7. Marquee Ticker Glow & Hairline Divider Accents (Cascade Winner) */
+/* 7. Native Marquee Ticker Glow & Hairline Divider Accents (Cascade Winner) */
 [data-section-key="ticker"],
 .section-wrapper[data-section-key="ticker"],
 .announcement-bar-dropzone,
 .announcement-bar,
-.sonarline-ticker-bar {
+[data-section-type="announcement"],
+.theme-tusk .marquee,
+.marquee {
   border-top: 1px solid rgba(255, 42, 42, 0.25) !important;
   border-bottom: 1px solid rgba(255, 42, 42, 0.25) !important;
   background-color: #080808 !important;
+  overflow: hidden !important;
+}
+
+[data-section-key="ticker"] svg,
+.ticker svg,
+.ticker-wrapper,
+.ticker-block,
+.ticker-measure,
+.announcement-bar svg {
+  padding: 10px 0 !important;
+  line-height: 1.5 !important;
+  overflow: visible !important;
 }
 
 [data-section-key="ticker"] text,
@@ -1369,11 +1402,17 @@ div.card-wrapper.product-card-wrapper,
 .ticker tspan,
 .ticker p,
 .ticker a,
-.sonarline-ticker-item {
+.announcement-bar p,
+.announcement-bar span,
+.announcement-bar a {
   color: #FF2A2A !important;
   fill: #FF2A2A !important;
-  text-shadow: 0 0 10px rgba(255, 42, 42, 0.4) !important;
-  filter: drop-shadow(0 0 10px rgba(255, 42, 42, 0.4)) !important;
-  line-height: 1.6 !important;
+  text-shadow: 0 0 8px rgba(255, 42, 42, 0.7), 0 0 16px rgba(255, 42, 42, 0.3) !important;
+  filter: drop-shadow(0 0 8px rgba(255, 42, 42, 0.7)) drop-shadow(0 0 16px rgba(255, 42, 42, 0.3)) !important;
+  font-family: 'Space Mono', monospace !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.18em !important;
+  line-height: 1.5 !important;
 }
 

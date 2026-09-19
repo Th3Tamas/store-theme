@@ -1,29 +1,102 @@
 <!-- ==========================================================================
-     SONARLINE // ARCHIVE - CUSTOM STOREFRONT EXPERIENCE
-     (Native Payhip Hero & Products Render With Engine Theme)
+     SONARLINE // ARCHIVE - CUSTOM PAGES EMBED
+     Glitch Hero Container, Status Badges & Category Labels
+     (Native Payhip Announcement Bar & Products Render Separately)
      ========================================================================== -->
 
 <div class="sonarline-homepage-experience">
 
-  <!-- 1. Ticker / Marquee Bar -->
-  <div class="sonarline-ticker-bar">
-    <div class="sonarline-ticker-track">
-      <div class="sonarline-ticker-item"><span class="sonarline-ticker-bullet">&#9679;</span> SOUND DESIGN LAB</div>
-      <div class="sonarline-ticker-item"><span class="sonarline-ticker-bullet">&#9679;</span> CRAFT YOUR SOUND</div>
-      <div class="sonarline-ticker-item"><span class="sonarline-ticker-bullet">&#9679;</span> NO FILLER. ALL HEAT.</div>
-      <div class="sonarline-ticker-item"><span class="sonarline-ticker-bullet">&#9679;</span> MASTER GRADE SAMPLES</div>
-      <div class="sonarline-ticker-item"><span class="sonarline-ticker-bullet">&#9679;</span> HIGH FIDELITY STEMS</div>
-      <div class="sonarline-ticker-item"><span class="sonarline-ticker-bullet">&#9679;</span> 48kHz / 24-BIT ARCHIVE</div>
-      <div class="sonarline-ticker-item"><span class="sonarline-ticker-bullet">&#9679;</span> ANALOG TEXTURES</div>
-      <!-- Duplicate for continuous marquee -->
-      <div class="sonarline-ticker-item"><span class="sonarline-ticker-bullet">&#9679;</span> SOUND DESIGN LAB</div>
-      <div class="sonarline-ticker-item"><span class="sonarline-ticker-bullet">&#9679;</span> CRAFT YOUR SOUND</div>
-      <div class="sonarline-ticker-item"><span class="sonarline-ticker-bullet">&#9679;</span> NO FILLER. ALL HEAT.</div>
-      <div class="sonarline-ticker-item"><span class="sonarline-ticker-bullet">&#9679;</span> MASTER GRADE SAMPLES</div>
-      <div class="sonarline-ticker-item"><span class="sonarline-ticker-bullet">&#9679;</span> HIGH FIDELITY STEMS</div>
-      <div class="sonarline-ticker-item"><span class="sonarline-ticker-bullet">&#9679;</span> 48kHz / 24-BIT ARCHIVE</div>
-      <div class="sonarline-ticker-item"><span class="sonarline-ticker-bullet">&#9679;</span> ANALOG TEXTURES</div>
+  <!-- Hero Unit with Technical Blueprint Grid & Glitch / Scramble Header -->
+  <section class="sonarline-hero-section" style="position: relative; overflow: hidden; padding: 4rem 2rem 2.75rem; text-align: center; border-bottom: 1px solid var(--sl-border); margin-bottom: 32px; background: #0A0A0A;">
+    
+    <!-- Animated / Parallax Scrolling Blueprint Grid Canvas -->
+    <div class="sonarline-hero-grid-canvas" style="position: absolute; top: -50%; left: 0; right: 0; bottom: -50%; pointer-events: none; z-index: 1; background-image: linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px), linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px); background-size: 50px 50px; background-position: center center; will-change: transform, filter, opacity;"></div>
+
+    <div class="sonarline-hero-content" style="max-width: 960px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; gap: 1.6rem; position: relative; z-index: 2; will-change: transform, filter, opacity;">
+      
+      <!-- System Status Pill -->
+      <div style="display: inline-flex; align-items: center; gap: 10px; font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.16em; color: var(--sl-red); background: var(--sl-red-dim); border: 1px solid var(--sl-border-red); padding: 5px 16px;">
+        <span style="display: inline-block; width: 6px; height: 6px; background: var(--sl-red); box-shadow: 0 0 10px var(--sl-red);"></span>
+        <span>ARCHIVE ONLINE</span>
+        <span style="color: rgba(255,255,255,0.2);">|</span>
+        <span id="sonarline-live-clock">18:49:41</span>
+        <span style="color: rgba(255,255,255,0.2);">|</span>
+        <span>48kHz / 24-BIT</span>
+      </div>
+
+      <!-- Main Glitch / Scramble Title -->
+      <h1 id="sonarline-glitch-title" data-value="SONARLINE // ARCHIVE" style="font-family: var(--font-sans); font-size: clamp(2.6rem, 7.5vw, 5.8rem); font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; margin: 0; line-height: 1.05; color: var(--sl-white); cursor: crosshair; user-select: none;">
+        SONARLINE // ARCHIVE
+      </h1>
+
+      <!-- Category Labels (Sub-pills) -->
+      <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 14px; font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--sl-text-secondary); margin-top: 0.5rem;">
+        <span>DRUM KITS</span>
+        <span style="color: var(--sl-red);">&bull;</span>
+        <span>SAMPLE PACKS</span>
+        <span style="color: var(--sl-red);">&bull;</span>
+        <span>MULTI-KITS</span>
+        <span style="color: var(--sl-red);">&bull;</span>
+        <span>ANALOG STEMS</span>
+        <span style="color: var(--sl-red);">&bull;</span>
+        <span>ONE-SHOTS</span>
+      </div>
+
+      <!-- Terminal Prompt -->
+      <div style="font-family: var(--font-mono); font-size: 0.85rem; color: var(--sl-text-muted); margin-top: 1rem;">
+        <span style="color: var(--sl-red);">root@sonarline:~$</span> <span style="color: var(--sl-white);">archive --status active</span>
+      </div>
+
     </div>
-  </div>
+  </section>
 
 </div>
+
+<script>
+(function() {
+  var titleEl = document.getElementById('sonarline-glitch-title');
+  if (titleEl) {
+    var chars = '!<>-_\\/[]{}—=+*^?#________';
+    var targetText = titleEl.getAttribute('data-value') || 'SONARLINE // ARCHIVE';
+    var iteration = 0;
+    var interval = null;
+
+    function runScramble() {
+      iteration = 0;
+      clearInterval(interval);
+      interval = setInterval(function() {
+        titleEl.innerText = targetText.split('').map(function(letter, index) {
+          if (index < iteration) {
+            return targetText[index];
+          }
+          return chars[Math.floor(Math.random() * chars.length)];
+        }).join('');
+
+        if (iteration >= targetText.length) {
+          clearInterval(interval);
+        }
+        iteration += 1 / 3;
+      }, 28);
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', runScramble);
+    } else {
+      runScramble();
+    }
+
+    titleEl.addEventListener('mouseenter', runScramble);
+  }
+
+  // Live Clock Updater
+  function updateClock() {
+    var clockEl = document.getElementById('sonarline-live-clock');
+    if (clockEl) {
+      var now = new Date();
+      clockEl.textContent = now.toTimeString().split(' ')[0];
+    }
+  }
+  updateClock();
+  setInterval(updateClock, 1000);
+})();
+</script>
