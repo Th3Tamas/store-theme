@@ -348,48 +348,122 @@
   })();
 
   // Product Card Image Recovery & Duplicate Title Elimination
+  // Uses inline style setProperty to beat Payhip's lazy-loader inline styles
   (function() {
+    function fixCardMedia(cardMedia) {
+      cardMedia.style.setProperty('position', 'absolute', 'important');
+      cardMedia.style.setProperty('top', '0', 'important');
+      cardMedia.style.setProperty('left', '0', 'important');
+      cardMedia.style.setProperty('right', '0', 'important');
+      cardMedia.style.setProperty('bottom', '0', 'important');
+      cardMedia.style.setProperty('width', '100%', 'important');
+      cardMedia.style.setProperty('height', '100%', 'important');
+      cardMedia.style.setProperty('margin', '0', 'important');
+      cardMedia.style.setProperty('padding', '0', 'important');
+      cardMedia.style.setProperty('overflow', 'hidden', 'important');
+      cardMedia.style.setProperty('display', 'block', 'important');
+    }
+
+    function fixCardImage(img) {
+      img.style.setProperty('position', 'absolute', 'important');
+      img.style.setProperty('top', '0', 'important');
+      img.style.setProperty('left', '0', 'important');
+      img.style.setProperty('width', '100%', 'important');
+      img.style.setProperty('height', '100%', 'important');
+      img.style.setProperty('object-fit', 'cover', 'important');
+      img.style.setProperty('opacity', '1', 'important');
+      img.style.setProperty('visibility', 'visible', 'important');
+      img.style.setProperty('display', 'block', 'important');
+      img.style.setProperty('margin', '0', 'important');
+      img.style.setProperty('padding', '0', 'important');
+    }
+
     function cleanProductCards() {
       var cards = document.querySelectorAll('.card-wrapper, .product-card');
       for (var i = 0; i < cards.length; i++) {
         var card = cards[i];
-        
+
         // 1. Hide duplicate inner content inside card__inner
         var innerContent = card.querySelectorAll('.card__inner .card__content, .card__inner .card__information');
         for (var j = 0; j < innerContent.length; j++) {
           innerContent[j].style.setProperty('display', 'none', 'important');
+          innerContent[j].style.setProperty('visibility', 'hidden', 'important');
+          innerContent[j].style.setProperty('height', '0', 'important');
+          innerContent[j].style.setProperty('overflow', 'hidden', 'important');
         }
 
-        // 2. Hide duplicate headings inside card__inner
-        var headings = card.querySelectorAll('.card__heading, h3, h4');
-        if (headings.length > 1) {
-          for (var k = 0; k < headings.length; k++) {
-            if (headings[k].closest('.card__inner')) {
-              headings[k].style.setProperty('display', 'none', 'important');
-            }
+        // 2. Fix card__inner: ensure it has position:relative and aspect-ratio works
+        var cardInner = card.querySelector('.card__inner');
+        if (cardInner) {
+          cardInner.style.setProperty('position', 'relative', 'important');
+          cardInner.style.setProperty('overflow', 'hidden', 'important');
+          cardInner.style.setProperty('display', 'block', 'important');
+          cardInner.style.setProperty('padding-bottom', '0', 'important');
+          // Remove any padding-top ratio trick the theme uses
+          var computedPb = window.getComputedStyle(cardInner).paddingBottom;
+          if (computedPb && computedPb !== '0px') {
+            cardInner.style.setProperty('padding-bottom', '0', 'important');
           }
         }
 
-        // 3. Ensure images are visible, flush, and properly styled
+        // 3. Fix card__media: force absolute positioning
+        var cardMedias = card.querySelectorAll('.card__media, .media');
+        for (var k = 0; k < cardMedias.length; k++) {
+          fixCardMedia(cardMedias[k]);
+        }
+
+        // 4. Fix all images inside cards: force position and top:0
         var imgs = card.querySelectorAll('img');
         for (var m = 0; m < imgs.length; m++) {
-          imgs[m].style.setProperty('display', 'block', 'important');
-          imgs[m].style.setProperty('opacity', '1', 'important');
-          imgs[m].style.setProperty('visibility', 'visible', 'important');
-          imgs[m].style.setProperty('object-fit', 'cover', 'important');
+          fixCardImage(imgs[m]);
         }
       }
     }
 
+    // MutationObserver: re-apply whenever Payhip lazy loader mutates card elements
+    function startCardObserver() {
+      var target = document.body || document.documentElement;
+      var observer = new MutationObserver(function(mutations) {
+        var needsClean = false;
+        for (var i = 0; i < mutations.length; i++) {
+          var mut = mutations[i];
+          // Re-apply if any card__media or img attributes changed (lazy loader sets top/style)
+          if (mut.type === 'attributes' && (mut.target.classList.contains('card__media') || mut.target.classList.contains('media') || mut.target.tagName === 'IMG')) {
+            needsClean = true;
+            break;
+          }
+          if (mut.type === 'childList' && mut.addedNodes.length > 0) {
+            needsClean = true;
+            break;
+          }
+        }
+        if (needsClean) {
+          window.requestAnimationFrame(cleanProductCards);
+        }
+      });
+      observer.observe(target, {
+        subtree: true,
+        childList: true,
+        attributes: true,
+        attributeFilter: ['style', 'class', 'src']
+      });
+    }
+
     if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', cleanProductCards);
+      document.addEventListener('DOMContentLoaded', function() {
+        cleanProductCards();
+        startCardObserver();
+      });
     } else {
       cleanProductCards();
+      startCardObserver();
     }
-    setTimeout(cleanProductCards, 300);
-    setTimeout(cleanProductCards, 1000);
-    setTimeout(cleanProductCards, 2500);
+    setTimeout(cleanProductCards, 100);
+    setTimeout(cleanProductCards, 500);
+    setTimeout(cleanProductCards, 1500);
+    setTimeout(cleanProductCards, 3000);
   })();
+
 
   // Header Nav Buttons & Mobile Icons Clean Guard
   (function() {

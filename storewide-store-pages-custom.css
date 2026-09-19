@@ -216,10 +216,7 @@
 img.section-background-image,
 img[src*="mountain"],
 .theme-tusk .banner-image,
-.theme-tusk .banner img,
-[class*="banner"] img,
-.banner img,
-.header-banner img {
+.theme-tusk .banner img {
   display: none !important;
   visibility: hidden !important;
   opacity: 0 !important;
@@ -1056,13 +1053,17 @@ div.card-wrapper.product-card-wrapper:hover,
 }
 
 /* 3. FLUSH EDGE-TO-EDGE 1:1 SQUARE MEDIA FRAME */
-.card-wrapper .card__inner,
-.product-card .card__inner {
+html body .card-wrapper .card__inner,
+html body .product-card .card__inner,
+.card-wrapper .card__inner.ratio,
+.card-wrapper .card__inner {
   width: 100% !important;
   max-width: 100% !important;
   aspect-ratio: 1 / 1 !important;
+  height: auto !important;
   margin: 0 !important;
   padding: 0 !important;
+  padding-bottom: 0 !important;
   position: relative !important;
   overflow: hidden !important;
   border: none !important;
@@ -1070,10 +1071,14 @@ div.card-wrapper.product-card-wrapper:hover,
   display: block !important;
 }
 
-.card-wrapper .card__media,
-.card-wrapper .media,
-.product-card .card__media,
-.product-card .media,
+/* card__media: use highest possible specificity to beat Payhip theme */
+html body .card-wrapper .card__inner .card__media,
+html body .card-wrapper .card__media,
+html body .card-wrapper .media,
+html body .card-wrapper .card__inner .media,
+html body .product-card .card__media,
+html body .product-card .media,
+.card-wrapper .card__inner.ratio .card__media,
 .card-wrapper [class*="card__media"],
 .card-wrapper [class*="image-wrapper"] {
   width: 100% !important;
@@ -1089,26 +1094,17 @@ div.card-wrapper.product-card-wrapper:hover,
   display: block !important;
 }
 
-.card-wrapper img,
-.product-card img,
-.product-item img,
-.payhip-collection-product-item img,
-.product-wrap img,
-.product-holder img,
-.payhip-product-item img,
-.display-product img,
-[data-product-id] img,
-[class*="product-image"] img,
-[class*="product-thumb"] img,
-[class*="product"] img,
-.card-wrapper .card__inner img,
-.card-wrapper .card__media img,
-.card-wrapper .media img {
+html body .card-wrapper img,
+html body .product-card img,
+html body .card-wrapper .card__inner img,
+html body .card-wrapper .card__media img,
+html body .card-wrapper .media img,
+html body .card-wrapper .card__inner .card__media img,
+html body .card-wrapper .card__inner .media img {
   width: 100% !important;
   height: 100% !important;
   max-width: 100% !important;
   max-height: 100% !important;
-  aspect-ratio: 1 / 1 !important;
   object-fit: cover !important;
   position: absolute !important;
   top: 0 !important;
@@ -1578,24 +1574,30 @@ div.card-wrapper.product-card-wrapper,
   pointer-events: none !important;
 }
 
-.card-wrapper .card__inner,
-.product-card .card__inner {
+html body .card-wrapper .card__inner,
+html body .product-card .card__inner,
+.card-wrapper .card__inner.ratio {
   border: none !important;
   padding: 0 !important;
+  padding-bottom: 0 !important;
   margin: 0 !important;
   background: #0f0f0f !important;
   box-shadow: none !important;
   aspect-ratio: 1 / 1 !important;
+  height: auto !important;
   width: 100% !important;
   position: relative !important;
   overflow: hidden !important;
   display: block !important;
 }
 
-.card-wrapper .card__media,
-.card-wrapper .media,
-.product-card .card__media,
-.product-card .media {
+html body .card-wrapper .card__inner .card__media,
+html body .card-wrapper .card__media,
+html body .card-wrapper .media,
+html body .card-wrapper .card__inner .media,
+html body .product-card .card__media,
+html body .product-card .media,
+.card-wrapper .card__inner.ratio .card__media {
   width: 100% !important;
   height: 100% !important;
   position: absolute !important;
@@ -1609,16 +1611,17 @@ div.card-wrapper.product-card-wrapper,
   display: block !important;
 }
 
-.card-wrapper img,
-.product-card img,
-.card-wrapper .card__inner img,
-.card-wrapper .card__media img,
-.card-wrapper .media img {
+html body .card-wrapper img,
+html body .product-card img,
+html body .card-wrapper .card__inner img,
+html body .card-wrapper .card__media img,
+html body .card-wrapper .media img,
+html body .card-wrapper .card__inner .card__media img,
+html body .card-wrapper .card__inner .media img {
   width: 100% !important;
   height: 100% !important;
   max-width: 100% !important;
   max-height: 100% !important;
-  aspect-ratio: 1 / 1 !important;
   object-fit: cover !important;
   position: absolute !important;
   top: 0 !important;
