@@ -47,6 +47,159 @@
 }
 
 /* --------------------------------------------------------------------------
+   Terminal / HUD Preloader Overlay - Reference Image 4
+   -------------------------------------------------------------------------- */
+#sonarline-hud-preloader {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background-color: #080808 !important;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px) !important;
+  background-size: 60px 60px !important;
+  background-position: center top !important;
+  z-index: 9999999 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  align-items: center !important;
+  font-family: 'Space Mono', 'JetBrains Mono', monospace !important;
+  color: #8e8e8e !important;
+  transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.4s ease !important;
+  pointer-events: all !important;
+  user-select: none !important;
+}
+.hud-center-container {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  width: 100% !important;
+  max-width: 480px !important;
+  padding: 0 20px !important;
+  box-sizing: border-box !important;
+}
+.hud-brand-header {
+  text-align: center !important;
+  margin-bottom: 2.2rem !important;
+}
+.hud-brand-title {
+  font-family: 'Space Grotesk', -apple-system, sans-serif !important;
+  font-size: clamp(2rem, 5vw, 2.6rem) !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.12em !important;
+  color: #ffffff !important;
+  text-transform: uppercase !important;
+  line-height: 1.1 !important;
+}
+.hud-brand-title .hud-slash {
+  color: #ff3b30 !important;
+  margin: 0 4px !important;
+}
+.hud-brand-title .hud-lab {
+  color: #ff3b30 !important;
+  font-weight: 400 !important;
+  text-transform: lowercase !important;
+}
+.hud-brand-sub {
+  font-family: 'Space Mono', monospace !important;
+  font-size: 0.68rem !important;
+  letter-spacing: 0.28em !important;
+  color: #666666 !important;
+  text-transform: uppercase !important;
+  margin-top: 8px !important;
+}
+.hud-terminal-readout {
+  width: 100% !important;
+  font-family: 'Space Mono', monospace !important;
+  font-size: 0.76rem !important;
+  line-height: 1.9 !important;
+  letter-spacing: 0.06em !important;
+  color: #8e8e8e !important;
+  margin-bottom: 1.25rem !important;
+  min-height: 190px !important;
+}
+.hud-line {
+  opacity: 0 !important;
+  transform: translateY(3px) !important;
+  transition: opacity 0.12s ease, transform 0.12s ease !important;
+  white-space: pre-wrap !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+}
+.hud-line.active {
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+}
+.hud-prompt {
+  color: #ff3b30 !important;
+  margin-right: 8px !important;
+  font-weight: 700 !important;
+}
+.hud-cmd {
+  color: #a0a0a0 !important;
+  flex: 0 0 auto !important;
+}
+.hud-dots {
+  color: #333333 !important;
+  flex: 1 1 auto !important;
+  overflow: hidden !important;
+  text-align: right !important;
+  margin: 0 4px !important;
+  letter-spacing: 0.15em !important;
+}
+.hud-status {
+  color: #555555 !important;
+  flex: 0 0 auto !important;
+}
+.hud-ok {
+  color: #ffffff !important;
+  font-weight: 700 !important;
+}
+.hud-ready {
+  color: #ff3b30 !important;
+  font-weight: 700 !important;
+}
+.hud-welcome {
+  color: #ffffff !important;
+  margin-left: 6px !important;
+}
+.hud-progress-bar-wrap {
+  width: 100% !important;
+}
+.hud-progress-line {
+  width: 100% !important;
+  height: 1px !important;
+  background: rgba(255, 255, 255, 0.12) !important;
+  margin-bottom: 10px !important;
+}
+.hud-progress-footer {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  font-family: 'Space Mono', monospace !important;
+  font-size: 0.72rem !important;
+  letter-spacing: 0.14em !important;
+}
+.hud-progress-status {
+  color: #888888 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+.hud-ready-sq {
+  color: #ff3b30 !important;
+  font-size: 0.65rem !important;
+}
+.hud-progress-pct {
+  color: #ffffff !important;
+  font-weight: 700 !important;
+}
+
+/* --------------------------------------------------------------------------
    Native Hero Section Skinning & Blueprint Grid Matrix
    -------------------------------------------------------------------------- */
 /* Completely hide native hero img element across all browsers (Firefox, Chrome, Safari, Edge) */
@@ -85,7 +238,6 @@ img[src*="mountain"],
    Native Hero Section: Transformed to Sonarline Blueprint Grid Hero
    -------------------------------------------------------------------------- */
 [data-section-key="headline"],
-[data-section-key="headline"] .section-background,
 #content-section-LBNmnP42zK,
 .section-hero,
 .hero,
@@ -98,9 +250,10 @@ img[src*="mountain"],
 .store-banner {
   background-color: #080808 !important;
   background-image: 
-    linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px) !important;
-  background-size: 50px 50px !important;
+    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px) !important;
+  background-size: 60px 60px !important;
+  background-position: center top !important;
   min-height: 440px !important;
   display: flex !important;
   flex-direction: column !important;
@@ -113,6 +266,11 @@ img[src*="mountain"],
   padding: 4rem 2rem 3rem !important;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
   text-align: center !important;
+}
+
+[data-section-key="headline"] .section-background {
+  background: transparent !important;
+  background-image: none !important;
 }
 
 [data-section-key="headline"] .section-contents,
@@ -310,7 +468,13 @@ body,
   color: #ffffff !important;
 }
 
-/* Custom minimal brutalist scrollbar */
+/* Firefox scrollbar standard parity */
+* {
+  scrollbar-width: thin !important;
+  scrollbar-color: #252525 #080808 !important;
+}
+
+/* Custom minimal brutalist scrollbar (Webkit) */
 ::-webkit-scrollbar {
   width: 5px;
   height: 5px;
@@ -446,6 +610,16 @@ header a.active {
   text-transform: uppercase !important;
   letter-spacing: 0.18em !important;
   line-height: 1.5 !important;
+}
+
+/* Gecko/Firefox SVG Glow Parity: drop-shadow on SVG containers */
+[data-section-key="ticker"] svg,
+.ticker svg,
+.announcement-bar svg,
+.theme-tusk .marquee svg,
+svg.ticker-measure,
+[data-section-type="announcement"] svg {
+  filter: drop-shadow(0 0 8px rgba(255, 42, 42, 0.7)) drop-shadow(0 0 16px rgba(255, 42, 42, 0.3)) !important;
 }
 
 /* Header Icons (Search, Profile, Cart) & Nav Controls */
@@ -859,12 +1033,14 @@ div.card-wrapper.product-card-wrapper:hover,
 .card-wrapper [class*="image-wrapper"] {
   width: 100% !important;
   max-width: 100% !important;
+  aspect-ratio: 1 / 1 !important;
   margin: 0 !important;
   padding: 0 !important;
   position: relative !important;
   overflow: hidden !important;
   border: none !important;
   background: transparent !important;
+  display: block !important;
 }
 
 .card-wrapper img,
@@ -883,7 +1059,7 @@ div.card-wrapper.product-card-wrapper:hover,
 .card-wrapper .card__media img {
   width: 100% !important;
   max-width: 100% !important;
-  height: auto !important;
+  height: 100% !important;
   aspect-ratio: 1 / 1 !important;
   object-fit: cover !important;
   border: none !important;
@@ -1334,7 +1510,6 @@ div.card-wrapper.product-card-wrapper,
   overflow: hidden !important;
 }
 
-.card-wrapper .card,
 .card-wrapper .card__inner,
 .card-wrapper .card__media,
 .card-wrapper .media {
@@ -1343,6 +1518,11 @@ div.card-wrapper.product-card-wrapper,
   margin: 0 !important;
   background: transparent !important;
   box-shadow: none !important;
+  aspect-ratio: 1 / 1 !important;
+  width: 100% !important;
+  position: relative !important;
+  overflow: hidden !important;
+  display: block !important;
 }
 
 .card-wrapper img,
@@ -1351,6 +1531,7 @@ div.card-wrapper.product-card-wrapper,
 .card-wrapper .card__media img {
   width: 100% !important;
   max-width: 100% !important;
+  height: 100% !important;
   aspect-ratio: 1 / 1 !important;
   object-fit: cover !important;
   border: none !important;
@@ -1385,10 +1566,12 @@ div.card-wrapper.product-card-wrapper,
 .ticker-wrapper,
 .ticker-block,
 .ticker-measure,
-.announcement-bar svg {
+.announcement-bar svg,
+.theme-tusk .marquee svg {
   padding: 10px 0 !important;
   line-height: 1.5 !important;
   overflow: visible !important;
+  filter: drop-shadow(0 0 8px rgba(255, 42, 42, 0.7)) drop-shadow(0 0 16px rgba(255, 42, 42, 0.3)) !important;
 }
 
 [data-section-key="ticker"] text,
