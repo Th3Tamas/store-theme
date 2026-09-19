@@ -44,26 +44,76 @@
 }
 
 /* --------------------------------------------------------------------------
-   Hide Native Payhip Mountain Banner / Scenery Images
+   Native Hero Section Skinning & Blueprint Grid Matrix
    -------------------------------------------------------------------------- */
-.banner,
-.banner-image,
-.banner-container,
-.header-banner,
-.home-banner,
-.store-banner,
-.theme-tusk .banner,
+/* Target the native hero image and container */
+.section-hero img,
+.hero-banner img,
+.hero-image,
+.theme-tusk .hero-media,
 .theme-tusk .banner-image,
-.theme-tusk .banner-container,
+.theme-tusk .banner img,
 [class*="banner"] img,
 .banner img,
 .header-banner img {
   display: none !important;
+  visibility: hidden !important;
   height: 0 !important;
   min-height: 0 !important;
   padding: 0 !important;
   margin: 0 !important;
   border: none !important;
+}
+
+.section-hero,
+.hero,
+[data-section-type="hero"],
+.theme-tusk .banner,
+.theme-tusk .hero,
+.banner,
+.header-banner,
+.home-banner,
+.store-banner {
+  background-color: #080808 !important;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px) !important;
+  background-size: 50px 50px !important;
+  min-height: 480px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+/* Restyle the native text inside the hero (title & subtitle) */
+.section-hero h1,
+.section-hero h2,
+.hero h1,
+.hero h2,
+[data-section-type="hero"] h1,
+[data-section-type="hero"] h2,
+.theme-tusk .hero h1,
+.theme-tusk .banner h1,
+.theme-tusk [class*="hero"] h1,
+.theme-tusk [class*="banner"] h1 {
+  font-family: var(--font-sans) !important;
+  text-transform: uppercase !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.15em !important;
+  color: #FFFFFF !important;
+}
+
+.section-hero p,
+.hero p,
+[data-section-type="hero"] p,
+.theme-tusk .hero p,
+.theme-tusk .banner p,
+.theme-tusk [class*="hero"] p,
+.theme-tusk [class*="banner"] p {
+  font-family: var(--font-mono) !important;
+  color: rgba(255, 255, 255, 0.6) !important;
 }
 
 /* --------------------------------------------------------------------------
@@ -377,17 +427,15 @@ h3.title {
 /* --------------------------------------------------------------------------
    5. Fix Squished Native Product Cards & Grid Architecture
    -------------------------------------------------------------------------- */
+.theme-tusk .collection-products,
+.collection-products,
 .product-list,
 .payhip-product-list,
 .product-grid,
 .products-grid,
-.product-items,
-.collection-products,
-.store-products,
-.theme-products,
-.theme-tusk .collection-products,
 .theme-tusk .grid,
 .theme-tusk .product-list,
+.grid,
 [class*="product-grid"],
 [class*="products-grid"],
 [class*="product-list"],
@@ -395,12 +443,12 @@ h3.title {
 [class*="products-container"],
 [class*="product-items"] {
   display: grid !important;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)) !important;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)) !important;
   gap: 24px !important;
   width: 100% !important;
   max-width: 1200px !important;
-  margin: 0 auto 4rem !important;
-  padding: 0 20px !important;
+  margin: 40px auto !important;
+  padding: 0 24px !important;
   box-sizing: border-box !important;
 }
 
@@ -426,6 +474,7 @@ h3.title {
 .products-list > div,
 .collection-products > div,
 .theme-tusk .grid > div,
+.theme-tusk .collection-products > div,
 [class*="products-grid"] > div,
 [class*="product-grid"] > div {
   width: 100% !important;
@@ -433,7 +482,7 @@ h3.title {
   max-width: 100% !important;
   flex: none !important;
   box-sizing: border-box !important;
-  background: #101010 !important;
+  background: #111111 !important;
   border: 1px solid rgba(255, 255, 255, 0.08) !important;
   border-radius: 0px !important;
   padding: 16px !important;

@@ -201,4 +201,19 @@
     setTimeout(cleanHeaderButtons, 2500);
     window.addEventListener('resize', cleanHeaderButtons);
   })();
+
+  // Native Hero Scroll Blur & Opacity Effect
+  (function() {
+    function updateHeroScroll() {
+      var heroEl = document.querySelector('.section-hero, .hero, [data-section-type="hero"], .theme-tusk .banner, .theme-tusk .hero');
+      if (!heroEl) return;
+      var scrollY = window.pageYOffset || document.documentElement.scrollTop;
+      if (scrollY < 0) scrollY = 0;
+      var blurVal = scrollY * 0.03;
+      var opacityVal = Math.max(1 - scrollY / 400, 0);
+      heroEl.style.filter = 'blur(' + blurVal + 'px)';
+      heroEl.style.opacity = opacityVal;
+    }
+    window.addEventListener('scroll', updateHeroScroll, { passive: true });
+  })();
 </script>
