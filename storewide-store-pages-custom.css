@@ -278,7 +278,15 @@ img[src*="mountain"],
 [data-section-key="headline"] .section-contents-wrapper,
 [data-section-key="headline"] .section-wrapper-inner,
 #content-section-LBNmnP42zK .section-contents-wrapper,
-#content-section-LBNmnP42zK .section-wrapper-inner {
+#content-section-LBNmnP42zK .section-wrapper-inner,
+.section-hero .section-contents-wrapper,
+.section-hero .section-wrapper-inner,
+.hero .section-contents-wrapper,
+.hero .section-wrapper-inner,
+[data-section-type="hero"] .section-contents-wrapper,
+[data-section-type="hero"] .section-wrapper-inner,
+.theme-tusk .banner .section-contents-wrapper,
+.theme-tusk .hero .section-contents-wrapper {
   display: flex !important;
   flex-direction: column !important;
   align-items: center !important;
@@ -290,7 +298,11 @@ img[src*="mountain"],
 
 [data-section-key="headline"] .section-contents,
 #content-section-LBNmnP42zK .section-contents,
-.section-hero .section-contents {
+.section-hero .section-contents,
+.hero .section-contents,
+[data-section-type="hero"] .section-contents,
+.theme-tusk .banner .section-contents,
+.theme-tusk .hero .section-contents {
   max-width: 960px !important;
   margin: 0 auto !important;
   display: flex !important;
@@ -346,7 +358,10 @@ img[src*="mountain"],
 [data-section-type="hero"] h1,
 [data-section-type="hero"] h2,
 .theme-tusk .hero h1,
-.theme-tusk .banner h1 {
+.theme-tusk .banner h1,
+.hero-title,
+.title,
+#sonarline-glitch-title {
   font-family: var(--font-sans, 'Space Grotesk', sans-serif) !important;
   font-size: clamp(2.6rem, 7.5vw, 5.8rem) !important;
   font-weight: 800 !important;
@@ -367,11 +382,16 @@ img[src*="mountain"],
 [data-section-key="headline"] p,
 [data-section-key="headline"] .text,
 [data-section-key="headline"] .richtext,
+[data-section-key="headline"] .richtext p,
 [data-section-key="headline"] .section-contents p,
 #content-section-LBNmnP42zK p,
+#content-section-LBNmnP42zK .richtext p,
 .section-hero p,
+.section-hero .richtext p,
 .hero p,
+.hero .richtext p,
 [data-section-type="hero"] p,
+[data-section-type="hero"] .richtext p,
 .theme-tusk .hero p,
 .theme-tusk .banner p {
   font-family: var(--font-mono, 'Space Mono', monospace) !important;
@@ -1262,10 +1282,17 @@ select:focus {
   line-height: 1 !important;
 }
 
-.sonarline-ticker-item:not(:has(+ .sonarline-ticker-bullet))::after,
-[data-section-key="ticker"] .ticker-item:not(:has(+ [class*="bullet"])):not(:has(+ [class*="sep"]))::after,
-.ticker-item:not(:has(+ [class*="bullet"])):not(:has(+ [class*="sep"]))::after,
-.marquee-item:not(:has(+ [class*="bullet"])):not(:has(+ [class*="sep"]))::after {
+.sonarline-ticker-item[data-ticker-formatted]::after,
+[data-section-key="ticker"] .ticker-item[data-ticker-formatted]::after,
+.ticker-item[data-ticker-formatted]::after,
+.marquee-item[data-ticker-formatted]::after {
+  content: none !important;
+}
+
+.sonarline-ticker-item:not([data-ticker-formatted]):not(:has(+ .sonarline-ticker-bullet))::after,
+[data-section-key="ticker"] .ticker-item:not([data-ticker-formatted]):not(:has(+ [class*="bullet"])):not(:has(+ [class*="sep"]))::after,
+.ticker-item:not([data-ticker-formatted]):not(:has(+ [class*="bullet"])):not(:has(+ [class*="sep"]))::after,
+.marquee-item:not([data-ticker-formatted]):not(:has(+ [class*="bullet"])):not(:has(+ [class*="sep"]))::after {
   content: ' •';
   color: #FF2A2A !important;
   margin-left: 1.25rem;
