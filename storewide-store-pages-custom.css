@@ -1453,6 +1453,9 @@ select:focus {
   align-items: center !important;
   gap: 2.5rem !important;
   animation: ticker-slide 35s linear infinite !important;
+  will-change: transform !important;
+  backface-visibility: hidden !important;
+  perspective: 1000px !important;
 }
 
 .sonarline-ticker-item {
@@ -1503,8 +1506,8 @@ select:focus {
 }
 
 @keyframes ticker-slide {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
+  0% { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(-50%, 0, 0); }
 }
 
 .corner-bracket {
@@ -2000,7 +2003,8 @@ html, body, a, button, input, select, textarea, [role="button"], * {
   z-index: 2147483646 !important;
   mix-blend-mode: difference !important;
   transform: translate3d(-100px, -100px, 0);
-  will-change: transform;
+  will-change: transform !important;
+  backface-visibility: hidden !important;
 }
 
 #sl-cursor-circle {
@@ -2016,7 +2020,8 @@ html, body, a, button, input, select, textarea, [role="button"], * {
   mix-blend-mode: difference !important;
   transform: translate3d(-100px, -100px, 0);
   transition: width 0.2s cubic-bezier(0.16, 1, 0.3, 1), height 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease, transform 0.04s linear !important;
-  will-change: transform;
+  will-change: transform !important;
+  backface-visibility: hidden !important;
 }
 
 #sl-cursor-circle.hovered {
@@ -2047,6 +2052,9 @@ html, body, a, button, input, select, textarea, [role="button"], * {
   background: rgba(255, 255, 255, 1) !important;
   mix-blend-mode: difference !important;
   box-shadow: none !important;
+  will-change: transform !important;
+  transform: translateZ(0) !important;
+  backface-visibility: hidden !important;
 }
 body.sl-selecting,
 body.sl-selecting * {

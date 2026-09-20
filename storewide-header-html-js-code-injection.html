@@ -2528,7 +2528,15 @@
       attachTickerObserver();
       if (!window._sonarlineTickerResizeBound) {
         window._sonarlineTickerResizeBound = true;
-        window.addEventListener('resize', function() { formatTickerElements(); }, { passive: true });
+        var tickerResizeTicking = false;
+        window.addEventListener('resize', function() {
+          if (tickerResizeTicking) return;
+          tickerResizeTicking = true;
+          window.requestAnimationFrame(function() {
+            tickerResizeTicking = false;
+            formatTickerElements();
+          });
+        }, { passive: true });
       }
     }
 
@@ -2544,29 +2552,43 @@
 
     var headerOffsetEngineInitialized = false;
     var cachedInitialHeaderHeight = 132;
+    var headerHeightFromRO = false;
+
+    // Single write path for navbar height: ResizeObserver is the authority.
+    // Scroll handlers never measure height — they only track the live bottom.
+    function applyHeaderHeight(h) {
+      if (h > cachedInitialHeaderHeight) {
+        cachedInitialHeaderHeight = h;
+      }
+      var applied = cachedInitialHeaderHeight;
+      document.documentElement.style.setProperty('--sonarline-header-height', applied + 'px');
+      // Apply to EVERY candidate wrapper: querySelector() first-match could hit
+      // a wrong node (e.g. a bare <main>), leaving the real content wrapper
+      // unpadded so the ticker slides up over the navbar.
+      var wrappers = document.querySelectorAll('.content-main-wrapper, #page-wrap');
+      for (var c = 0; c < wrappers.length; c++) {
+        wrappers[c].style.setProperty('padding-top', applied + 'px', 'important');
+      }
+    }
 
     function syncHeaderOffset() {
       var header = document.querySelector('header#header, header, [data-section-key="header"], .site-header');
       if (!header) return;
+      // ---- READ phase: exactly one layout query per call, no interleaved writes ----
+      var rect = header.getBoundingClientRect();
       var isFixed = window.getComputedStyle(header).position === 'fixed' ||
                     header.getAttribute('data-section-setting-fixed-position') === 'yes';
-      var rect = header.getBoundingClientRect();
       var h = Math.round(rect.height || header.offsetHeight || 0);
-      if (h > cachedInitialHeaderHeight) {
-        cachedInitialHeaderHeight = h;
-      }
       var visibleBottom = isFixed ? Math.max(0, Math.round(rect.bottom)) : 0;
 
+      // ---- WRITE phase: batched DOM writes only ----
       if (isFixed && h > 0) {
-        document.documentElement.style.setProperty('--sonarline-header-height', cachedInitialHeaderHeight + 'px');
-        document.documentElement.style.setProperty('--sonarline-header-current-offset', visibleBottom + 'px');
-        // Apply to EVERY candidate wrapper: querySelector() first-match could hit
-        // a wrong node (e.g. a bare <main>), leaving the real content wrapper
-        // unpadded so the ticker slides up over the navbar.
-        var wrappers = document.querySelectorAll('.content-main-wrapper, #page-wrap');
-        for (var c = 0; c < wrappers.length; c++) {
-          wrappers[c].style.setProperty('padding-top', cachedInitialHeaderHeight + 'px', 'important');
+        // Height authority is the ResizeObserver; measure here only as a
+        // fallback for browsers without it.
+        if (!headerHeightFromRO) {
+          applyHeaderHeight(h);
         }
+        document.documentElement.style.setProperty('--sonarline-header-current-offset', visibleBottom + 'px');
       } else if (!isFixed) {
         document.documentElement.style.setProperty('--sonarline-header-height', '0px');
         document.documentElement.style.setProperty('--sonarline-header-current-offset', '0px');
@@ -2638,7 +2660,16 @@
         header.addEventListener('transitionend', syncHeaderOffset);
 
         if (window.ResizeObserver) {
+          // Height authority: measure once per resize, write var + padding
+          // directly — scroll handlers never re-measure height.
           var ro = new ResizeObserver(function() {
+            try {
+              var rh = Math.round(header.getBoundingClientRect().height || header.offsetHeight || 0);
+              if (rh > 0) {
+                headerHeightFromRO = true;
+                applyHeaderHeight(rh);
+              }
+            } catch (e) {}
             requestSync();
           });
           ro.observe(header);
@@ -3339,8 +3370,23 @@
     function attachShortcodeObserver() {
       try {
         if (observerSweepCount >= OBSERVER_SWEEP_CAP) return;
-        var body = document.body;
-        if (body) observer.observe(body, { childList: true, subtree: true, characterData: true });
+        // Scope strictly to the content container — never the whole body —
+        // so header/cursor/modal churn can't trigger page-wide rescans.
+        var scope = document.querySelector('.content-main-wrapper') || document.body;
+        if (scope) observer.observe(scope, { childList: true, subtree: true, characterData: true });
+      } catch (e) {}
+    }
+
+    // Idle auto-disconnect: 3s after the last relevant batch, initial parsing
+    // is done and no dynamic content is expected — release the observer.
+    var shortcodeIdleTimer = null;
+    function armShortcodeIdleDisconnect() {
+      try {
+        if (shortcodeIdleTimer) clearTimeout(shortcodeIdleTimer);
+        shortcodeIdleTimer = setTimeout(function() {
+          shortcodeIdleTimer = null;
+          try { observer.disconnect(); } catch (e) {}
+        }, 3000);
       } catch (e) {}
     }
 
@@ -3386,6 +3432,7 @@
             observerSweepCount++;
           } catch (e) {}
           attachShortcodeObserver();
+          armShortcodeIdleDisconnect();
         }, 300);
       } catch (e) {
         console.error('Shortcode observer error:', e);
@@ -3394,9 +3441,11 @@
 
     if (document.body) {
       attachShortcodeObserver();
+      armShortcodeIdleDisconnect();
     } else {
       document.addEventListener('DOMContentLoaded', function() {
         attachShortcodeObserver();
+        armShortcodeIdleDisconnect();
       });
     }
 
@@ -3425,52 +3474,65 @@
   // ==========================================================================
   (function() {
     var ticking = false;
+    // Cache hero nodes once: per-frame querySelectorAll + O(n^2) dedupe was
+    // a scroll-jank source. Refresh only when the cached root disconnects.
+    var cachedHeroEl = null;
+    var cachedHeroElements = null;
+    var lastPointerNone = false;
+    function refreshHeroCache() {
+      cachedHeroEl = document.querySelector(
+        '[data-section-key="hero"], .section-hero, [data-section-key="headline"], #content-section-LBNmnP42zK, .hero, [data-section-type="hero"], .theme-tusk .banner, .theme-tusk .hero, .banner, .header-banner, .home-banner, .store-banner'
+      );
+      cachedHeroElements = null;
+      lastPointerNone = false;
+      if (!cachedHeroEl) return;
+      var candidates = cachedHeroEl.querySelectorAll(
+        '.sonarline-status-pill, h1, h2, .heading-text, .hero-title, .title, #sonarline-glitch-title, p, .richtext p, .category-list, .categories, .category-links, .category-link-wrapper, .categories-wrapper, [class*="category"], .sonarline-terminal-prompt'
+      );
+      cachedHeroElements = [];
+      for (var c = 0; c < candidates.length; c++) {
+        var cand = candidates[c];
+        var isDescendant = false;
+        for (var k = 0; k < candidates.length; k++) {
+          if (k !== c && candidates[k].contains(cand)) {
+            isDescendant = true;
+            break;
+          }
+        }
+        if (!isDescendant) {
+          cachedHeroElements.push(cand);
+        }
+      }
+      if (cachedHeroElements.length === 0) {
+        var contents = cachedHeroEl.querySelector('.section-contents') || cachedHeroEl;
+        cachedHeroElements.push(contents);
+      }
+    }
     function updateHeroParallax() {
       try {
-        var heroEl = document.querySelector(
-          '[data-section-key="hero"], .section-hero, [data-section-key="headline"], #content-section-LBNmnP42zK, .hero, [data-section-type="hero"], .theme-tusk .banner, .theme-tusk .hero, .banner, .header-banner, .home-banner, .store-banner'
-        );
-        if (heroEl) {
+        if (!cachedHeroEl || !cachedHeroEl.isConnected) refreshHeroCache();
+        if (cachedHeroEl && cachedHeroElements) {
+          // Single layout read per frame.
           var scrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
           if (scrollY < 0) scrollY = 0;
 
           var fadeProgress = Math.min(scrollY / 450, 1);
-          var blurPx = (fadeProgress * 12).toFixed(1);
+          // Opacity falloff + subtle translate3d only. Dynamic Gaussian blur
+          // on large containers forces a full-layer raster every frame, so it
+          // is intentionally eliminated from the scroll path.
           var opacityVal = Math.max(1 - fadeProgress * 0.95, 0.05).toFixed(2);
           var translateY = (scrollY * 0.45).toFixed(1);
-          var scaleVal = Math.max(1 - fadeProgress * 0.18, 0.82).toFixed(3);
+          var pointerNone = fadeProgress >= 0.85;
+          var pointerChanged = pointerNone !== lastPointerNone;
+          lastPointerNone = pointerNone;
 
-          // Coordinate ALL hero components together in lockstep
-          var candidates = heroEl.querySelectorAll(
-            '.sonarline-status-pill, h1, h2, .heading-text, .hero-title, .title, #sonarline-glitch-title, p, .richtext p, .category-list, .categories, .category-links, .category-link-wrapper, .categories-wrapper, [class*="category"], .sonarline-terminal-prompt'
-          );
-          var heroElements = [];
-          for (var c = 0; c < candidates.length; c++) {
-            var cand = candidates[c];
-            var isDescendant = false;
-            for (var k = 0; k < candidates.length; k++) {
-              if (k !== c && candidates[k].contains(cand)) {
-                isDescendant = true;
-                break;
-              }
-            }
-            if (!isDescendant) {
-              heroElements.push(cand);
-            }
-          }
-
-          if (heroElements.length === 0) {
-            var contents = heroEl.querySelector('.section-contents') || heroEl;
-            heroElements.push(contents);
-          }
-
-          for (var i = 0; i < heroElements.length; i++) {
-            var el = heroElements[i];
-            el.style.filter = 'blur(' + blurPx + 'px)';
+          for (var i = 0; i < cachedHeroElements.length; i++) {
+            var el = cachedHeroElements[i];
             el.style.opacity = opacityVal;
-            el.style.transform = 'translateY(' + translateY + 'px) scale(' + scaleVal + ')';
-            el.style.transformOrigin = 'center center';
-            el.style.pointerEvents = fadeProgress >= 0.85 ? 'none' : 'auto';
+            el.style.transform = 'translate3d(0,' + translateY + 'px,0)';
+            if (pointerChanged) {
+              el.style.pointerEvents = pointerNone ? 'none' : 'auto';
+            }
           }
         }
       } catch (err) {
