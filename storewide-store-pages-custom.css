@@ -738,17 +738,26 @@ div[id*="section-QW9Kn45mB6"],
 
 [data-section-key="ticker"] svg,
 [data-section-key="ticker"] .ticker,
-.ticker-block,
-.ticker-wrapper,
 .ticker-measure,
-.ticker,
-.theme-tusk .marquee-content {
-  max-width: 100vw !important;
+.ticker {
   margin: 0 !important;
   padding: 0 !important;
   line-height: 1 !important;
   overflow: visible !important;
   box-sizing: border-box !important;
+}
+
+.ticker-block,
+.ticker-wrapper,
+.theme-tusk .marquee-content,
+.sonarline-ticker-track {
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1 !important;
+  overflow: visible !important;
+  box-sizing: border-box !important;
+  white-space: nowrap !important;
+  animation-play-state: running !important;
 }
 
 /* Ticker text thin Space Grotesk (300) without glow */
@@ -1829,12 +1838,18 @@ html body .card-wrapper .card__inner .media img {
   margin: 0 !important;
 }
 
-/* Ticker intermediate wrappers: ensure no transform compounding */
+/* Ensure continuous ticker animation running state across all browsers */
+[data-section-key="ticker"] .marquee,
+[data-section-key="ticker"] .ticker,
+[data-section-key="ticker"] .ticker-wrapper,
+[data-section-key="ticker"] .ticker-block,
+[data-section-key="ticker"] .sonarline-ticker-track,
+.marquee,
+.ticker,
 .ticker-wrapper,
-.ticker-block,
-.ticker-display,
-.js-ticker-svg-wrapper {
-  transform: none !important;
+.sonarline-ticker-track,
+.ticker-block {
+  animation-play-state: running !important;
 }
 
 /* SVG vertical dead-centering strictly on SVG elements */

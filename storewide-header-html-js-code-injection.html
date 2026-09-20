@@ -852,12 +852,18 @@
           '  transform: translateY(-3.5px) !important;',
           '  filter: none !important;',
           '}',
-          '/* Prevent transform compounding on ticker intermediate wrappers */',
-          '[data-section-key="ticker"] .ticker-display,',
-          '[data-section-key="ticker"] .js-ticker-svg-wrapper,',
+          '/* Ensure continuous ticker animation running state across all browsers */',
+          '[data-section-key="ticker"] .marquee,',
+          '[data-section-key="ticker"] .ticker,',
+          '[data-section-key="ticker"] .ticker-wrapper,',
+          '[data-section-key="ticker"] .ticker-block,',
+          '[data-section-key="ticker"] .sonarline-ticker-track,',
+          '.marquee,',
+          '.ticker,',
           '.ticker-wrapper,',
+          '.sonarline-ticker-track,',
           '.ticker-block {',
-          '  transform: none !important;',
+          '  animation-play-state: running !important;',
           '}',
           '/* 4. Ticker text thin Space Grotesk without ambient light halos */',
           '[data-section-key="ticker"] text,',
@@ -1626,11 +1632,11 @@
         svgs[s].setAttribute('xml:space', 'preserve');
       }
 
-      var tickerWrappers = document.querySelectorAll(
-        '[data-section-key="ticker"] .ticker-display, [data-section-key="ticker"] .js-ticker-svg-wrapper, .ticker-wrapper, .ticker-block'
+      var animTickers = document.querySelectorAll(
+        '[data-section-key="ticker"] .marquee, [data-section-key="ticker"] .ticker, [data-section-key="ticker"] .ticker-wrapper, [data-section-key="ticker"] .ticker-block, [data-section-key="ticker"] .sonarline-ticker-track, .marquee, .ticker, .ticker-wrapper, .sonarline-ticker-track, .ticker-block'
       );
-      for (var twi = 0; twi < tickerWrappers.length; twi++) {
-        tickerWrappers[twi].style.setProperty('transform', 'none', 'important');
+      for (var at = 0; at < animTickers.length; at++) {
+        animTickers[at].style.setProperty('animation-play-state', 'running', 'important');
       }
 
       var texts = document.querySelectorAll(
@@ -1815,88 +1821,166 @@
   // No hardcoded fallbacks or placeholders.
   // ==========================================================================
   (function() {
+    function escapeHtml(str) {
+      if (typeof str !== 'string') str = String(str || '');
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
     function buildBadgeHtml(text) {
-      var parts = text.split('|').map(function(s) { return s.trim(); });
-      var innerHtml = '<span class="sonarline-status-dot"></span>';
-      for (var i = 0; i < parts.length; i++) {
-        var part = parts[i];
-        if (i > 0) {
-          innerHtml += '<span class="sonarline-status-sep">|</span>';
+      try {
+        var raw = (text || '').replace(/\u00a0|&nbsp;/gi, ' ').trim();
+        var parts = raw.split('|').map(function(s) { return s.trim(); });
+        var innerHtml = '<span class="sonarline-status-dot"></span>';
+        for (var i = 0; i < parts.length; i++) {
+          var part = parts[i];
+          if (i > 0) {
+            innerHtml += '<span class="sonarline-status-sep">|</span>';
+          }
+          if (/^\d{2}:\d{2}:\d{2}$/.test(part)) {
+            innerHtml += '<span class="sonarline-status-clock">' + escapeHtml(part) + '</span>';
+          } else {
+            innerHtml += '<span>' + escapeHtml(part) + '</span>';
+          }
         }
-        if (/^\d{2}:\d{2}:\d{2}$/.test(part)) {
-          innerHtml += '<span class="sonarline-status-clock">' + part + '</span>';
-        } else {
-          innerHtml += '<span>' + part + '</span>';
-        }
+        return '<div class="sonarline-status-pill" data-shortcode-parsed="true" style="display: inline-flex !important; align-items: center !important; justify-content: center !important; text-align: center !important; margin: 0 auto !important;">' + innerHtml + '</div>';
+      } catch (e) {
+        console.error('buildBadgeHtml error:', e);
+        return '';
       }
-      return '<div class="sonarline-status-pill" data-shortcode-parsed="true" style="display: inline-flex !important; align-items: center !important; justify-content: center !important; text-align: center !important; margin: 0 auto !important;">' + innerHtml + '</div>';
     }
 
     function buildTerminalHtml(commandText) {
-      var trimmed = commandText.trim();
-      var prompt = 'root@sonarline:~$';
-      var cmd = trimmed;
-      if (trimmed.indexOf('root@sonarline:~$') === 0) {
-        cmd = trimmed.replace('root@sonarline:~$', '').trim();
-      }
-      var tokens = cmd.split(' ');
-      var mainCmd = tokens[0] || '';
-      var restTokens = tokens.slice(1);
+      try {
+        var raw = (commandText || '').replace(/\u00a0|&nbsp;/gi, ' ').trim();
+        raw = raw.replace(/&amp;/gi, '&').replace(/&lt;/gi, '<').replace(/&gt;/gi, '>').replace(/&quot;/gi, '"');
+        raw = raw.replace(/\s[–—](\w)/g, ' --$1').replace(/^[–—](\w)/g, '--$1');
 
-      var restHtml = '';
-      for (var r = 0; r < restTokens.length; r++) {
-        var t = restTokens[r];
-        if (t.indexOf('-') === 0) {
-          restHtml += ' <span class="terminal-prompt-flag" style="color: #4E9A06 !important; font-weight: 500 !important;">' + escapeHtml(t) + '</span>';
-        } else {
-          restHtml += ' <span class="terminal-prompt-args" style="color: #888888 !important;">' + escapeHtml(t) + '</span>';
+        var prompt = 'root@sonarline:~$';
+        var cmd = raw;
+
+        var promptMatch = raw.match(/^([a-zA-Z0-9_.-]+@[a-zA-Z0-9_.-]+:\s*~?\$?\s*)/i);
+        if (promptMatch) {
+          prompt = promptMatch[1].trim();
+          if (!prompt.endsWith('$') && !prompt.endsWith('#')) {
+            prompt += '$';
+          }
+          cmd = raw.substring(promptMatch[0].length).trim();
+        } else if (/^root@sonarline[:\s~#$]*/i.test(raw)) {
+          var m = raw.match(/^root@sonarline[:\s~#$]*/i);
+          if (m) {
+            cmd = raw.substring(m[0].length).trim();
+            prompt = 'root@sonarline:~$';
+          }
         }
-      }
 
-      return '<div class="sonarline-terminal-prompt" data-shortcode-parsed="true" style="display: flex !important; align-items: center !important; justify-content: center !important; text-align: center !important; margin: 0.5rem auto 0 !important; width: 100% !important; font-family: var(--font-mono, \'Space Mono\', monospace) !important; font-size: 0.85rem !important; letter-spacing: 0.05em !important;">' +
-        '<span class="terminal-prompt-user" style="color: #FF3B30 !important; font-weight: 700 !important; margin-right: 8px !important;">' + escapeHtml(prompt) + '</span>' +
-        '<span class="terminal-prompt-cmd" style="color: #FFFFFF !important; font-weight: 700 !important; margin-right: 6px !important;">' + escapeHtml(mainCmd) + '</span>' +
-        restHtml +
-        '<span class="sonarline-cursor-blink" style="color: #FF3B30 !important; margin-left: 6px !important;">&#9646;</span>' +
-      '</div>';
+        var tokens = cmd.split(/\s+/).filter(Boolean);
+        var mainCmd = tokens[0] || '';
+        var restTokens = tokens.slice(1);
+
+        var restHtml = '';
+        for (var r = 0; r < restTokens.length; r++) {
+          var t = restTokens[r];
+          if (t.indexOf('-') === 0 || t.indexOf('–') === 0 || t.indexOf('—') === 0) {
+            restHtml += ' <span class="terminal-prompt-flag" style="color: #4E9A06 !important; font-weight: 500 !important;">' + escapeHtml(t) + '</span>';
+          } else {
+            restHtml += ' <span class="terminal-prompt-args" style="color: #888888 !important;">' + escapeHtml(t) + '</span>';
+          }
+        }
+
+        return '<div class="sonarline-terminal-prompt" data-shortcode-parsed="true" style="display: flex !important; align-items: center !important; justify-content: center !important; text-align: center !important; margin: 0.5rem auto 0 !important; width: 100% !important; font-family: var(--font-mono, \'Space Mono\', monospace) !important; font-size: 0.85rem !important; letter-spacing: 0.05em !important;">' +
+          '<span class="terminal-prompt-user" style="color: #FF3B30 !important; font-weight: 700 !important; margin-right: 8px !important;">' + escapeHtml(prompt.toLowerCase()) + '</span>' +
+          '<span class="terminal-prompt-cmd" style="color: #FFFFFF !important; font-weight: 700 !important; margin-right: 6px !important;">' + escapeHtml(mainCmd) + '</span>' +
+          restHtml +
+          '<span class="sonarline-cursor-blink" style="color: #FF3B30 !important; margin-left: 6px !important;">&#9646;</span>' +
+        '</div>';
+      } catch (err) {
+        console.error('Error building terminal HTML:', err);
+        return '';
+      }
     }
 
     function parseShortcodesInNode(node) {
-      if (!node) return;
-      if (node.nodeType === Node.TEXT_NODE) {
-        var val = node.nodeValue;
-        if (!val || (!val.includes('[[badge:') && !val.includes('{{terminal:'))) {
-          return;
-        }
-        var parent = node.parentNode;
-        if (!parent || parent.nodeName === 'SCRIPT' || parent.nodeName === 'STYLE') return;
-
-        var html = val.replace(/\[\[badge:\s*([\s\S]*?)\]\]/gi, function(match, content) {
-          return buildBadgeHtml(content);
-        }).replace(/\{\{terminal:\s*([\s\S]*?)\}\}/gi, function(match, content) {
-          return buildTerminalHtml(content);
-        });
-
-        if (html !== val) {
-          var temp = document.createElement('span');
-          temp.innerHTML = html;
-          while (temp.firstChild) {
-            parent.insertBefore(temp.firstChild, node);
+      try {
+        if (!node) return;
+        if (node.nodeType === Node.TEXT_NODE) {
+          var val = node.nodeValue;
+          if (!val) return;
+          var normalizedVal = val.replace(/\u00a0|&nbsp;/gi, ' ');
+          if (!/(?:\[\[\s*badge\s*:|\{\{\s*terminal\s*:)/i.test(normalizedVal)) {
+            return;
           }
-          parent.removeChild(node);
+          var parent = node.parentNode;
+          if (!parent || parent.nodeName === 'SCRIPT' || parent.nodeName === 'STYLE') return;
+          if (parent.closest && parent.closest('.sonarline-terminal-prompt, .sonarline-status-pill')) return;
+
+          var html = normalizedVal.replace(/\[\[\s*badge\s*:\s*([\s\S]*?)\]\]/gi, function(match, content) {
+            return buildBadgeHtml(content);
+          }).replace(/\{\{\s*terminal\s*:\s*([\s\S]*?)\}\}/gi, function(match, content) {
+            return buildTerminalHtml(content);
+          });
+
+          if (html !== val) {
+            var temp = document.createElement('span');
+            temp.innerHTML = html;
+            while (temp.firstChild) {
+              parent.insertBefore(temp.firstChild, node);
+            }
+            parent.removeChild(node);
+          }
+        } else if (node.nodeType === Node.ELEMENT_NODE) {
+          if (node.nodeName === 'SCRIPT' || node.nodeName === 'STYLE') return;
+          if (node.getAttribute && node.getAttribute('data-shortcode-parsed')) return;
+          if (node.classList && (node.classList.contains('sonarline-terminal-prompt') || node.classList.contains('sonarline-status-pill'))) return;
+          var children = Array.prototype.slice.call(node.childNodes);
+          for (var i = 0; i < children.length; i++) {
+            parseShortcodesInNode(children[i]);
+          }
         }
-      } else if (node.nodeType === Node.ELEMENT_NODE) {
-        if (node.nodeName === 'SCRIPT' || node.nodeName === 'STYLE') return;
-        var children = Array.prototype.slice.call(node.childNodes);
-        for (var i = 0; i < children.length; i++) {
-          parseShortcodesInNode(children[i]);
+      } catch (e) {
+        console.error('parseShortcodesInNode error:', e);
+      }
+    }
+
+    function sweepUnparsedShortcodes(root) {
+      try {
+        if (!root) return;
+        var els = root.querySelectorAll('p, h1, h2, h3, span, div, .heading-text, .hero-title, .richtext, .richtext p');
+        for (var i = 0; i < els.length; i++) {
+          var el = els[i];
+          if (el.querySelector && el.querySelector('[data-shortcode-parsed]')) continue;
+          if (el.getAttribute && el.getAttribute('data-shortcode-parsed')) continue;
+          if (el.classList && (el.classList.contains('sonarline-terminal-prompt') || el.classList.contains('sonarline-status-pill'))) continue;
+
+          var text = el.textContent || '';
+          if (/(?:\[\[\s*badge\s*:|\{\{\s*terminal\s*:)/i.test(text)) {
+            var normalized = el.innerHTML.replace(/\u00a0|&nbsp;/gi, ' ');
+            if (/(?:\[\[\s*badge\s*:|\{\{\s*terminal\s*:)/i.test(normalized)) {
+              var newHtml = normalized.replace(/\[\[\s*badge\s*:\s*([\s\S]*?)\]\]/gi, function(match, content) {
+                return buildBadgeHtml(content);
+              }).replace(/\{\{\s*terminal\s*:\s*([\s\S]*?)\}\}/gi, function(match, content) {
+                return buildTerminalHtml(content);
+              });
+              if (newHtml !== el.innerHTML) {
+                el.innerHTML = newHtml;
+              }
+            }
+          }
         }
+      } catch (e) {
+        console.error('sweepUnparsedShortcodes error:', e);
       }
     }
 
     function runParser() {
-      var root = document.body || document.documentElement;
-      if (root) parseShortcodesInNode(root);
+      try {
+        var root = document.body || document.documentElement;
+        if (root) {
+          parseShortcodesInNode(root);
+          sweepUnparsedShortcodes(root);
+        }
+      } catch (err) {
+        console.error('runParser error:', err);
+      }
     }
 
     runParser();
@@ -1905,15 +1989,25 @@
     }
 
     var observer = new MutationObserver(function(mutations) {
-      for (var m = 0; m < mutations.length; m++) {
-        var mutation = mutations[m];
-        if (mutation.type === 'childList') {
-          for (var a = 0; a < mutation.addedNodes.length; a++) {
-            parseShortcodesInNode(mutation.addedNodes[a]);
+      try {
+        var needsSweep = false;
+        for (var m = 0; m < mutations.length; m++) {
+          var mutation = mutations[m];
+          if (mutation.type === 'childList') {
+            for (var a = 0; a < mutation.addedNodes.length; a++) {
+              parseShortcodesInNode(mutation.addedNodes[a]);
+              needsSweep = true;
+            }
+          } else if (mutation.type === 'characterData') {
+            parseShortcodesInNode(mutation.target);
+            needsSweep = true;
           }
-        } else if (mutation.type === 'characterData') {
-          parseShortcodesInNode(mutation.target);
         }
+        if (needsSweep && (document.body || document.documentElement)) {
+          sweepUnparsedShortcodes(document.body || document.documentElement);
+        }
+      } catch (e) {
+        console.error('Shortcode observer error:', e);
       }
     });
 
@@ -1927,13 +2021,17 @@
 
     // Live clock ticker for any parsed status pill clocks
     function updateClocks() {
-      var clocks = document.querySelectorAll('.sonarline-status-clock, #sonarline-native-clock');
-      if (clocks.length > 0) {
-        var now = new Date();
-        var timeStr = now.toTimeString().split(' ')[0];
-        for (var c = 0; c < clocks.length; c++) {
-          clocks[c].textContent = timeStr;
+      try {
+        var clocks = document.querySelectorAll('.sonarline-status-clock, #sonarline-native-clock');
+        if (clocks.length > 0) {
+          var now = new Date();
+          var timeStr = now.toTimeString().split(' ')[0];
+          for (var c = 0; c < clocks.length; c++) {
+            clocks[c].textContent = timeStr;
+          }
         }
+      } catch (e) {
+        console.error('updateClocks error:', e);
       }
     }
     updateClocks();
@@ -1947,41 +2045,55 @@
   (function() {
     var ticking = false;
     function updateHeroParallax() {
-      var heroEl = document.querySelector('[data-section-key="headline"], #content-section-LBNmnP42zK, .sonarline-hero-section');
-      if (heroEl) {
-        var scrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
-        if (scrollY < 0) scrollY = 0;
+      try {
+        var heroEl = document.querySelector(
+          '[data-section-key="headline"], #content-section-LBNmnP42zK, .sonarline-hero-section, .section-hero, .hero, [data-section-type="hero"], .theme-tusk .banner, .theme-tusk .hero, .banner, .header-banner, .home-banner, .store-banner'
+        );
+        if (heroEl) {
+          var scrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
+          if (scrollY < 0) scrollY = 0;
 
-        var fadeProgress = Math.min(scrollY / 450, 1);
-        var blurPx = (fadeProgress * 12).toFixed(1);
-        var opacityVal = Math.max(1 - fadeProgress * 0.95, 0.05).toFixed(2);
-        var translateY = (scrollY * 0.45).toFixed(1);
-        var scaleVal = Math.max(1 - fadeProgress * 0.18, 0.82).toFixed(3);
+          var fadeProgress = Math.min(scrollY / 450, 1);
+          var blurPx = (fadeProgress * 12).toFixed(1);
+          var opacityVal = Math.max(1 - fadeProgress * 0.95, 0.05).toFixed(2);
+          var translateY = (scrollY * 0.45).toFixed(1);
+          var scaleVal = Math.max(1 - fadeProgress * 0.18, 0.82).toFixed(3);
 
-        // Coordinate ALL hero components together in lockstep
-        var candidates = heroEl.querySelectorAll('.sonarline-status-pill, h1, h2, .heading-text, .hero-title, .title, #sonarline-glitch-title, p, .richtext p, .category-list, .categories, .category-links, .category-link-wrapper, .categories-wrapper, [class*="category"], .sonarline-terminal-prompt');
-        var heroElements = [];
-        for (var c = 0; c < candidates.length; c++) {
-          var cand = candidates[c];
-          var isDescendant = false;
-          for (var k = 0; k < candidates.length; k++) {
-            if (k !== c && candidates[k].contains(cand)) {
-              isDescendant = true;
-              break;
+          // Coordinate ALL hero components together in lockstep
+          var candidates = heroEl.querySelectorAll(
+            '.sonarline-status-pill, h1, h2, .heading-text, .hero-title, .title, #sonarline-glitch-title, p, .richtext p, .category-list, .categories, .category-links, .category-link-wrapper, .categories-wrapper, [class*="category"], .sonarline-terminal-prompt'
+          );
+          var heroElements = [];
+          for (var c = 0; c < candidates.length; c++) {
+            var cand = candidates[c];
+            var isDescendant = false;
+            for (var k = 0; k < candidates.length; k++) {
+              if (k !== c && candidates[k].contains(cand)) {
+                isDescendant = true;
+                break;
+              }
+            }
+            if (!isDescendant) {
+              heroElements.push(cand);
             }
           }
-          if (!isDescendant) {
-            heroElements.push(cand);
+
+          if (heroElements.length === 0) {
+            var contents = heroEl.querySelector('.section-contents') || heroEl;
+            heroElements.push(contents);
+          }
+
+          for (var i = 0; i < heroElements.length; i++) {
+            var el = heroElements[i];
+            el.style.filter = 'blur(' + blurPx + 'px)';
+            el.style.opacity = opacityVal;
+            el.style.transform = 'translateY(' + translateY + 'px) scale(' + scaleVal + ')';
+            el.style.transformOrigin = 'center center';
+            el.style.pointerEvents = fadeProgress >= 0.85 ? 'none' : 'auto';
           }
         }
-        for (var i = 0; i < heroElements.length; i++) {
-          var el = heroElements[i];
-          el.style.filter = 'blur(' + blurPx + 'px)';
-          el.style.opacity = opacityVal;
-          el.style.transform = 'translateY(' + translateY + 'px) scale(' + scaleVal + ')';
-          el.style.transformOrigin = 'center center';
-          el.style.pointerEvents = fadeProgress >= 0.85 ? 'none' : 'auto';
-        }
+      } catch (err) {
+        console.error('updateHeroParallax error:', err);
       }
       ticking = false;
     }
