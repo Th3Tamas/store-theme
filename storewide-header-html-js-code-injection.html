@@ -207,7 +207,10 @@
 
 <script>
   (function() {
+    var isDismissed = false;
+
     function dismissPreloader() {
+      isDismissed = true;
       try {
         var ids = ['sonarline-preloader', 'sonarline-hud-preloader'];
         for (var i = 0; i < ids.length; i++) {
@@ -224,19 +227,32 @@
             }
           }
         }
-        if (preloader && preloader.parentNode) {
+        if (preloader) {
           preloader.style.setProperty('display', 'none', 'important');
+          preloader.style.setProperty('visibility', 'hidden', 'important');
+          preloader.style.setProperty('opacity', '0', 'important');
+          preloader.style.setProperty('pointer-events', 'none', 'important');
           if (typeof preloader.remove === 'function') {
             preloader.remove();
-          } else {
+          } else if (preloader.parentNode) {
             preloader.parentNode.removeChild(preloader);
           }
         }
         if (document.body) {
+          document.body.style.removeProperty('overflow');
           document.body.style.overflow = '';
         }
         if (document.documentElement) {
+          document.documentElement.style.removeProperty('overflow');
           document.documentElement.style.overflow = '';
+        }
+        if (!document.body && typeof document.addEventListener === 'function') {
+          document.addEventListener('DOMContentLoaded', function() {
+            if (document.body) {
+              document.body.style.removeProperty('overflow');
+              document.body.style.overflow = '';
+            }
+          });
         }
       } catch (err) {
         console.error('dismissPreloader error:', err);
@@ -379,10 +395,18 @@
             continue;
           }
 
-          var rtText = (rtSection.textContent || '').replace(/&nbsp;/gi, ' ').replace(/&#160;/g, ' ');
-          if (linesRe.test(rtText)) {
+          var rawHtml = rtSection.innerHTML || '';
+          var normalizedText = (rtSection.innerText || '') || rawHtml
+            .replace(/<br\s*\/?>/gi, '\n')
+            .replace(/<\/(?:p|div|li)>\s*<(?:p|div|li)[^>]*>/gi, '\n')
+            .replace(/<[^>]+>/g, ' ');
+          normalizedText = normalizedText.replace(/&nbsp;/gi, ' ').replace(/&#160;/g, ' ');
+
+          var textContent = (rtSection.textContent || '').replace(/&nbsp;/gi, ' ').replace(/&#160;/g, ' ');
+
+          if (linesRe.test(normalizedText) || linesRe.test(textContent)) {
             if (!config.lines) {
-              var lm = rtText.match(linesRe);
+              var lm = normalizedText.match(linesRe) || textContent.match(linesRe);
               if (lm && lm[1]) {
                 var rawLines = lm[1].split(/\r?\n|\|/);
                 var parsed = [];
@@ -393,7 +417,13 @@
                 if (parsed.length > 0) config.lines = parsed;
               }
             }
+            rtSection.style.setProperty('display', 'none', 'important');
             rtSection.style.display = 'none';
+            var parentRtSec = rtSection.closest('[data-section-key="rich-text"]');
+            if (parentRtSec) {
+              parentRtSec.style.setProperty('display', 'none', 'important');
+              parentRtSec.style.display = 'none';
+            }
           }
         }
 
@@ -446,6 +476,7 @@
             textNode.textContent = textNode.textContent.replace(linesGlobalRe, '');
             var containingRt = textNode.parentElement.closest('.rich-text, [data-section-key="rich-text"]');
             if (containingRt) {
+              containingRt.style.setProperty('display', 'none', 'important');
               containingRt.style.display = 'none';
             }
           }
@@ -455,89 +486,108 @@
       }
 
       function startSequence(config) {
-        config = config || {};
-        renderBrandHeader(config.title, config.secondary);
+        try {
+          if (isDismissed) return;
+          config = config || {};
+          renderBrandHeader(config.title, config.secondary);
 
-        var readoutEl = document.querySelector('#sonarline-hud-preloader .hud-terminal-readout');
-        var pctEl = document.getElementById('hud-progress-pct');
-        var fillEl = document.getElementById('hud-progress-fill');
-        
-        if (!fillEl) {
-          var lineEl = document.querySelector('#sonarline-hud-preloader .hud-progress-line');
-          if (lineEl) {
-            fillEl = document.createElement('div');
-            fillEl.className = 'hud-progress-fill';
-            fillEl.id = 'hud-progress-fill';
-            lineEl.appendChild(fillEl);
-          }
-        }
-
-        var customLines = config.lines;
-        var htmlLines = [];
-        if (customLines && customLines.length > 0) {
-          for (var c = 0; c < customLines.length; c++) {
-            htmlLines.push(formatCustomLine(customLines[c], c === customLines.length - 1));
-          }
-        } else {
-          htmlLines = defaultLines.slice();
-        }
-
-        var total = htmlLines.length;
-        if (readoutEl) {
-          var linesHtml = '';
-          for (var h = 0; h < total; h++) {
-            linesHtml += '<div class="hud-line" id="hud-line-' + h + '">' + htmlLines[h] + '</div>';
-          }
-          readoutEl.innerHTML = linesHtml;
-        }
-
-        var domLines = [];
-        for (var d = 0; d < total; d++) {
-          domLines.push(document.getElementById('hud-line-' + d));
-        }
-
-        // Precalculate ascending random incremental percentages
-        var currentProgress = 0;
-        var stepPcts = [];
-        for (var s = 0; s < total; s++) {
-          if (s === total - 1) {
-            stepPcts.push(100);
-          } else {
-            currentProgress += Math.floor(Math.random() * 20) + 10;
-            if (currentProgress > 95) currentProgress = 95;
-            if (s > 0 && currentProgress <= stepPcts[s - 1]) {
-              currentProgress = Math.min(stepPcts[s - 1] + Math.floor(Math.random() * 5) + 1, 95);
+          var pEl = preloader || document.getElementById('sonarline-hud-preloader') || document.getElementById('sonarline-preloader');
+          var readoutEl = pEl ? pEl.querySelector('.hud-terminal-readout') : document.querySelector('#sonarline-hud-preloader .hud-terminal-readout, #sonarline-preloader .hud-terminal-readout');
+          var pctEl = document.getElementById('hud-progress-pct') || (pEl ? pEl.querySelector('.hud-progress-pct') : null);
+          var fillEl = document.getElementById('hud-progress-fill') || (pEl ? pEl.querySelector('.hud-progress-fill') : null);
+          
+          if (!fillEl && pEl) {
+            var lineEl = pEl.querySelector('.hud-progress-line');
+            if (lineEl) {
+              fillEl = document.createElement('div');
+              fillEl.className = 'hud-progress-fill';
+              fillEl.id = 'hud-progress-fill';
+              lineEl.appendChild(fillEl);
             }
-            stepPcts.push(currentProgress);
           }
-        }
 
-        var totalDuration = 1600;
-        for (var idx = 0; idx < total; idx++) {
-          (function(stepIdx) {
-            var delay = (total <= 1) ? 100 : Math.round(100 + stepIdx * (totalDuration / (total - 1)));
-            var pct = stepPcts[stepIdx];
-            setTimeout(function() {
-              if (domLines[stepIdx]) domLines[stepIdx].classList.add('active');
-              if (pctEl) pctEl.textContent = pct + '%';
-              if (fillEl) fillEl.style.width = pct + '%';
+          var customLines = config.lines;
+          var htmlLines = [];
+          if (customLines && customLines.length > 0) {
+            for (var c = 0; c < customLines.length; c++) {
+              htmlLines.push(formatCustomLine(customLines[c], c === customLines.length - 1));
+            }
+          } else {
+            htmlLines = defaultLines.slice();
+          }
 
-              // When final sequence completes at 100%, hold for 150ms, then smoothly fade out and unmount
-              if (stepIdx === total - 1) {
-                setTimeout(function() {
-                  var ov = document.getElementById('sonarline-hud-preloader') || document.getElementById('sonarline-preloader') || preloader;
-                  if (ov) {
-                    ov.style.opacity = '0';
-                    ov.style.pointerEvents = 'none';
-                  }
-                  setTimeout(function() {
-                    dismissPreloader();
-                    if (failsafeTimer) clearTimeout(failsafeTimer);
-                  }, 300);
-                }, 150);
+          var total = htmlLines.length;
+          if (readoutEl) {
+            var linesHtml = '';
+            for (var h = 0; h < total; h++) {
+              linesHtml += '<div class="hud-line" id="hud-line-' + h + '">' + htmlLines[h] + '</div>';
+            }
+            readoutEl.innerHTML = linesHtml;
+          }
+
+          var domLines = [];
+          for (var d = 0; d < total; d++) {
+            domLines.push(document.getElementById('hud-line-' + d));
+          }
+
+          // Precalculate ascending random incremental percentages
+          var currentProgress = 0;
+          var stepPcts = [];
+          for (var s = 0; s < total; s++) {
+            if (s === total - 1) {
+              stepPcts.push(100);
+            } else {
+              currentProgress += Math.floor(Math.random() * 20) + 10;
+              if (currentProgress > 95) currentProgress = 95;
+              if (s > 0 && currentProgress <= stepPcts[s - 1]) {
+                currentProgress = Math.min(stepPcts[s - 1] + Math.floor(Math.random() * 5) + 1, 95);
               }
-            }, delay);
-          })(idx);
+              stepPcts.push(currentProgress);
+            }
+          }
+
+          var totalDuration = 1200;
+          for (var idx = 0; idx < total; idx++) {
+            (function(stepIdx) {
+              var delay = (total <= 1) ? 100 : Math.round(100 + stepIdx * (totalDuration / (total - 1)));
+              var pct = stepPcts[stepIdx];
+              setTimeout(function() {
+                try {
+                  if (isDismissed) return;
+                  if (domLines[stepIdx]) domLines[stepIdx].classList.add('active');
+                  if (pctEl) pctEl.textContent = pct + '%';
+                  if (fillEl) fillEl.style.width = pct + '%';
+
+                  // When final sequence completes at 100%, hold for 100ms, then smoothly fade out and unmount
+                  if (stepIdx === total - 1) {
+                    setTimeout(function() {
+                      try {
+                        if (isDismissed) return;
+                        var ov = document.getElementById('sonarline-hud-preloader') || document.getElementById('sonarline-preloader') || preloader;
+                        if (ov) {
+                          ov.style.opacity = '0';
+                          ov.style.pointerEvents = 'none';
+                        }
+                        setTimeout(function() {
+                          dismissPreloader();
+                          if (failsafeTimer) clearTimeout(failsafeTimer);
+                        }, 250);
+                      } catch (fadeErr) {
+                        console.error('Preloader fade error:', fadeErr);
+                        dismissPreloader();
+                      }
+                    }, 100);
+                  }
+                } catch (stepErr) {
+                  console.error('Preloader step error:', stepErr);
+                  dismissPreloader();
+                }
+              }, delay);
+            })(idx);
+          }
+        } catch (seqErr) {
+          console.error('Preloader startSequence error:', seqErr);
+          dismissPreloader();
         }
       }
 
@@ -547,20 +597,30 @@
       } else if (document.readyState === 'loading') {
         var started = false;
         var onReady = function() {
-          if (started) return;
-          started = true;
-          document.removeEventListener('DOMContentLoaded', onReady);
-          var found = scanForPreloaderConfig();
-          startSequence(found);
+          try {
+            if (started || isDismissed) return;
+            started = true;
+            document.removeEventListener('DOMContentLoaded', onReady);
+            var found = scanForPreloaderConfig();
+            startSequence(found);
+          } catch (onReadyErr) {
+            console.error('Preloader onReady exception:', onReadyErr);
+            dismissPreloader();
+          }
         };
         document.addEventListener('DOMContentLoaded', onReady);
         setTimeout(function() {
-          if (!started) {
-            started = true;
-            var found = scanForPreloaderConfig();
-            startSequence(found);
+          try {
+            if (!started && !isDismissed) {
+              started = true;
+              var found = scanForPreloaderConfig();
+              startSequence(found);
+            }
+          } catch (timeoutErr) {
+            console.error('Preloader timeout exception:', timeoutErr);
+            dismissPreloader();
           }
-        }, 500);
+        }, 300);
       } else {
         startSequence({});
       }
@@ -1204,6 +1264,10 @@
           '#page-wrap,',
           'main.main-content {',
           '  padding-top: var(--sonarline-header-height, 132px) !important;',
+          '}',
+          '.content-main-wrapper .main-content,',
+          '.content-main-wrapper main {',
+          '  padding-top: 0 !important;',
           '}',
           '/* Base Layout Reset: Restore Collapsed DOM & Unblock Main Content */',
           '.content-main-wrapper {',
@@ -2900,7 +2964,7 @@
     function updateHeroParallax() {
       try {
         var heroEl = document.querySelector(
-          '[data-section-key="headline"], #content-section-LBNmnP42zK, .sonarline-hero-section, .section-hero, .hero, [data-section-type="hero"], .theme-tusk .banner, .theme-tusk .hero, .banner, .header-banner, .home-banner, .store-banner'
+          '[data-section-key="hero"], .section-hero, [data-section-key="headline"], #content-section-LBNmnP42zK, .hero, [data-section-type="hero"], .theme-tusk .banner, .theme-tusk .hero, .banner, .header-banner, .home-banner, .store-banner'
         );
         if (heroEl) {
           var scrollY = window.pageYOffset || document.documentElement.scrollTop || 0;

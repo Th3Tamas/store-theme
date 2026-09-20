@@ -616,6 +616,10 @@ body:has(#header[data-section-setting-fixed-position="yes"]) .content-main-wrapp
 main.main-content {
   padding-top: var(--sonarline-header-height, 132px) !important;
 }
+.content-main-wrapper .main-content,
+.content-main-wrapper main {
+  padding-top: 0 !important;
+}
 
 /* Section overflow guards */
 .section-wrapper,
