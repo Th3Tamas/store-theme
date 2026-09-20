@@ -643,8 +643,8 @@ header,
 [data-section-type="announcement"] * {
   color: #FF2A2A !important;
   fill: #FF2A2A !important;
-  text-shadow: 0 0 8px rgba(255, 42, 42, 0.7), 0 0 16px rgba(255, 42, 42, 0.3) !important;
-  filter: drop-shadow(0 0 8px rgba(255, 42, 42, 0.7)) drop-shadow(0 0 16px rgba(255, 42, 42, 0.3)) !important;
+  text-shadow: none !important;
+  filter: none !important;
   font-family: 'Space Mono', monospace !important;
   font-weight: 700 !important;
   text-transform: uppercase !important;
@@ -652,27 +652,16 @@ header,
   line-height: 1.5 !important;
 }
 
-/* Gecko/Firefox SVG Glow Parity: drop-shadow on SVG containers */
 [data-section-key="ticker"] svg,
 .ticker svg,
 .announcement-bar svg,
 .theme-tusk .marquee svg,
 svg.ticker-measure,
 [data-section-type="announcement"] svg {
-  filter: drop-shadow(0 0 8px rgba(255, 42, 42, 0.7)) drop-shadow(0 0 16px rgba(255, 42, 42, 0.3)) !important;
+  filter: none !important;
 }
 
-/* Header Icons (Search, Profile, Cart) & Nav Controls */
-.header-actions,
-.header-icons,
-.header-right {
-  display: flex !important;
-  align-items: center !important;
-  gap: 1.5rem !important;
-  order: 3 !important;
-}
-
-/* Subtask 1: Remove artificial outline boxes & padding injected around search and cart buttons */
+/* Header Icons & Nav Controls - Reverted to Clean Native Styling */
 header button,
 .header-actions button,
 .header-actions-action,
@@ -682,16 +671,8 @@ header button,
 .header-login-icon-link {
   border: none !important;
   background: transparent !important;
-  padding: 0 !important;
-  margin: 0 !important;
   box-shadow: none !important;
   outline: none !important;
-  border-radius: 0 !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  height: 32px !important;
-  width: 32px !important;
   color: #ffffff !important;
   opacity: 1 !important;
   visibility: visible !important;
@@ -707,87 +688,6 @@ header button,
   border: none !important;
   box-shadow: none !important;
 }
-
-/* Hide mobile header icons on desktop & suppress duplicate .show-on-mobile */
-@media (min-width: 769px) {
-  .show-on-mobile,
-  .header-display-desktop .show-on-mobile,
-  [class*="show-on-mobile"],
-  .mobile-header,
-  .header-mobile,
-  .mobile-actions,
-  .mobile-icons,
-  .header-mobile-icons,
-  .header-icons-mobile,
-  [class*="mobile-header"],
-  [class*="header-mobile"],
-  [class*="mobile-action"],
-  [class*="mobile-icon"] {
-    display: none !important;
-  }
-
-  .show-on-desktop,
-  .header-display-desktop .show-on-desktop {
-    display: flex !important;
-    align-items: center !important;
-    gap: 1.25rem !important;
-  }
-}
-
-@media (max-width: 768px) {
-  .show-on-desktop,
-  .header-display-desktop .show-on-desktop,
-  [class*="show-on-desktop"] {
-    display: none !important;
-  }
-
-  .show-on-mobile,
-  .header-display-desktop .show-on-mobile {
-    display: flex !important;
-    align-items: center !important;
-    gap: 1.25rem !important;
-  }
-}
-
-/* Precise ordering of header buttons: Search -> Account -> Cart */
-.live-search-button-search,
-.header-actions a[href*="search"],
-.header-actions [class*="search"],
-.header-icons a[href*="search"],
-.header-icons [class*="search"],
-.header-right a[href*="search"] {
-  order: 1 !important;
-}
-
-.header-login-icon-link,
-.header-actions a[href*="account"],
-.header-actions a[href*="login"],
-.header-actions [class*="account"],
-.header-actions [class*="user"],
-.header-icons a[href*="account"],
-.header-icons [class*="account"],
-.header-right a[href*="account"] {
-  order: 2 !important;
-}
-
-.header-cart-icon-button,
-.header-actions .cart-wrap,
-.header-actions [class*="cart"],
-.header-actions a[href*="cart"],
-.header-icons .cart-wrap,
-.header-icons [class*="cart"],
-.header-icons a[href*="cart"],
-.header-right .cart-wrap {
-  order: 3 !important;
-}
-
-/* Hide duplicate search & cart in nav if present in header actions */
-.header-nav a[href*="search"],
-.header-nav a[href*="cart"],
-.navbar-nav a[href*="search"],
-.navbar-nav a[href*="cart"],
-nav.navbar a[href*="search"],
-nav.navbar a[href*="cart"] {
   display: none !important;
 }
 
@@ -1724,7 +1624,7 @@ html body .card-wrapper .card__inner .media img {
 .theme-tusk .marquee svg {
   overflow: visible !important;
   transform: translateY(2px) !important;
-  filter: drop-shadow(0 0 5px rgba(255, 42, 42, 0.45)) drop-shadow(0 0 10px rgba(255, 42, 42, 0.15)) !important;
+  filter: none !important;
 }
 
 [data-section-key="ticker"] text,
@@ -1743,12 +1643,131 @@ html body .card-wrapper .card__inner .media img {
 .announcement-bar a {
   color: #FF2A2A !important;
   fill: #FF2A2A !important;
-  /* Reduced text glow - was 0.7/0.3, now 0.4/0.15 */
-  text-shadow: 0 0 6px rgba(255, 42, 42, 0.4), 0 0 12px rgba(255, 42, 42, 0.15) !important;
-  filter: drop-shadow(0 0 5px rgba(255, 42, 42, 0.45)) drop-shadow(0 0 10px rgba(255, 42, 42, 0.15)) !important;
+  text-shadow: none !important;
+  filter: none !important;
   font-family: 'Space Mono', monospace !important;
   font-weight: 700 !important;
   text-transform: uppercase !important;
   letter-spacing: 0.18em !important;
   line-height: 1.5 !important;
 }
+
+/* --------------------------------------------------------------------------
+   8. Custom Kinetic Cursor & Terminal Blink Cursor Styles
+   -------------------------------------------------------------------------- */
+#sl-cursor-dot {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 5px !important;
+  height: 5px !important;
+  background: #FFE600 !important;
+  border-radius: 50% !important;
+  pointer-events: none !important;
+  z-index: 2147483646 !important;
+  transform: translate3d(-100px, -100px, 0);
+  will-change: transform;
+}
+
+#sl-cursor-circle {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 28px !important;
+  height: 28px !important;
+  border: 1px solid rgba(255, 255, 255, 0.7) !important;
+  border-radius: 50% !important;
+  pointer-events: none !important;
+  z-index: 2147483645 !important;
+  transform: translate3d(-100px, -100px, 0);
+  transition: width 0.2s cubic-bezier(0.16, 1, 0.3, 1), height 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease, transform 0.04s linear !important;
+  will-change: transform;
+}
+
+#sl-cursor-circle.hovered {
+  width: 44px !important;
+  height: 44px !important;
+  border-color: rgba(255, 59, 48, 0.9) !important;
+}
+
+@media (pointer: coarse) {
+  #sl-cursor-dot,
+  #sl-cursor-circle {
+    display: none !important;
+  }
+}
+
+@keyframes sonarlineBlink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
+.sonarline-cursor-blink {
+  display: inline-block;
+  color: #ff3b30;
+  margin-left: 4px;
+  animation: sonarlineBlink 1s infinite;
+  vertical-align: middle;
+}
+
+/* --------------------------------------------------------------------------
+   9. Mobile Product Card Centering & Symmetrical Margin Calibration
+   -------------------------------------------------------------------------- */
+@media (max-width: 768px) {
+  #page-section-collection .grid-list,
+  [data-section-key="collection"] .grid-list,
+  .collection-products,
+  .product-grid,
+  .products-grid,
+  .theme-tusk .collection-products,
+  .theme-tusk .grid {
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)) !important;
+    gap: 20px !important;
+    padding: 0 16px !important;
+    margin: 24px auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    justify-items: center !important;
+  }
+
+  div.card-wrapper.product-card-wrapper,
+  .card-wrapper.product-card-wrapper,
+  .product-card-wrapper,
+  .product-card {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 auto !important;
+    box-sizing: border-box !important;
+  }
+}
+
+@media (max-width: 480px) {
+  #page-section-collection .grid-list,
+  [data-section-key="collection"] .grid-list,
+  .collection-products,
+  .product-grid,
+  .products-grid,
+  .theme-tusk .collection-products,
+  .theme-tusk .grid {
+    grid-template-columns: 1fr !important;
+    gap: 24px !important;
+    padding: 0 16px !important;
+    margin: 16px auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    justify-items: center !important;
+  }
+
+  div.card-wrapper.product-card-wrapper,
+  .card-wrapper.product-card-wrapper,
+  .product-card-wrapper,
+  .product-card {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 auto !important;
+    box-sizing: border-box !important;
+  }
+}
+

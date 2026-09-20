@@ -540,7 +540,7 @@
           '  justify-content: center !important;',
           '  width: 100% !important;',
           '}',
-          '/* 3. Vertically center the ticker SVG and allow overflow */',
+          '/* 3. Vertically center the ticker SVG and allow overflow (no glow) */',
           '[data-section-key="ticker"] svg,',
           '.ticker svg,',
           '.js-ticker-svg,',
@@ -549,9 +549,9 @@
           '.ticker-measure {',
           '  overflow: visible !important;',
           '  transform: translateY(2px) !important;',
-          '  filter: drop-shadow(0 0 4px rgba(255, 42, 42, 0.35)) !important;',
+          '  filter: none !important;',
           '}',
-          '/* 4. Ticker text with subtle refined glow */',
+          '/* 4. Ticker text sharp and raw without ambient light halos */',
           '[data-section-key="ticker"] text,',
           '[data-section-key="ticker"] tspan,',
           '[data-section-key="ticker"] textPath,',
@@ -559,7 +559,7 @@
           '.ticker tspan {',
           '  fill: #FF2A2A !important;',
           '  color: #FF2A2A !important;',
-          '  text-shadow: 0 0 4px rgba(255, 42, 42, 0.4) !important;',
+          '  text-shadow: none !important;',
           '  filter: none !important;',
           '}'
         ].join('\n');
@@ -630,7 +630,7 @@
       for (var s = 0; s < svgs.length; s++) {
         svgs[s].style.setProperty('overflow', 'visible', 'important');
         svgs[s].style.setProperty('transform', 'translateY(2px)', 'important');
-        svgs[s].style.setProperty('filter', 'drop-shadow(0 0 4px rgba(255, 42, 42, 0.35))', 'important');
+        svgs[s].style.setProperty('filter', 'none', 'important');
       }
 
       var texts = document.querySelectorAll(
@@ -639,7 +639,8 @@
       for (var x = 0; x < texts.length; x++) {
         texts[x].style.setProperty('fill', '#FF2A2A', 'important');
         texts[x].style.setProperty('color', '#FF2A2A', 'important');
-        texts[x].style.setProperty('text-shadow', '0 0 4px rgba(255, 42, 42, 0.4)', 'important');
+        texts[x].style.setProperty('text-shadow', 'none', 'important');
+        texts[x].style.setProperty('filter', 'none', 'important');
       }
     }
 
@@ -659,73 +660,290 @@
     setTimeout(function() { injectImmediateStyles(); applyDOMFixes(); }, 3000);
   })();
 
-  // Header Nav Buttons & Mobile Icons Clean Guard
+  // ==========================================================================
+  // Subtask 1: Custom Kinetic Cursor
+  // Lead: Yellow dot (instant), Trailing: White wireframe circle (lerp lag)
+  // Hover scale on interactive elements, auto-disabled on touch/mobile
+  // ==========================================================================
   (function() {
-    function cleanHeaderButtons() {
-      // 1. Hide mobile header icons on desktop
-      if (window.innerWidth >= 769) {
-        var mobileElems = document.querySelectorAll('.header-display-desktop .show-on-mobile, .show-on-mobile');
-        for (var m = 0; m < mobileElems.length; m++) {
-          mobileElems[m].style.setProperty('display', 'none', 'important');
+    if (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) {
+      return; // Disabled on touch devices
+    }
+
+    var style = document.createElement('style');
+    style.id = 'sl-cursor-styles';
+    style.textContent = [
+      '#sl-cursor-dot {',
+      '  position: fixed !important;',
+      '  top: 0 !important;',
+      '  left: 0 !important;',
+      '  width: 5px !important;',
+      '  height: 5px !important;',
+      '  background: #FFE600 !important;',
+      '  border-radius: 50% !important;',
+      '  pointer-events: none !important;',
+      '  z-index: 2147483646 !important;',
+      '  transform: translate3d(-100px, -100px, 0);',
+      '  will-change: transform;',
+      '}',
+      '#sl-cursor-circle {',
+      '  position: fixed !important;',
+      '  top: 0 !important;',
+      '  left: 0 !important;',
+      '  width: 28px !important;',
+      '  height: 28px !important;',
+      '  border: 1px solid rgba(255, 255, 255, 0.7) !important;',
+      '  border-radius: 50% !important;',
+      '  pointer-events: none !important;',
+      '  z-index: 2147483645 !important;',
+      '  transform: translate3d(-100px, -100px, 0);',
+      '  transition: width 0.2s cubic-bezier(0.16, 1, 0.3, 1), height 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease, transform 0.04s linear !important;',
+      '  will-change: transform;',
+      '}',
+      '#sl-cursor-circle.hovered {',
+      '  width: 44px !important;',
+      '  height: 44px !important;',
+      '  border-color: rgba(255, 59, 48, 0.9) !important;',
+      '}',
+      '@media (pointer: coarse) {',
+      '  #sl-cursor-dot, #sl-cursor-circle { display: none !important; }',
+      '}'
+    ].join('\n');
+    (document.head || document.documentElement).appendChild(style);
+
+    var dot = document.createElement('div');
+    dot.id = 'sl-cursor-dot';
+    var circle = document.createElement('div');
+    circle.id = 'sl-cursor-circle';
+
+    function mountCursor() {
+      if (!document.getElementById('sl-cursor-dot')) {
+        (document.body || document.documentElement).appendChild(dot);
+        (document.body || document.documentElement).appendChild(circle);
+      }
+    }
+    if (document.body) mountCursor();
+    else document.addEventListener('DOMContentLoaded', mountCursor);
+
+    var mouseX = -100, mouseY = -100;
+    var circleX = -100, circleY = -100;
+    var isHovered = false;
+
+    window.addEventListener('mousemove', function(e) {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+      dot.style.transform = 'translate3d(' + (mouseX - 2.5) + 'px, ' + (mouseY - 2.5) + 'px, 0)';
+    }, { passive: true });
+
+    function lerpCursor() {
+      var targetOffset = isHovered ? 22 : 14;
+      circleX += (mouseX - targetOffset - circleX) * 0.18;
+      circleY += (mouseY - targetOffset - circleY) * 0.18;
+      circle.style.transform = 'translate3d(' + circleX + 'px, ' + circleY + 'px, 0)';
+      window.requestAnimationFrame(lerpCursor);
+    }
+    window.requestAnimationFrame(lerpCursor);
+
+    var interactiveSelector = 'a, button, input, textarea, select, [role="button"], .card-wrapper, .product-card, .header-cart-icon-button, .header-login-icon-link, .live-search-button-search, .payhip-btn, .btn';
+    document.addEventListener('mouseover', function(e) {
+      if (e.target.closest && e.target.closest(interactiveSelector)) {
+        isHovered = true;
+        circle.classList.add('hovered');
+      }
+    }, { passive: true });
+
+    document.addEventListener('mouseout', function(e) {
+      if (e.target.closest && e.target.closest(interactiveSelector)) {
+        isHovered = false;
+        circle.classList.remove('hovered');
+      }
+    }, { passive: true });
+  })();
+
+  // ==========================================================================
+  // Subtask 2: Dynamic Native Shortcode Parser Engine
+  // Tokens: [[badge: TEXT]] & {{terminal: COMMAND}}
+  // Prevents FOUS with immediate parsing & MutationObserver
+  // ==========================================================================
+  (function() {
+    function buildBadgeHtml(text) {
+      var parts = text.split('|').map(function(s) { return s.trim(); });
+      var innerHtml = '<span class="sonarline-status-dot"></span>';
+      for (var i = 0; i < parts.length; i++) {
+        var part = parts[i];
+        if (i > 0) {
+          innerHtml += '<span class="sonarline-status-sep">|</span>';
+        }
+        if (/^\d{2}:\d{2}:\d{2}$/.test(part)) {
+          innerHtml += '<span class="sonarline-status-clock">' + part + '</span>';
+        } else {
+          innerHtml += '<span>' + part + '</span>';
         }
       }
+      return '<div class="sonarline-status-pill">' + innerHtml + '</div>';
+    }
 
-      // 2. Remove newsletter form if present in DOM
+    function buildTerminalHtml(commandText) {
+      var trimmed = commandText.trim();
+      var prompt = 'root@sonarline:~$';
+      var cmd = trimmed;
+      if (trimmed.indexOf('root@sonarline:~$') === 0) {
+        cmd = trimmed.replace('root@sonarline:~$', '').trim();
+      }
+      var tokens = cmd.split(' ');
+      var mainCmd = tokens[0] || '';
+      var rest = tokens.slice(1).join(' ');
+      return '<div class="sonarline-terminal-prompt">' +
+        '<span style="color: #ff3b30;">' + prompt + '</span> ' +
+        '<span style="color: #ffffff;">' + mainCmd + '</span> ' +
+        '<span style="color: #888888;">' + rest + '</span>' +
+        '<span class="sonarline-cursor-blink">&#9646;</span>' +
+      '</div>';
+    }
+
+    function parseShortcodesInNode(node) {
+      if (!node) return;
+      if (node.nodeType === Node.TEXT_NODE) {
+        var val = node.nodeValue;
+        if (!val || (!val.includes('[[badge:') && !val.includes('{{terminal:'))) {
+          return;
+        }
+        var parent = node.parentNode;
+        if (!parent || parent.nodeName === 'SCRIPT' || parent.nodeName === 'STYLE') return;
+
+        var html = val.replace(/\[\[badge:\s*([\s\S]*?)\]\]/gi, function(match, content) {
+          return buildBadgeHtml(content);
+        }).replace(/\{\{terminal:\s*([\s\S]*?)\}\}/gi, function(match, content) {
+          return buildTerminalHtml(content);
+        });
+
+        if (html !== val) {
+          var temp = document.createElement('span');
+          temp.innerHTML = html;
+          while (temp.firstChild) {
+            parent.insertBefore(temp.firstChild, node);
+          }
+          parent.removeChild(node);
+        }
+      } else if (node.nodeType === Node.ELEMENT_NODE) {
+        if (node.nodeName === 'SCRIPT' || node.nodeName === 'STYLE') return;
+        var children = Array.prototype.slice.call(node.childNodes);
+        for (var i = 0; i < children.length; i++) {
+          parseShortcodesInNode(children[i]);
+        }
+      }
+    }
+
+    function runParser() {
+      var root = document.body || document.documentElement;
+      if (root) parseShortcodesInNode(root);
+    }
+
+    runParser();
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', runParser);
+    }
+
+    var observer = new MutationObserver(function(mutations) {
+      for (var m = 0; m < mutations.length; m++) {
+        var mutation = mutations[m];
+        if (mutation.type === 'childList') {
+          for (var a = 0; a < mutation.addedNodes.length; a++) {
+            parseShortcodesInNode(mutation.addedNodes[a]);
+          }
+        } else if (mutation.type === 'characterData') {
+          parseShortcodesInNode(mutation.target);
+        }
+      }
+    });
+
+    if (document.body) {
+      observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+    } else {
+      document.addEventListener('DOMContentLoaded', function() {
+        observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+      });
+    }
+
+    // Live clock ticker for any status pill clocks
+    function updateClocks() {
+      var clocks = document.querySelectorAll('.sonarline-status-clock, #sonarline-native-clock');
+      if (clocks.length > 0) {
+        var now = new Date();
+        var timeStr = now.toTimeString().split(' ')[0];
+        for (var c = 0; c < clocks.length; c++) {
+          clocks[c].textContent = timeStr;
+        }
+      }
+    }
+    updateClocks();
+    setInterval(updateClocks, 1000);
+  })();
+
+  // ==========================================================================
+  // Subtask 3: Unified Hero Parallax & Scroll Blur Coordination
+  // Synchronizes status badge, title, subtitle, and terminal prompt
+  // ==========================================================================
+  (function() {
+    var ticking = false;
+    function updateHeroParallax() {
+      var heroEl = document.querySelector('[data-section-key="headline"], #content-section-LBNmnP42zK, .sonarline-hero-section');
+      if (heroEl) {
+        var scrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
+        if (scrollY < 0) scrollY = 0;
+
+        var fadeProgress = Math.min(scrollY / 450, 1);
+        var blurPx = (fadeProgress * 6).toFixed(1);
+        var opacityVal = Math.max(1 - fadeProgress * 0.85, 0.15).toFixed(2);
+        var translateY = (scrollY * 0.14).toFixed(1);
+
+        // Coordinate ALL hero components together in lockstep
+        var heroElements = heroEl.querySelectorAll('.sonarline-status-pill, h1, .heading-text, #sonarline-glitch-title, p, .richtext p, .sonarline-terminal-prompt');
+        for (var i = 0; i < heroElements.length; i++) {
+          var el = heroElements[i];
+          el.style.filter = 'blur(' + blurPx + 'px)';
+          el.style.opacity = opacityVal;
+          el.style.transform = 'translateY(' + translateY + 'px)';
+          el.style.pointerEvents = fadeProgress >= 0.9 ? 'none' : 'auto';
+        }
+      }
+      ticking = false;
+    }
+
+    window.addEventListener('scroll', function() {
+      if (!ticking) {
+        window.requestAnimationFrame(updateHeroParallax);
+        ticking = true;
+      }
+    }, { passive: true });
+    window.addEventListener('resize', function() {
+      if (!ticking) {
+        window.requestAnimationFrame(updateHeroParallax);
+        ticking = true;
+      }
+    }, { passive: true });
+  })();
+
+  // ==========================================================================
+  // Subtask 5: Navbar Reset & Clean Fallback
+  // Purges artificial size/padding overrides, restores native navbar
+  // ==========================================================================
+  (function() {
+    function cleanNavbar() {
+      // Remove newsletter if present
       var newsletterForm = document.getElementById('sonarline-newsletter-form');
       if (newsletterForm) {
         var parentBox = newsletterForm.parentElement;
-        if (parentBox && parentBox.classList.contains('sonarline-newsletter-box')) {
-          parentBox.remove();
-        } else if (parentBox) {
-          parentBox.style.setProperty('display', 'none', 'important');
-          newsletterForm.remove();
-        } else {
-          newsletterForm.remove();
-        }
-      }
-
-      // 3. Ensure Cart and Action Buttons remain fully visible, unbordered, and padding-free
-      var actionButtons = document.querySelectorAll('.header-cart-icon-button, .live-search-button-search, .header-actions .cart-wrap, .header-actions button');
-      for (var c = 0; c < actionButtons.length; c++) {
-        actionButtons[c].style.removeProperty('display');
-        actionButtons[c].style.setProperty('border', 'none', 'important');
-        actionButtons[c].style.setProperty('outline', 'none', 'important');
-        actionButtons[c].style.setProperty('padding', '0px', 'important');
-        actionButtons[c].style.setProperty('background', 'transparent', 'important');
-        actionButtons[c].style.setProperty('box-shadow', 'none', 'important');
-        actionButtons[c].style.setProperty('visibility', 'visible', 'important');
-        actionButtons[c].style.setProperty('opacity', '1', 'important');
-      }
-
-      // 4. Ensure Login link icon is white
-      var loginLinks = document.querySelectorAll('.header-login-icon-link');
-      for (var l = 0; l < loginLinks.length; l++) {
-        loginLinks[l].style.setProperty('color', '#ffffff', 'important');
-        loginLinks[l].style.setProperty('border', 'none', 'important');
-      }
-
-      // 5. Revert SHOP link to native unbordered
-      var shopLinks = document.querySelectorAll('.js-header-nav-item-link-level0, .js-header-nav-item-link-level0.active, header nav a');
-      for (var k = 0; k < shopLinks.length; k++) {
-        shopLinks[k].style.setProperty('border-bottom', 'none', 'important');
-      }
-
-      // 6. Hide duplicate desktop search if both full search form and icon button are present outside nav
-      var navSearchLinks = document.querySelectorAll('.header-nav a[href*="search"], .navbar-nav a[href*="search"]');
-      for (var s = 0; s < navSearchLinks.length; s++) {
-        navSearchLinks[s].style.setProperty('display', 'none', 'important');
+        if (parentBox && parentBox.classList.contains('sonarline-newsletter-box')) parentBox.remove();
+        else { parentBox.style.setProperty('display', 'none', 'important'); newsletterForm.remove(); }
       }
     }
 
     if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', cleanHeaderButtons);
+      document.addEventListener('DOMContentLoaded', cleanNavbar);
     } else {
-      cleanHeaderButtons();
+      cleanNavbar();
     }
-    setTimeout(cleanHeaderButtons, 300);
-    setTimeout(cleanHeaderButtons, 1000);
-    setTimeout(cleanHeaderButtons, 2500);
-    window.addEventListener('resize', cleanHeaderButtons);
   })();
 
   // Unconditionally Nuke Mountain Images Across All Browsers
@@ -749,57 +967,9 @@
     setTimeout(nukeMountainImages, 1000);
   })();
 
-  // Subtask 4: Interactive Hero Parallax Grid & Title Blur/Fade
-  (function() {
-    var ticking = false;
-    function updateHeroParallax() {
-      var heroEl = document.querySelector('[data-section-key="headline"], #content-section-LBNmnP42zK, .sonarline-hero-section');
-      var headingEl = document.querySelector('[data-section-key="headline"] .heading-text, [data-section-key="headline"] h1, #sonarline-glitch-title');
-      var subtitleEl = document.querySelector('[data-section-key="headline"] .section-contents p, [data-section-key="headline"] p, .sonarline-hero-content > div:last-child');
-
-      if (heroEl) {
-        var scrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
-        if (scrollY < 0) scrollY = 0;
-
-        // Blur and opacity fade as hero recedes behind content (keep grid background position locked in phase with body)
-        var fadeProgress = Math.min(scrollY / 450, 1);
-        var blurPx = (fadeProgress * 6).toFixed(1);
-        var opacityVal = Math.max(1 - fadeProgress * 0.85, 0.15).toFixed(2);
-
-        if (headingEl) {
-          headingEl.style.filter = 'blur(' + blurPx + 'px)';
-          headingEl.style.opacity = opacityVal;
-          headingEl.style.transform = 'translateY(' + (scrollY * 0.12) + 'px)';
-          headingEl.style.pointerEvents = fadeProgress >= 0.9 ? 'none' : 'auto';
-        }
-        if (subtitleEl) {
-          subtitleEl.style.filter = 'blur(' + (blurPx * 0.75).toFixed(1) + 'px)';
-          subtitleEl.style.opacity = opacityVal;
-          subtitleEl.style.transform = 'translateY(' + (scrollY * 0.12) + 'px)';
-          subtitleEl.style.pointerEvents = fadeProgress >= 0.9 ? 'none' : 'auto';
-        }
-      }
-      ticking = false;
-    }
-
-    window.addEventListener('scroll', function() {
-      if (!ticking) {
-        window.requestAnimationFrame(updateHeroParallax);
-        ticking = true;
-      }
-    }, { passive: true });
-    window.addEventListener('resize', function() {
-      if (!ticking) {
-        window.requestAnimationFrame(updateHeroParallax);
-        ticking = true;
-      }
-    }, { passive: true });
-  })();
-
-  // Native Hero Enhancement: Status Pill, Glitch Title Scramble, Subtitle Red Bullets, Terminal Prompt
+  // Native Hero Enhancement (Fallback when shortcodes not present)
   (function() {
     function enhanceNativeHero() {
-      // Clean up old embedded hero sections, embed-code section, and remote custom embed
       var embeds = document.querySelectorAll(
         '[data-section-key="embed-code"], #content-section-yBbkPa6OGD, #remote-custom-embed, .sonarline-hero-section, .sonarline-homepage-experience'
       );
@@ -822,7 +992,7 @@
       var h1 = heroContents.querySelector('h1, .heading-text');
       if (!h1) return;
 
-      // 1. Inject Status Pill above H1
+      // Status pill fallback if not injected via shortcode
       var statusPill = heroContents.querySelector('.sonarline-status-pill');
       if (!statusPill) {
         statusPill = document.createElement('div');
@@ -836,21 +1006,7 @@
         heroContents.insertBefore(statusPill, h1);
       }
 
-      // Live clock updater
-      function updateClock() {
-        var clockEl = document.getElementById('sonarline-native-clock');
-        if (clockEl) {
-          var now = new Date();
-          var timeStr = now.toTimeString().split(' ')[0];
-          clockEl.textContent = timeStr;
-        }
-      }
-      updateClock();
-      if (!window._sonarlineClockInterval) {
-        window._sonarlineClockInterval = setInterval(updateClock, 1000);
-      }
-
-      // 2. Glitch / Scramble Effect on Native H1
+      // Glitch / Scramble Effect on Native H1
       if (!h1.getAttribute('data-scramble-bound')) {
         h1.setAttribute('data-scramble-bound', 'true');
         var chars = '!<>-_\\/[]{}—=+*^?#________';
@@ -880,7 +1036,7 @@
         h1.addEventListener('mouseenter', runScramble);
       }
 
-      // 3. Format Subtitle Bullets
+      // Format Subtitle Bullets
       var subtitleP = heroContents.querySelector('p, .richtext p');
       if (subtitleP && !subtitleP.getAttribute('data-bullets-styled')) {
         subtitleP.setAttribute('data-bullets-styled', 'true');
@@ -889,12 +1045,12 @@
         subtitleP.innerHTML = formattedHtml;
       }
 
-      // 4. Inject Terminal Prompt below subtitle
+      // Terminal Prompt fallback if not injected via shortcode
       var terminalPrompt = heroContents.querySelector('.sonarline-terminal-prompt');
       if (!terminalPrompt) {
         terminalPrompt = document.createElement('div');
         terminalPrompt.className = 'sonarline-terminal-prompt';
-        terminalPrompt.innerHTML = '<span style="color: #ff3b30;">root@sonarline:~$</span> <span style="color: #ffffff;">archive --status active</span>';
+        terminalPrompt.innerHTML = '<span style="color: #ff3b30;">root@sonarline:~$</span> <span style="color: #ffffff;">archive</span> <span style="color: #888888;">--status active</span><span class="sonarline-cursor-blink">&#9646;</span>';
         heroContents.appendChild(terminalPrompt);
       }
     }
