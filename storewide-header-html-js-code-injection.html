@@ -1296,6 +1296,10 @@
           '  --sonarline-header-height: 132px;',
           '  --sonarline-header-current-offset: 132px;',
           '}',
+          'html, body {',
+          '  overflow-x: clip !important;',
+          '  overflow-y: visible !important;',
+          '}',
           '#header[data-section-setting-fixed-position="yes"] ~ .content-main-wrapper,',
           'body:has(#header[data-section-setting-fixed-position="yes"]) .content-main-wrapper,',
           '.content-main-wrapper,',
@@ -1378,7 +1382,7 @@
           '  line-height: 34px !important;',
           '  margin-top: 0 !important;',
           '  margin-bottom: 0 !important;',
-          '  overflow-x: hidden !important;',
+          '  overflow-x: clip !important;',
           '  overflow-y: visible !important;',
           '  display: flex !important;',
           '  align-items: center !important;',
@@ -2497,6 +2501,12 @@
     }
 
     function applyDOMFixes() {
+      // Unblock sticky positioning on root containers
+      document.documentElement.style.setProperty('overflow-x', 'clip', 'important');
+      document.documentElement.style.setProperty('overflow-y', 'visible', 'important');
+      document.body.style.setProperty('overflow-x', 'clip', 'important');
+      document.body.style.setProperty('overflow-y', 'visible', 'important');
+
       // Calibrate header offset & initialize dynamic clearance engine
       initHeaderOffsetEngine();
       syncHeaderOffset();
@@ -2652,7 +2662,7 @@
         tw.style.setProperty('min-height', '36px', 'important');
         tw.style.setProperty('max-height', '36px', 'important');
         tw.style.setProperty('line-height', '34px', 'important');
-        tw.style.setProperty('overflow-x', 'hidden', 'important');
+        tw.style.setProperty('overflow-x', 'clip', 'important');
         tw.style.setProperty('overflow-y', 'visible', 'important');
         tw.style.setProperty('border-top', '1px solid #FF2A2A', 'important');
         tw.style.setProperty('border-bottom', '1px solid #FF2A2A', 'important');
