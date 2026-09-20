@@ -221,6 +221,7 @@
 ### [2026-09-20 - Release 3]
 - **Fixed:** Suppressed preloader configuration setup section (`#content-section-ZGXLnKKrGq` / `[data-section-key="text-simple"]`) from normal page flow with immediate CSS suppression and robust multi-line token extraction and DOM clearing.
 - **Fixed:** Enforced crimson red (`#FF2A2A` / `#FF3B30`) on both the slash (`/`) and the second title word (`.hud-title-second`) in the preloader HUD brand title via high-specificity CSS and inline styling.
+- **Fixed:** Removed `cursor: crosshair` from `#sonarline-glitch-title` so the cursor no longer turns into an OS crosshair when hovering over the "SONARLINE" hero text.
 - **Hardened:** Preloader fail-safe unmount timer (2.5s) and full `try...catch` lifecycle guards to guarantee normal page interaction under all conditions.
 
 ### [2026-09-20 - Release 2]
