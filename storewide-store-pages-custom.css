@@ -257,9 +257,12 @@ img[src*="mountain"],
   overflow: visible !important;
   margin-top: 0 !important;
   margin-bottom: 32px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
   padding: 4rem 2rem 3rem !important;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
   text-align: center !important;
+  width: 100% !important;
 }
 
 [data-section-key="headline"] .section-background,
@@ -272,6 +275,19 @@ img[src*="mountain"],
   background-image: none !important;
 }
 
+[data-section-key="headline"] .section-contents-wrapper,
+[data-section-key="headline"] .section-wrapper-inner,
+#content-section-LBNmnP42zK .section-contents-wrapper,
+#content-section-LBNmnP42zK .section-wrapper-inner {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  margin: 0 auto !important;
+  width: 100% !important;
+}
+
 [data-section-key="headline"] .section-contents,
 #content-section-LBNmnP42zK .section-contents,
 .section-hero .section-contents {
@@ -280,6 +296,8 @@ img[src*="mountain"],
   display: flex !important;
   flex-direction: column !important;
   align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
   gap: 1.6rem !important;
   position: relative !important;
   z-index: 2 !important;
@@ -290,6 +308,9 @@ img[src*="mountain"],
 .sonarline-status-pill {
   display: inline-flex !important;
   align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  margin: 0 auto !important;
   gap: 10px !important;
   font-family: var(--font-mono, monospace) !important;
   font-size: 0.72rem !important;
@@ -331,12 +352,15 @@ img[src*="mountain"],
   font-weight: 800 !important;
   letter-spacing: 0.08em !important;
   text-transform: uppercase !important;
-  margin: 0 !important;
+  margin: 0 auto !important;
+  text-align: center !important;
+  display: block !important;
   line-height: 1.05 !important;
   color: #FFFFFF !important;
   cursor: crosshair !important;
   user-select: none !important;
   order: 2 !important;
+  width: 100% !important;
 }
 
 /* Native Subtitle: Space Mono, Uppercase, Secondary text */
@@ -360,8 +384,11 @@ img[src*="mountain"],
   flex-wrap: wrap !important;
   justify-content: center !important;
   align-items: center !important;
+  text-align: center !important;
   gap: 14px !important;
   order: 3 !important;
+  width: 100% !important;
+  max-width: 100% !important;
 }
 
 /* Terminal Prompt */
@@ -370,7 +397,15 @@ img[src*="mountain"],
   font-size: 0.85rem !important;
   color: #555555 !important;
   margin-top: 0.5rem !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  margin-bottom: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
   order: 4 !important;
+  width: 100% !important;
 }
 
 /* Completely hide any post-added embed hero sections, embed-code sections, and their parent wrappers */
@@ -1212,10 +1247,30 @@ select:focus {
   line-height: 1 !important;
 }
 
-.sonarline-ticker-bullet {
+.sonarline-ticker-bullet,
+.ticker-bullet,
+.ticker-sep,
+.ticker-separator,
+[data-section-key="ticker"] .ticker-sep,
+.ticker .ticker-sep {
   color: #FF2A2A !important;
+  fill: #FF2A2A !important;
   font-size: 0.75rem !important;
   text-shadow: none !important;
+  display: inline-block !important;
+  margin: 0 1.25rem !important;
+  line-height: 1 !important;
+}
+
+.sonarline-ticker-item:not(:has(+ .sonarline-ticker-bullet))::after,
+[data-section-key="ticker"] .ticker-item:not(:has(+ [class*="bullet"])):not(:has(+ [class*="sep"]))::after,
+.ticker-item:not(:has(+ [class*="bullet"])):not(:has(+ [class*="sep"]))::after,
+.marquee-item:not(:has(+ [class*="bullet"])):not(:has(+ [class*="sep"]))::after {
+  content: ' •';
+  color: #FF2A2A !important;
+  margin-left: 1.25rem;
+  margin-right: 0;
+  font-size: 0.75rem;
 }
 
 @keyframes ticker-slide {
