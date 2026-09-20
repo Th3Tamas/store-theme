@@ -772,7 +772,10 @@ div[id*="section-QW9Kn45mB6"],
 .marquee-wrapper {
   position: relative !important;
   top: auto !important;
-  z-index: auto !important;
+  left: auto !important;
+  transform: none !important;
+  z-index: 10 !important;
+  width: 100% !important;
   padding: 0 0 2px 0 !important;
   margin: 0 !important;
   margin-top: 0 !important;
@@ -1874,7 +1877,10 @@ html body .card-wrapper .card__inner .media img {
 #content-section-QW9Kn45mB6 {
   position: relative !important;
   top: auto !important;
-  z-index: auto !important;
+  left: auto !important;
+  transform: none !important;
+  z-index: 10 !important;
+  width: 100% !important;
   background-color: #080808 !important;
   /* Single hairline borders without glow */
   border-top: 1px solid #FF2A2A !important;
@@ -2019,6 +2025,33 @@ html, body, a, button, input, select, textarea, [role="button"], * {
   }
   html, body, a, button, input, select, textarea, [role="button"], * {
     cursor: auto !important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   8b. Desktop Custom Drag-Selection Box (brutalist wireframe, difference blend)
+   -------------------------------------------------------------------------- */
+#sl-selection-box {
+  position: fixed !important;
+  pointer-events: none !important;
+  z-index: 2147483640 !important;
+  display: none !important;
+  border: 1px solid rgba(255, 255, 255, 0.45) !important;
+  background: rgba(255, 255, 255, 1) !important;
+  mix-blend-mode: difference !important;
+  box-shadow: none !important;
+}
+body.sl-selecting,
+body.sl-selecting * {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}
+body.sl-selecting ::selection {
+  background: transparent !important;
+}
+@media (pointer: coarse) {
+  #sl-selection-box {
+    display: none !important;
   }
 }
 

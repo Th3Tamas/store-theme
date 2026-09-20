@@ -1055,6 +1055,112 @@
     window.openProductModal = populateModal;
     window.closeProductModal = closeModal;
 
+    // Homepage Cards Shortcode Sync (Issue 2): fetch product pages in background,
+    // parse [[tag:]] / [[audio:]] from product HTML, cache in sessionStorage.
+    // Same-origin only, limited concurrency, fail silently.
+    var sonarlineSyncQueue = [];
+    var sonarlineSyncActive = 0;
+    var SONARLINE_SYNC_MAX = 3;
+
+    function sonarlineCacheKey(url) {
+      try {
+        var u = new URL(url, window.location.origin);
+        return 'sonarline_prod_' + u.pathname.replace(/[^a-zA-Z0-9_-]+/g, '_');
+      } catch (e) {
+        return 'sonarline_prod_' + String(url).replace(/[^a-zA-Z0-9_-]+/g, '_').slice(0, 80);
+      }
+    }
+
+    function sonarlineParseShortcodes(htmlText) {
+      var out = { tag: '', audio: '' };
+      if (!htmlText) return out;
+      try {
+        var t = htmlText.match(/\[\[tag:\s*([\s\S]*?)\]\]/i);
+        if (t) out.tag = (t[1] || '').trim();
+        var a = htmlText.match(/\[\[audio:\s*([\s\S]*?)\]\]/i);
+        if (a) out.audio = (a[1] || '').trim();
+      } catch (e) {}
+      return out;
+    }
+
+    function sonarlineApplySyncedShortcodes(card, data) {
+      try {
+        if (!card || !card.isConnected) return;
+        if (data.audio && !card.getAttribute('data-audio-src')) {
+          card.setAttribute('data-audio-src', data.audio);
+        }
+        if (data.tag) {
+          var pill = card.querySelector('.sonarline-card-tag-pill');
+          if (pill && !pill.textContent.trim()) {
+            pill.textContent = data.tag;
+            pill.style.setProperty('display', 'inline-flex', 'important');
+          }
+        }
+      } catch (e) {}
+    }
+
+    function sonarlinePumpSyncQueue() {
+      if (sonarlineSyncActive >= SONARLINE_SYNC_MAX) return;
+      var job = sonarlineSyncQueue.shift();
+      if (!job) return;
+      sonarlineSyncActive++;
+      fetch(job.url, { credentials: 'same-origin' }).then(function(res) {
+        if (!res.ok) throw new Error('bad status ' + res.status);
+        return res.text();
+      }).then(function(html) {
+        var parsed = sonarlineParseShortcodes(html);
+        try {
+          sessionStorage.setItem(job.key, JSON.stringify(parsed));
+        } catch (e) {}
+        sonarlineApplySyncedShortcodes(job.card, parsed);
+      }).catch(function() {}).then(function() {
+        sonarlineSyncActive--;
+        sonarlinePumpSyncQueue();
+      });
+    }
+
+    function sonarlineSyncCardShortcodes(card) {
+      try {
+        var link = card.querySelector('a[href*="/b/"], a[href*="/p/"], a[href*="/product"]');
+        if (!link || !link.href) return;
+        var u = new URL(link.href, window.location.origin);
+        if (u.origin !== window.location.origin) return;
+        if (u.pathname.indexOf('/b/') === -1 && u.pathname.indexOf('/p/') === -1) return;
+        var key = sonarlineCacheKey(u.href);
+        var cached = null;
+        try {
+          cached = sessionStorage.getItem(key);
+        } catch (e) {}
+        if (cached) {
+          try {
+            sonarlineApplySyncedShortcodes(card, JSON.parse(cached));
+          } catch (e) {}
+          return;
+        }
+        if (card.getAttribute('data-sonarline-sync') === 'queued') return;
+        card.setAttribute('data-sonarline-sync', 'queued');
+        sonarlineSyncQueue.push({ url: u.href, key: key, card: card });
+        sonarlinePumpSyncQueue();
+      } catch (e) {}
+    }
+
+    // Product pages (Issue 3): strip raw [[tag:]] / [[audio:]] tokens from
+    // .product-description so CMS shortcodes never render as plain text.
+    function sonarlineScrubProductDescriptions() {
+      try {
+        var descs = document.querySelectorAll('.product-description');
+        for (var d = 0; d < descs.length; d++) {
+          var walker = document.createTreeWalker(descs[d], NodeFilter.SHOW_TEXT, null, false);
+          var node;
+          while ((node = walker.nextNode())) {
+            if (node.nodeValue && /\[\[(tag|audio):/i.test(node.nodeValue)) {
+              node.nodeValue = node.nodeValue.replace(/\[\[tag:\s*[\s\S]*?\]\]/gi, '').replace(/\[\[audio:\s*[\s\S]*?\]\]/gi, '').trim();
+            }
+          }
+        }
+      } catch (e) {}
+    }
+
     function cleanProductCards() {
       var cards = document.querySelectorAll('.card-wrapper, .product-card');
       for (var i = 0; i < cards.length; i++) {
@@ -1210,8 +1316,15 @@
           if (priceEl && priceEl.parentElement !== priceWrap && priceEl !== priceWrap) {
             priceWrap.appendChild(priceEl);
           }
+
+          // Background sync: fill missing tag/audio from product page + scrub handled globally
+          var needsSync = (!tagText || !audioUrl);
+          if (needsSync) {
+            try { sonarlineSyncCardShortcodes(card); } catch (e) {}
+          }
         }
       }
+      try { sonarlineScrubProductDescriptions(); } catch (e) {}
     }
 
     // MutationObserver: re-apply whenever Payhip lazy loader mutates card elements
@@ -1305,7 +1418,7 @@
           '.content-main-wrapper,',
           '#page-wrap,',
           'main.main-content {',
-          '  padding-top: calc(var(--sonarline-header-height, 132px) + 36px) !important;',
+          '  padding-top: var(--sonarline-header-height, 132px) !important;',
           '}',
           '.content-main-wrapper .main-content,',
           '.content-main-wrapper main {',
@@ -1367,11 +1480,12 @@
           '}',
           '[data-section-key="ticker"],',
           '#content-section-QW9Kn45mB6 {',
-          '  position: fixed !important;',
-          '  top: var(--sonarline-header-height, 132px) !important;',
-          '  left: 0 !important;',
-          '  width: 100vw !important;',
-          '  z-index: 999 !important;',
+          '  position: relative !important;',
+          '  top: auto !important;',
+          '  left: auto !important;',
+          '  transform: none !important;',
+          '  width: 100% !important;',
+          '  z-index: 10 !important;',
           '  background-color: #080808 !important;',
           '  border-top: 1px solid #FF2A2A !important;',
           '  border-bottom: 1px solid #FF2A2A !important;',
@@ -2414,31 +2528,35 @@
       if (h > cachedInitialHeaderHeight) {
         cachedInitialHeaderHeight = h;
       }
+      var visibleBottom = isFixed ? Math.max(0, Math.round(rect.bottom)) : 0;
 
       if (isFixed && h > 0) {
         document.documentElement.style.setProperty('--sonarline-header-height', cachedInitialHeaderHeight + 'px');
+        document.documentElement.style.setProperty('--sonarline-header-current-offset', visibleBottom + 'px');
         var content = document.querySelector('.content-main-wrapper, #page-wrap, main');
         if (content) {
-          content.style.setProperty('padding-top', (cachedInitialHeaderHeight + 36) + 'px', 'important');
+          content.style.setProperty('padding-top', cachedInitialHeaderHeight + 'px', 'important');
         }
       } else if (!isFixed) {
         document.documentElement.style.setProperty('--sonarline-header-height', '0px');
+        document.documentElement.style.setProperty('--sonarline-header-current-offset', '0px');
         var content = document.querySelector('.content-main-wrapper, #page-wrap, main');
         if (content) {
           content.style.removeProperty('padding-top');
         }
       }
 
-      // Ticker is position:fixed — set top once to cachedInitialHeaderHeight (never track scroll)
+      // Ticker stays in normal document flow (static) — never pin via JS.
       var tickers = document.querySelectorAll(
-        '[data-section-key="ticker"], #content-section-QW9Kn45mB6, .section-wrapper[data-section-key="ticker"], div.section-wrapper[data-section-key="ticker"], div[id*="section-QW9Kn45mB6"], .sonarline-ticker-bar'
+        '[data-section-key="ticker"], #content-section-QW9Kn45mB6, .section-wrapper[data-section-key="ticker"], div.section-wrapper[data-section-key="ticker"], div[id*="section-QW9Kn45mB6"], .theme-tusk .marquee, .marquee, .marquee-wrapper, .sonarline-ticker-bar'
       );
       for (var t = 0; t < tickers.length; t++) {
-        tickers[t].style.setProperty('position', 'fixed', 'important');
-        tickers[t].style.setProperty('top', cachedInitialHeaderHeight + 'px', 'important');
-        tickers[t].style.setProperty('left', '0', 'important');
-        tickers[t].style.setProperty('width', '100vw', 'important');
-        tickers[t].style.setProperty('z-index', '999', 'important');
+        tickers[t].style.setProperty('position', 'relative', 'important');
+        tickers[t].style.setProperty('top', 'auto', 'important');
+        tickers[t].style.setProperty('left', 'auto', 'important');
+        tickers[t].style.setProperty('transform', 'none', 'important');
+        tickers[t].style.setProperty('width', '100%', 'important');
+        tickers[t].style.setProperty('z-index', '10', 'important');
         tickers[t].style.removeProperty('transition');
       }
     }
@@ -2449,23 +2567,49 @@
       if (!header) return;
       headerOffsetEngineInitialized = true;
 
+      var ticking = false;
+      function requestSync() {
+        if (!ticking) {
+          ticking = true;
+          window.requestAnimationFrame(function() {
+            ticking = false;
+            syncHeaderOffset();
+          });
+        }
+      }
+
       syncHeaderOffset();
 
-      // Only sync on resize/load — ticker is fixed and doesn't track scroll
-      window.addEventListener('resize', syncHeaderOffset, { passive: true });
+      window.addEventListener('scroll', requestSync, { passive: true });
+      window.addEventListener('resize', requestSync, { passive: true });
       window.addEventListener('load', syncHeaderOffset);
 
       if (header) {
+        function handleTransitionStart() {
+          requestSync();
+          var startTime = Date.now();
+          function frameLoop() {
+            syncHeaderOffset();
+            if (Date.now() - startTime < 220) {
+              window.requestAnimationFrame(frameLoop);
+            }
+          }
+          window.requestAnimationFrame(frameLoop);
+        }
+        header.addEventListener('transitionstart', handleTransitionStart);
+        header.addEventListener('transitionrun', requestSync);
+        header.addEventListener('transitionend', syncHeaderOffset);
+
         if (window.ResizeObserver) {
           var ro = new ResizeObserver(function() {
-            syncHeaderOffset();
+            requestSync();
           });
           ro.observe(header);
         }
 
         if (window.MutationObserver) {
           var mo = new MutationObserver(function() {
-            syncHeaderOffset();
+            requestSync();
           });
           mo.observe(header, {
             attributes: true,
@@ -2476,7 +2620,7 @@
     }
 
     function applyDOMFixes() {
-      // Unblock sticky positioning on root containers
+      // Keep overflow clip guards (safe for static flow, prevents horizontal bounce)
       document.documentElement.style.setProperty('overflow-x', 'clip', 'important');
       document.documentElement.style.setProperty('overflow-y', 'visible', 'important');
       document.body.style.setProperty('overflow-x', 'clip', 'important');
@@ -2626,10 +2770,13 @@
       );
       for (var t = 0; t < outerTickers.length; t++) {
         var tw = outerTickers[t];
-        tw.style.setProperty('position', 'sticky', 'important');
-        tw.style.setProperty('top', 'var(--sonarline-header-current-offset, var(--sonarline-header-height, 132px))', 'important');
-        tw.style.setProperty('z-index', '999', 'important');
-        tw.style.setProperty('transition', 'top 140ms ease-in-out', 'important');
+        tw.style.setProperty('position', 'relative', 'important');
+        tw.style.setProperty('top', 'auto', 'important');
+        tw.style.setProperty('left', 'auto', 'important');
+        tw.style.setProperty('transform', 'none', 'important');
+        tw.style.setProperty('width', '100%', 'important');
+        tw.style.setProperty('z-index', '10', 'important');
+        tw.style.removeProperty('transition');
         tw.style.setProperty('margin-top', '0px', 'important');
         tw.style.setProperty('margin-bottom', '0px', 'important');
         tw.style.setProperty('padding', '0px', 'important');
@@ -2854,6 +3001,74 @@
         circle.classList.remove('hovered');
       }
     }, { passive: true });
+  })();
+
+  // ==========================================================================
+  // Desktop Custom Drag-Selection Box (#sl-selection-box, pointer:fine only)
+  // Brutalist wireframe rectangle with difference blend; ignores interactive
+  // targets and touch pointers. Purely visual — native text selection is
+  // suppressed while dragging.
+  // ==========================================================================
+  (function() {
+    try {
+      if (window.matchMedia && !window.matchMedia('(pointer: fine)').matches) return;
+
+      var box = document.getElementById('sl-selection-box');
+      if (!box) {
+        box = document.createElement('div');
+        box.id = 'sl-selection-box';
+        box.setAttribute('aria-hidden', 'true');
+      }
+      function mountBox() {
+        if (!document.getElementById('sl-selection-box')) {
+          (document.body || document.documentElement).appendChild(box);
+        }
+      }
+      if (document.body) mountBox();
+      else document.addEventListener('DOMContentLoaded', mountBox);
+
+      var ignoreSelector = 'a, button, input, textarea, select, [role="button"], .sonarline-card-info-badge, .card-wrapper, .product-card, iframe, video, audio';
+      var active = false;
+      var startX = 0, startY = 0;
+
+      document.addEventListener('mousedown', function(e) {
+        if (e.button !== 0) return;
+        if (window.matchMedia && !window.matchMedia('(pointer: fine)').matches) return;
+        if (e.target.closest && e.target.closest(ignoreSelector)) return;
+        active = true;
+        startX = e.clientX;
+        startY = e.clientY;
+        document.body.classList.add('sl-selecting');
+        box.style.display = 'none';
+      });
+
+      document.addEventListener('mousemove', function(e) {
+        if (!active) return;
+        var left = Math.min(e.clientX, startX);
+        var top = Math.min(e.clientY, startY);
+        var width = Math.abs(e.clientX - startX);
+        var height = Math.abs(e.clientY - startY);
+        if (width > 3 || height > 3) {
+          box.style.left = left + 'px';
+          box.style.top = top + 'px';
+          box.style.width = width + 'px';
+          box.style.height = height + 'px';
+          box.style.display = 'block';
+        } else {
+          box.style.display = 'none';
+        }
+      }, { passive: true });
+
+      function endDrag() {
+        if (!active) return;
+        active = false;
+        box.style.display = 'none';
+        if (document.body) document.body.classList.remove('sl-selecting');
+      }
+      document.addEventListener('mouseup', endDrag);
+      document.addEventListener('mouseleave', endDrag);
+      window.addEventListener('blur', endDrag);
+    } catch (err) { /* fail silently: selection box is decorative */ }
   })();
 
   // ==========================================================================

@@ -43,6 +43,8 @@
   - Multi-element cursor with `mix-blend-mode: difference` inversion.
   - Outer tracking ring with Sonarline orange accent.
   - Smooth physics, hover enlargement on interactive targets (`a`, `button`, `.sonarline-card-info-badge`).
+- `[x]` **Desktop Drag-Selection Box (`#sl-selection-box`):**
+  - `pointer:fine`-only wireframe rectangle (`mix-blend-mode: difference`), ignores interactive targets, suppresses native selection while active.
 - `[x]` **Layout Cleanup & Overflow Protection:**
   - Enforced `overflow-x: clip` on root containers to eliminate horizontal page scrollbars.
   - Stripped default Payhip footer subscription/newsletter form.
@@ -102,11 +104,10 @@
   - Calibrated vertical centering with equal top/bottom clearance.
 - `[x]` **Continuous Marquee Loop:**
   - Seamless CSS/JS animation with pause-on-hover interaction.
-- `[x]` **Header Offset Calibration & Sticky Docking:**
-  - Pinned ticker directly below the navbar using `position: sticky !important; top: var(--sonarline-header-current-offset); z-index: 999;` with `transition: top 140ms ease-in-out;`.
-  - Dynamic clearance engine (`initHeaderOffsetEngine`) tracking live `header.getBoundingClientRect().bottom` across scroll (RAF), resize, `ResizeObserver`, `MutationObserver` (`.shrink`, inline styles), and transition events (`transitionstart`/`transitionend`).
-  - Switched parent containers (`.content-main-wrapper`, `.section-wrapper`) to `overflow-x: clip !important; overflow-y: visible !important;` to ensure sticky positioning is never broken.
-  - When scrolling down, the ticker sticks cleanly to `top: 0`; when scrolling up and the fixed header slides in, the ticker smoothly slides down in lockstep and stays flush beneath the navbar without overlap.
+- `[x]` **Header Offset Calibration & Static Flow (sticky reverted per user request):**
+  - Ticker sits in normal document flow using `position: relative !important; top: auto !important; left: auto !important; transform: none !important; width: 100% !important; z-index: 10 !important;` — scrolls away naturally, never pinned.
+  - Header engine (`syncHeaderOffset` / `initHeaderOffsetEngine`) now only maintains `--sonarline-header-height` + `.content-main-wrapper padding-top`; JS no longer sets `sticky`/`fixed` on tickers.
+  - Parent containers keep `overflow-x: clip !important; overflow-y: visible !important;` as horizontal-bounce guards (safe for static flow).
 
 ---
 
@@ -129,8 +130,10 @@
   - Pill element is completely hidden (`display: none !important`) if no tag exists.
 - `[x]` **Mobile Card Centering:**
   - Padding override on viewports `<= 480px` for consistent card grid alignment.
-- `[/]` **Collection Card Shortcode Sync:**
-  - *Status:* In progress (see Section 8).
+- `[x]` **Collection Card Shortcode Sync:**
+  - Background fetch of card product URLs (`/b/...`, `/p/...`), same-origin only, max 3 concurrent.
+  - Parses `[[tag: ...]]` / `[[audio: ...]]` from product HTML, caches `sessionStorage sonarline_prod_<path>`, populates pill + `data-audio-src` modal binding.
+  - `sonarlineScrubProductDescriptions()` strips raw tokens from `.product-description` on detail pages.
 
 ---
 
@@ -176,19 +179,19 @@
   3. Applied `padding-top: var(--sonarline-header-height, 132px) !important;` to `.content-main-wrapper`.
 
 ### Issue 2: Homepage Cards Do Not Inherit Product Page Shortcodes
-- **Severity:** High (Functional Gap)
+- **Status:** `[x]` **Implemented (needs live verification)**
 - **Description:** Payhip collection cards on the homepage only render product title, image, and price—product descriptions are omitted from collection card HTML. Shortcodes added to product descriptions in Payhip CMS (e.g. on `/b/Ai9Re`) are not visible to homepage cards.
-- **Fix in Progress:**
-  1. Update `cleanProductCards()` to asynchronously fetch product URLs (`/b/...`, `/p/...`) in the background.
-  2. Parse `[[tag: ...]]` and `[[audio: ...]]` from fetched HTML.
-  3. Cache results in `sessionStorage` (`sonarline_prod_<url>`) to prevent duplicate network calls.
-  4. Dynamically populate the card tag pill and audio modal on the homepage.
+- **Implementation:**
+  1. `cleanProductCards()` calls `sonarlineSyncCardShortcodes(card)` when tag/audio missing.
+  2. Parses `[[tag: ...]]` and `[[audio: ...]]` from fetched HTML via `sonarlineParseShortcodes()`.
+  3. Caches results in `sessionStorage` (`sonarline_prod_<path>`, max 3 concurrent, same-origin only).
+  4. Dynamically populates the card tag pill and `data-audio-src` modal binding via `sonarlineApplySyncedShortcodes()`.
 
 ### Issue 3: Raw Shortcode Tokens on Product Pages
-- **Severity:** Medium (Content Polish)
+- **Status:** `[x]` **Implemented (needs live verification)**
 - **Description:** On individual product detail pages (`/b/...`, `/p/...`), raw shortcodes like `<p>[[audio: ...]]</p>` and `<p>[[tag: ...]]</p>` may appear in `.product-description` in plain text.
-- **Fix in Progress:**
-  1. Add a DOM scrubber to `.product-description` on product pages to strip `[[tag: ...]]` and `[[audio: ...]]` tokens before rendering.
+- **Implementation:**
+  1. `sonarlineScrubProductDescriptions()` walks `.product-description` text nodes and strips `[[tag: ...]]` / `[[audio: ...]]` on every `cleanProductCards()` pass.
 
 ---
 
@@ -220,6 +223,11 @@
 ---
 
 ## 10. Changelog & Revision History
+
+### [2026-09-20 - Release 5]
+- **Fixed:** Reverted ticker to static document flow per user request (`position: relative !important; top: auto !important; left: auto !important; transform: none !important; width: 100% !important; z-index: 10 !important;`). Removed all JS `sticky`/`fixed` assignments in `injectImmediateStyles()`, `syncHeaderOffset()`, and `applyDOMFixes()`. Header engine retains `padding-top` calibration only.
+- **Added:** Desktop drag-selection box (`#sl-selection-box`, `pointer:fine` only, `mix-blend-mode: difference`, ignores interactive elements, suppresses native selection while dragging).
+- **Added:** Homepage card shortcode background sync (`/b/...`, `/p/...` fetch, `sessionStorage sonarline_prod_<path>`, max 3 concurrent, same-origin only) + `.product-description` token scrubber for Issues 2/3.
 
 ### [2026-09-20 - Release 4]
 - **Fixed:** Resolved scroll-up navbar overlap on announcement marquee ticker by implementing sticky docking (`position: sticky !important; top: var(--sonarline-header-current-offset); z-index: 999;`) with 140ms smooth transition matching Payhip's native header slide animation.
