@@ -102,8 +102,11 @@
   - Calibrated vertical centering with equal top/bottom clearance.
 - `[x]` **Continuous Marquee Loop:**
   - Seamless CSS/JS animation with pause-on-hover interaction.
-- `[x]` **Header Offset Calibration:**
-  - Dynamic navbar measurement (`syncHeaderOffset`) and `--sonarline-header-height: 132px` padding on `.content-main-wrapper` ensuring the ticker is never buried beneath the fixed header.
+- `[x]` **Header Offset Calibration & Sticky Docking:**
+  - Pinned ticker directly below the navbar using `position: sticky !important; top: var(--sonarline-header-current-offset); z-index: 999;` with `transition: top 140ms ease-in-out;`.
+  - Dynamic clearance engine (`initHeaderOffsetEngine`) tracking live `header.getBoundingClientRect().bottom` across scroll (RAF), resize, `ResizeObserver`, `MutationObserver` (`.shrink`, inline styles), and transition events (`transitionstart`/`transitionend`).
+  - Switched parent containers (`.content-main-wrapper`, `.section-wrapper`) to `overflow-x: clip !important; overflow-y: visible !important;` to ensure sticky positioning is never broken.
+  - When scrolling down, the ticker sticks cleanly to `top: 0`; when scrolling up and the fixed header slides in, the ticker smoothly slides down in lockstep and stays flush beneath the navbar without overlap.
 
 ---
 
@@ -217,6 +220,12 @@
 ---
 
 ## 10. Changelog & Revision History
+
+### [2026-09-20 - Release 4]
+- **Fixed:** Resolved scroll-up navbar overlap on announcement marquee ticker by implementing sticky docking (`position: sticky !important; top: var(--sonarline-header-current-offset); z-index: 999;`) with 140ms smooth transition matching Payhip's native header slide animation.
+- **Added:** Dynamic header clearance engine (`initHeaderOffsetEngine`) continuously syncing `--sonarline-header-current-offset` to `Math.max(0, header.getBoundingClientRect().bottom)` across scroll (RAF), window resize, `ResizeObserver`, `MutationObserver` (`.shrink`, `style`), and transition events.
+- **Fixed:** Replaced `overflow-x: hidden` with `overflow-x: clip !important; overflow-y: visible !important;` on `.content-main-wrapper` and `.section-wrapper` so sticky positioning is never broken by ancestor scroll containers.
+- **Verified:** Tested in Chrome CDP at initial viewport (0px), downward scroll (500px), and upward scroll (150px), confirming the ticker smoothly tracks with the header, sticks cleanly to `top: 0` when scrolled down, and stays completely visible directly beneath the header when scrolled back up.
 
 ### [2026-09-20 - Release 3]
 - **Fixed:** Suppressed preloader configuration setup section (`#content-section-ZGXLnKKrGq` / `[data-section-key="text-simple"]`) from normal page flow with immediate CSS suppression and robust multi-line token extraction and DOM clearing.

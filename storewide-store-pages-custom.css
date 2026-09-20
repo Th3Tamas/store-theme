@@ -8,6 +8,7 @@
    -------------------------------------------------------------------------- */
 :root {
   --sonarline-header-height: 132px;
+  --sonarline-header-current-offset: 132px;
   --sl-bg: #080808;
   --sl-bg-card: #0F0F0F;
   --sl-bg-card-hover: #151515;
@@ -592,7 +593,8 @@ body,
 .store-wrapper,
 .page-wrapper,
 .content-main-wrapper {
-  overflow-x: hidden !important;
+  overflow-x: clip !important;
+  overflow-y: visible !important;
   max-width: 100vw !important;
   box-sizing: border-box !important;
 }
@@ -603,6 +605,8 @@ body,
   display: block !important;
   width: 100% !important;
   min-height: 100vh !important;
+  overflow-x: clip !important;
+  overflow-y: visible !important;
 }
 .section-hero, [data-section-key="hero"] {
   display: block !important;
@@ -644,7 +648,12 @@ main.main-content {
 }
 
 /* Section overflow guards */
-.section-wrapper,
+.section-wrapper {
+  max-width: 100vw !important;
+  overflow-x: clip !important;
+  overflow-y: visible !important;
+  box-sizing: border-box !important;
+}
 [data-section-key="ticker"] {
   max-width: 100vw !important;
   overflow-x: hidden !important;
@@ -760,6 +769,10 @@ div[id*="section-QW9Kn45mB6"],
 .theme-tusk .marquee,
 .marquee,
 .marquee-wrapper {
+  position: sticky !important;
+  top: var(--sonarline-header-current-offset, var(--sonarline-header-height, 132px)) !important;
+  z-index: 999 !important;
+  transition: top 140ms ease-in-out !important;
   padding: 0 0 2px 0 !important;
   margin: 0 !important;
   margin-top: 0 !important;
@@ -1858,6 +1871,10 @@ html body .card-wrapper .card__inner .media img {
 /* 7. Native Marquee Ticker Hairline Divider Accents (Cascade Winner) */
 [data-section-key="ticker"],
 #content-section-QW9Kn45mB6 {
+  position: sticky !important;
+  top: var(--sonarline-header-current-offset, var(--sonarline-header-height, 132px)) !important;
+  z-index: 999 !important;
+  transition: top 140ms ease-in-out !important;
   background-color: #080808 !important;
   /* Single hairline borders without glow */
   border-top: 1px solid #FF2A2A !important;
