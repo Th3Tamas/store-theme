@@ -175,6 +175,25 @@
   height: 1px !important;
   background: rgba(255, 255, 255, 0.12) !important;
   margin-bottom: 10px !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+.hud-progress-fill {
+  height: 100% !important;
+  width: 0% !important;
+  background: #FF2A2A !important;
+  transition: width 0.25s ease !important;
+}
+/* Hide raw preloader shortcode containers */
+[data-preloader-hidden],
+.preloader-shortcode-container {
+  display: none !important;
+  height: 0 !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  visibility: hidden !important;
 }
 .hud-progress-footer {
   display: flex !important;
@@ -378,20 +397,44 @@ img[src*="mountain"],
   width: 100% !important;
 }
 
-/* Native Subtitle: Space Mono, Uppercase, Secondary text */
+/* Native Subtitle & Hero Category List: Space Mono, Uppercase, Centered */
 [data-section-key="headline"] p,
 [data-section-key="headline"] .text,
 [data-section-key="headline"] .richtext,
 [data-section-key="headline"] .richtext p,
 [data-section-key="headline"] .section-contents p,
+[data-section-key="headline"] .category-list,
+[data-section-key="headline"] .categories,
+[data-section-key="headline"] .category-links,
+[data-section-key="headline"] .category-link-wrapper,
+[data-section-key="headline"] .categories-wrapper,
+[data-section-key="headline"] [class*="category"],
+[data-section-key="headline"] [class*="categories"],
 #content-section-LBNmnP42zK p,
+#content-section-LBNmnP42zK .richtext,
 #content-section-LBNmnP42zK .richtext p,
+#content-section-LBNmnP42zK .section-contents p,
+#content-section-LBNmnP42zK .category-list,
+#content-section-LBNmnP42zK .categories,
+#content-section-LBNmnP42zK .category-links,
 .section-hero p,
+.section-hero .richtext,
 .section-hero .richtext p,
+.section-hero .section-contents p,
+.section-hero .category-list,
+.section-hero .categories,
 .hero p,
+.hero .richtext,
 .hero .richtext p,
+.hero .section-contents p,
+.hero .category-list,
+.hero .categories,
 [data-section-type="hero"] p,
+[data-section-type="hero"] .richtext,
 [data-section-type="hero"] .richtext p,
+[data-section-type="hero"] .section-contents p,
+[data-section-type="hero"] .category-list,
+[data-section-type="hero"] .categories,
 .theme-tusk .hero p,
 .theme-tusk .banner p {
   font-family: var(--font-mono, 'Space Mono', monospace) !important;
@@ -399,7 +442,10 @@ img[src*="mountain"],
   letter-spacing: 0.18em !important;
   text-transform: uppercase !important;
   color: #8e8e8e !important;
-  margin: 0.5rem auto 0 !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  margin-top: 0.5rem !important;
+  margin-bottom: 0 !important;
   display: flex !important;
   flex-wrap: wrap !important;
   justify-content: center !important;
@@ -409,6 +455,37 @@ img[src*="mountain"],
   order: 3 !important;
   width: 100% !important;
   max-width: 100% !important;
+}
+
+/* Category List Items, Links, and Separators */
+[data-section-key="headline"] .category-list a,
+[data-section-key="headline"] .categories a,
+[data-section-key="headline"] .category-links a,
+[data-section-key="headline"] [class*="category"] a,
+[data-section-key="headline"] p a,
+[data-section-key="headline"] p span,
+#content-section-LBNmnP42zK .category-list a,
+#content-section-LBNmnP42zK .categories a,
+#content-section-LBNmnP42zK p a,
+#content-section-LBNmnP42zK p span,
+.section-hero .category-list a,
+.section-hero .categories a,
+.section-hero p a,
+.section-hero p span,
+.hero .category-list a,
+.hero .categories a,
+.hero p a,
+.hero p span {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  color: #8e8e8e !important;
+  font-family: var(--font-mono, 'Space Mono', monospace) !important;
+  font-size: 0.75rem !important;
+  letter-spacing: 0.18em !important;
+  text-transform: uppercase !important;
+  text-decoration: none !important;
 }
 
 /* Terminal Prompt */
@@ -583,6 +660,17 @@ body {
   visibility: hidden !important;
 }
 
+/* Zero bottom margin on header so ticker hugs navbar boundary cleanly */
+header,
+.header,
+.site-header,
+[data-section-key="header"],
+[data-section-type="header"],
+.header-wrapper,
+.site-header-wrapper {
+  margin-bottom: 0 !important;
+}
+
 [data-section-key="ticker"],
 .section-wrapper[data-section-key="ticker"],
 div.section-wrapper[data-section-key="ticker"],
@@ -591,13 +679,14 @@ div[id*="section-QW9Kn45mB6"],
 .theme-tusk .marquee,
 .marquee,
 .marquee-wrapper {
-  padding: 0 !important;
+  padding: 0 0 2px 0 !important;
   margin: 0 !important;
   margin-top: 0 !important;
   margin-bottom: 0 !important;
   min-height: 36px !important;
   height: 36px !important;
   max-height: 36px !important;
+  line-height: 34px !important;
   overflow-x: hidden !important;
   overflow-y: visible !important;
   border-top: 1px solid #FF2A2A !important;
@@ -676,7 +765,7 @@ svg.ticker-measure,
 [data-section-type="announcement"] svg {
   filter: none !important;
   overflow: visible !important;
-  transform: translateY(-4.5px) !important;
+  transform: translateY(-3.5px) !important;
 }
 
 /* Hide newsletter form if present anywhere in DOM */
@@ -1293,11 +1382,11 @@ select:focus {
 [data-section-key="ticker"] .ticker-item:not([data-ticker-formatted]):not(:has(+ [class*="bullet"])):not(:has(+ [class*="sep"]))::after,
 .ticker-item:not([data-ticker-formatted]):not(:has(+ [class*="bullet"])):not(:has(+ [class*="sep"]))::after,
 .marquee-item:not([data-ticker-formatted]):not(:has(+ [class*="bullet"])):not(:has(+ [class*="sep"]))::after {
-  content: ' •';
+  content: '•';
   color: #FF2A2A !important;
-  margin-left: 1.25rem;
-  margin-right: 0;
-  font-size: 0.75rem;
+  margin: 0 1.25rem !important;
+  font-size: 0.75rem !important;
+  display: inline-block !important;
 }
 
 @keyframes ticker-slide {
@@ -1583,7 +1672,7 @@ html body .card-wrapper .card__inner .media img {
 svg.ticker-measure,
 .theme-tusk .marquee svg {
   overflow: visible !important;
-  transform: translateY(-4.5px) !important;
+  transform: translateY(-3.5px) !important;
   filter: none !important;
 }
 

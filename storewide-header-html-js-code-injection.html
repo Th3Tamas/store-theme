@@ -140,6 +140,25 @@
     height: 1px;
     background: rgba(255, 255, 255, 0.12);
     margin-bottom: 10px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hud-progress-fill {
+    height: 100%;
+    width: 0%;
+    background: #FF2A2A;
+    transition: width 0.25s ease;
+  }
+  /* Hide raw preloader shortcode containers */
+  [data-preloader-hidden],
+  .preloader-shortcode-container {
+    display: none !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    visibility: hidden !important;
   }
   .hud-progress-footer {
     display: flex;
@@ -171,7 +190,7 @@
       <div class="hud-brand-title">SONARLINE <span class="hud-slash">/</span> <span class="hud-lab">lab</span></div>
       <div class="hud-brand-sub">SOUND DESIGN LAB</div>
     </div>
-    <div class="hud-terminal-readout">
+    <div class="hud-terminal-readout" id="hud-terminal-readout">
       <div class="hud-line" id="hud-line-0"><span class="hud-prompt">&gt;</span> <span class="hud-cmd">initializing system...</span><span class="hud-dots"></span><span class="hud-status"></span></div>
       <div class="hud-line" id="hud-line-1"><span class="hud-prompt">&gt;</span> <span class="hud-cmd">loading core modules</span><span class="hud-dots">............</span> <span class="hud-status">[<span class="hud-ok">OK</span>]</span></div>
       <div class="hud-line" id="hud-line-2"><span class="hud-prompt">&gt;</span> <span class="hud-cmd">connecting audio engine</span><span class="hud-dots">.........</span> <span class="hud-status">[<span class="hud-ok">OK</span>]</span></div>
@@ -183,7 +202,7 @@
       <div class="hud-line" id="hud-line-8"><span class="hud-prompt">&gt;</span> <span class="hud-ready">system ready.</span> <span class="hud-welcome">welcome.</span><span class="hud-dots"></span><span class="hud-status"></span></div>
     </div>
     <div class="hud-progress-bar-wrap">
-      <div class="hud-progress-line"></div>
+      <div class="hud-progress-line"><div class="hud-progress-fill" id="hud-progress-fill"></div></div>
       <div class="hud-progress-footer">
         <div class="hud-progress-status"><span class="hud-ready-sq">&#9632;</span> READY</div>
         <div class="hud-progress-pct" id="hud-progress-pct">0%</div>
@@ -206,7 +225,7 @@
           '<div class="hud-brand-title">SONARLINE <span class="hud-slash">/</span> <span class="hud-lab">lab</span></div>' +
           '<div class="hud-brand-sub">SOUND DESIGN LAB</div>' +
         '</div>' +
-        '<div class="hud-terminal-readout">' +
+        '<div class="hud-terminal-readout" id="hud-terminal-readout">' +
           '<div class="hud-line" id="hud-line-0"><span class="hud-prompt">&gt;</span> <span class="hud-cmd">initializing system...</span><span class="hud-dots"></span><span class="hud-status"></span></div>' +
           '<div class="hud-line" id="hud-line-1"><span class="hud-prompt">&gt;</span> <span class="hud-cmd">loading core modules</span><span class="hud-dots">............</span> <span class="hud-status">[<span class="hud-ok">OK</span>]</span></div>' +
           '<div class="hud-line" id="hud-line-2"><span class="hud-prompt">&gt;</span> <span class="hud-cmd">connecting audio engine</span><span class="hud-dots">.........</span> <span class="hud-status">[<span class="hud-ok">OK</span>]</span></div>' +
@@ -218,7 +237,7 @@
           '<div class="hud-line" id="hud-line-8"><span class="hud-prompt">&gt;</span> <span class="hud-ready">system ready.</span> <span class="hud-welcome">welcome.</span><span class="hud-dots"></span><span class="hud-status"></span></div>' +
         '</div>' +
         '<div class="hud-progress-bar-wrap">' +
-          '<div class="hud-progress-line"></div>' +
+          '<div class="hud-progress-line"><div class="hud-progress-fill" id="hud-progress-fill"></div></div>' +
           '<div class="hud-progress-footer">' +
             '<div class="hud-progress-status"><span class="hud-ready-sq">&#9632;</span> READY</div>' +
             '<div class="hud-progress-pct" id="hud-progress-pct">0%</div>' +
@@ -232,40 +251,201 @@
       }
     }
 
-    var lines = [];
-    for (var i = 0; i <= 8; i++) {
-      lines.push(document.getElementById('hud-line-' + i));
-    }
-    var pctEl = document.getElementById('hud-progress-pct');
-
-    // Sequence timing spread across ~2.6s (3s total with final fade)
-    var steps = [
-      { t: 150,  idx: 0, pct: '8%' },
-      { t: 450,  idx: 1, pct: '18%' },
-      { t: 750,  idx: 2, pct: '30%' },
-      { t: 1050, idx: 3, pct: '42%' },
-      { t: 1350, idx: 4, pct: '55%' },
-      { t: 1650, idx: 5, pct: '68%' },
-      { t: 1950, idx: 6, pct: '80%' },
-      { t: 2250, idx: 7, pct: '92%' },
-      { t: 2550, idx: 8, pct: '100%' }
+    var defaultLines = [
+      '<span class="hud-prompt">&gt;</span> <span class="hud-cmd">initializing system...</span><span class="hud-dots"></span><span class="hud-status"></span>',
+      '<span class="hud-prompt">&gt;</span> <span class="hud-cmd">loading core modules</span><span class="hud-dots">............</span> <span class="hud-status">[<span class="hud-ok">OK</span>]</span>',
+      '<span class="hud-prompt">&gt;</span> <span class="hud-cmd">connecting audio engine</span><span class="hud-dots">.........</span> <span class="hud-status">[<span class="hud-ok">OK</span>]</span>',
+      '<span class="hud-prompt">&gt;</span> <span class="hud-cmd">loading sample library</span><span class="hud-dots">..........</span> <span class="hud-status">[<span class="hud-ok">OK</span>]</span>',
+      '<span class="hud-prompt">&gt;</span> <span class="hud-cmd">calibrating interface</span><span class="hud-dots">...........</span> <span class="hud-status">[<span class="hud-ok">OK</span>]</span>',
+      '<span class="hud-prompt">&gt;</span> <span class="hud-cmd">loading assets</span><span class="hud-dots">..................</span> <span class="hud-status">[<span class="hud-ok">OK</span>]</span>',
+      '<span class="hud-prompt">&gt;</span> <span class="hud-cmd">verifying session</span><span class="hud-dots">...............</span> <span class="hud-status">[<span class="hud-ok">OK</span>]</span>',
+      '<span class="hud-prompt">&gt;</span> <span class="hud-cmd">final checks</span><span class="hud-dots">....................</span> <span class="hud-status">[<span class="hud-ok">OK</span>]</span>',
+      '<span class="hud-prompt">&gt;</span> <span class="hud-ready">system ready.</span> <span class="hud-welcome">welcome.</span><span class="hud-dots"></span><span class="hud-status"></span>'
     ];
 
-    steps.forEach(function(step) {
-      setTimeout(function() {
-        if (lines[step.idx]) lines[step.idx].classList.add('active');
-        if (pctEl) pctEl.textContent = step.pct;
-      }, step.t);
-    });
+    function escapeHtml(str) {
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
 
-    // Fade out after 3 seconds total
-    setTimeout(function() {
-      preloader.style.opacity = '0';
-      preloader.style.pointerEvents = 'none';
+    function formatCustomLine(rawText, isLast) {
+      var s = rawText.trim();
+      s = s.replace(/^(?:&gt;|>)\s*/, '');
+      var okMatch = s.match(/(.*?)\s*\[\s*ok\s*\]/i);
+      if (okMatch) {
+        var cmd = okMatch[1].replace(/\.+$/, '').trim();
+        return '<span class="hud-prompt">&gt;</span> <span class="hud-cmd">' + escapeHtml(cmd) + '</span><span class="hud-dots">............</span> <span class="hud-status">[<span class="hud-ok">OK</span>]</span>';
+      }
+      if (isLast || /ready/i.test(s)) {
+        var readyMatch = s.match(/^(.*?(?:ready\.?|welcome\.?))\s*(.*)$/i);
+        if (readyMatch && readyMatch[1] && readyMatch[2]) {
+          return '<span class="hud-prompt">&gt;</span> <span class="hud-ready">' + escapeHtml(readyMatch[1]) + '</span> <span class="hud-welcome">' + escapeHtml(readyMatch[2]) + '</span><span class="hud-dots"></span><span class="hud-status"></span>';
+        }
+        return '<span class="hud-prompt">&gt;</span> <span class="hud-ready">' + escapeHtml(s) + '</span><span class="hud-dots"></span><span class="hud-status"></span>';
+      }
+      return '<span class="hud-prompt">&gt;</span> <span class="hud-cmd">' + escapeHtml(s) + '</span><span class="hud-dots"></span><span class="hud-status"></span>';
+    }
+
+    function scanForShortcode() {
+      var root = document.body || document.documentElement;
+      if (!root) return null;
+
+      var candidates = root.querySelectorAll('p, div, section, span, [data-section-key]');
+      for (var i = 0; i < candidates.length; i++) {
+        var el = candidates[i];
+        if (el.id === 'sonarline-hud-preloader' || el.closest('#sonarline-hud-preloader')) continue;
+        if (el.children && el.children.length > 3) continue;
+        var txt = el.textContent || el.innerText || '';
+        if (el.innerHTML && (/<br\s*\/?>/i.test(el.innerHTML) || /<\/p>/i.test(el.innerHTML))) {
+          txt = el.innerHTML.replace(/<br\s*\/?>/gi, '\n').replace(/<\/p>\s*<p[^>]*>/gi, '\n').replace(/<[^>]+>/g, ' ');
+        }
+        var match = txt.match(/\[\[preloader:\s*([\s\S]*?)\]\]/i);
+        if (match) {
+          el.style.setProperty('display', 'none', 'important');
+          el.style.setProperty('visibility', 'hidden', 'important');
+          el.style.setProperty('height', '0px', 'important');
+          el.setAttribute('data-preloader-hidden', 'true');
+          
+          var sectionWrap = el.closest('.section-wrapper, [data-section-key], .section, section, .rich-text-section, .rich-text');
+          if (sectionWrap && (!sectionWrap.textContent || sectionWrap.textContent.replace(/\[\[preloader:\s*[\s\S]*?\]\]/i, '').trim().length < 5)) {
+            sectionWrap.style.setProperty('display', 'none', 'important');
+            sectionWrap.style.setProperty('height', '0px', 'important');
+            sectionWrap.style.setProperty('margin', '0px', 'important');
+            sectionWrap.style.setProperty('padding', '0px', 'important');
+            sectionWrap.setAttribute('data-preloader-hidden', 'true');
+          }
+
+          var rawLines = match[1].split(/\r?\n|\|/);
+          var parsed = [];
+          for (var r = 0; r < rawLines.length; r++) {
+            var line = rawLines[r].trim();
+            if (line.length > 0) {
+              parsed.push(line);
+            }
+          }
+          if (parsed.length > 0) {
+            return parsed;
+          }
+        }
+      }
+
+      var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null, false);
+      var textNode;
+      while ((textNode = walker.nextNode())) {
+        var val = textNode.nodeValue;
+        if (val && /\[\[preloader:\s*([\s\S]*?)\]\]/i.test(val)) {
+          var m = val.match(/\[\[preloader:\s*([\s\S]*?)\]\]/i);
+          var parentEl = textNode.parentElement;
+          if (parentEl && parentEl.id !== 'sonarline-hud-preloader' && !parentEl.closest('#sonarline-hud-preloader')) {
+            parentEl.style.setProperty('display', 'none', 'important');
+            parentEl.style.setProperty('visibility', 'hidden', 'important');
+            parentEl.style.setProperty('height', '0px', 'important');
+            parentEl.setAttribute('data-preloader-hidden', 'true');
+            var sWrap = parentEl.closest('.section-wrapper, [data-section-key], .section, section, .rich-text-section, .rich-text');
+            if (sWrap && (!sWrap.textContent || sWrap.textContent.replace(/\[\[preloader:\s*[\s\S]*?\]\]/i, '').trim().length < 5)) {
+              sWrap.style.setProperty('display', 'none', 'important');
+              sWrap.style.setProperty('height', '0px', 'important');
+              sWrap.style.setProperty('margin', '0px', 'important');
+              sWrap.style.setProperty('padding', '0px', 'important');
+              sWrap.setAttribute('data-preloader-hidden', 'true');
+            }
+          }
+          var linesArr = m[1].split(/\r?\n|\|/);
+          var result = [];
+          for (var x = 0; x < linesArr.length; x++) {
+            var item = linesArr[x].trim();
+            if (item.length > 0) result.push(item);
+          }
+          if (result.length > 0) return result;
+        }
+      }
+      return null;
+    }
+
+    function startSequence(customLines) {
+      var readoutEl = document.querySelector('#sonarline-hud-preloader .hud-terminal-readout');
+      var pctEl = document.getElementById('hud-progress-pct');
+      var fillEl = document.getElementById('hud-progress-fill');
+      
+      if (!fillEl) {
+        var lineEl = document.querySelector('#sonarline-hud-preloader .hud-progress-line');
+        if (lineEl) {
+          fillEl = document.createElement('div');
+          fillEl.className = 'hud-progress-fill';
+          fillEl.id = 'hud-progress-fill';
+          lineEl.appendChild(fillEl);
+        }
+      }
+
+      var htmlLines = [];
+      if (customLines && customLines.length > 0) {
+        for (var c = 0; c < customLines.length; c++) {
+          htmlLines.push(formatCustomLine(customLines[c], c === customLines.length - 1));
+        }
+      } else {
+        htmlLines = defaultLines.slice();
+      }
+
+      var total = htmlLines.length;
+      if (readoutEl) {
+        var linesHtml = '';
+        for (var h = 0; h < total; h++) {
+          linesHtml += '<div class="hud-line" id="hud-line-' + h + '">' + htmlLines[h] + '</div>';
+        }
+        readoutEl.innerHTML = linesHtml;
+      }
+
+      var domLines = [];
+      for (var d = 0; d < total; d++) {
+        domLines.push(document.getElementById('hud-line-' + d));
+      }
+
+      var totalDuration = 2400;
+      for (var idx = 0; idx < total; idx++) {
+        (function(stepIdx) {
+          var delay = (total <= 1) ? 150 : Math.round(150 + stepIdx * (totalDuration / (total - 1)));
+          var pct = (stepIdx === total - 1) ? 100 : Math.round(((stepIdx + 0.8) / total) * 100);
+          setTimeout(function() {
+            if (domLines[stepIdx]) domLines[stepIdx].classList.add('active');
+            if (pctEl) pctEl.textContent = pct + '%';
+            if (fillEl) fillEl.style.width = pct + '%';
+          }, delay);
+        })(idx);
+      }
+
       setTimeout(function() {
-        if (preloader.parentNode) preloader.parentNode.removeChild(preloader);
-      }, 450);
-    }, 3000);
+        if (pctEl) pctEl.textContent = '100%';
+        if (fillEl) fillEl.style.width = '100%';
+        preloader.style.opacity = '0';
+        preloader.style.pointerEvents = 'none';
+        setTimeout(function() {
+          if (preloader.parentNode) preloader.parentNode.removeChild(preloader);
+        }, 450);
+      }, 3000);
+    }
+
+    var customLines = scanForShortcode();
+    if (customLines) {
+      startSequence(customLines);
+    } else if (document.readyState === 'loading') {
+      var started = false;
+      var onReady = function() {
+        if (started) return;
+        started = true;
+        document.removeEventListener('DOMContentLoaded', onReady);
+        var found = scanForShortcode();
+        startSequence(found);
+      };
+      document.addEventListener('DOMContentLoaded', onReady);
+      setTimeout(function() {
+        if (!started) {
+          started = true;
+          var found = scanForShortcode();
+          startSequence(found);
+        }
+      }, 200);
+    } else {
+      startSequence(null);
+    }
   })();
 </script>
 
@@ -490,16 +670,20 @@
           '  pointer-events: none !important;',
           '}',
           '/* 2. Sleek, compact ticker container with single hairline border & vertical centering */',
+          'header, .header, .site-header, [data-section-key="header"], [data-section-type="header"], .header-wrapper, .site-header-wrapper {',
+          '  margin-bottom: 0 !important;',
+          '}',
           '[data-section-key="ticker"],',
           '#content-section-QW9Kn45mB6 {',
           '  background-color: #080808 !important;',
           '  border-top: 1px solid #FF2A2A !important;',
           '  border-bottom: 1px solid #FF2A2A !important;',
           '  box-shadow: none !important;',
-          '  padding: 0 !important;',
+          '  padding: 0 0 2px 0 !important;',
           '  height: 36px !important;',
           '  min-height: 36px !important;',
           '  max-height: 36px !important;',
+          '  line-height: 34px !important;',
           '  margin-top: 0 !important;',
           '  margin-bottom: 0 !important;',
           '  overflow-x: hidden !important;',
@@ -547,7 +731,7 @@
           'svg.ticker-measure,',
           '.theme-tusk .marquee svg {',
           '  overflow: visible !important;',
-          '  transform: translateY(-4.5px) !important;',
+          '  transform: translateY(-3.5px) !important;',
           '  filter: none !important;',
           '}',
           '/* Prevent transform compounding on ticker intermediate wrappers */',
@@ -686,14 +870,38 @@
           '[data-section-key="headline"] .richtext,',
           '[data-section-key="headline"] .richtext p,',
           '[data-section-key="headline"] .section-contents p,',
+          '[data-section-key="headline"] .category-list,',
+          '[data-section-key="headline"] .categories,',
+          '[data-section-key="headline"] .category-links,',
+          '[data-section-key="headline"] .category-link-wrapper,',
+          '[data-section-key="headline"] .categories-wrapper,',
+          '[data-section-key="headline"] [class*="category"],',
+          '[data-section-key="headline"] [class*="categories"],',
           '#content-section-LBNmnP42zK p,',
+          '#content-section-LBNmnP42zK .richtext,',
           '#content-section-LBNmnP42zK .richtext p,',
+          '#content-section-LBNmnP42zK .section-contents p,',
+          '#content-section-LBNmnP42zK .category-list,',
+          '#content-section-LBNmnP42zK .categories,',
+          '#content-section-LBNmnP42zK .category-links,',
           '.section-hero p,',
+          '.section-hero .richtext,',
           '.section-hero .richtext p,',
+          '.section-hero .section-contents p,',
+          '.section-hero .category-list,',
+          '.section-hero .categories,',
           '.hero p,',
+          '.hero .richtext,',
           '.hero .richtext p,',
+          '.hero .section-contents p,',
+          '.hero .category-list,',
+          '.hero .categories,',
           '[data-section-type="hero"] p,',
+          '[data-section-type="hero"] .richtext,',
           '[data-section-type="hero"] .richtext p,',
+          '[data-section-type="hero"] .section-contents p,',
+          '[data-section-type="hero"] .category-list,',
+          '[data-section-type="hero"] .categories,',
           '.theme-tusk .hero p,',
           '.theme-tusk .banner p {',
           '  text-align: center !important;',
@@ -701,8 +909,42 @@
           '  align-items: center !important;',
           '  display: flex !important;',
           '  flex-wrap: wrap !important;',
-          '  margin: 0.5rem auto 0 !important;',
+          '  margin-left: auto !important;',
+          '  margin-right: auto !important;',
+          '  margin-top: 0.5rem !important;',
+          '  margin-bottom: 0 !important;',
           '  width: 100% !important;',
+          '  max-width: 100% !important;',
+          '  gap: 14px !important;',
+          '}',
+          '[data-section-key="headline"] .category-list a,',
+          '[data-section-key="headline"] .categories a,',
+          '[data-section-key="headline"] .category-links a,',
+          '[data-section-key="headline"] [class*="category"] a,',
+          '[data-section-key="headline"] p a,',
+          '[data-section-key="headline"] p span,',
+          '#content-section-LBNmnP42zK .category-list a,',
+          '#content-section-LBNmnP42zK .categories a,',
+          '#content-section-LBNmnP42zK p a,',
+          '#content-section-LBNmnP42zK p span,',
+          '.section-hero .category-list a,',
+          '.section-hero .categories a,',
+          '.section-hero p a,',
+          '.section-hero p span,',
+          '.hero .category-list a,',
+          '.hero .categories a,',
+          '.hero p a,',
+          '.hero p span {',
+          '  display: inline-flex !important;',
+          '  align-items: center !important;',
+          '  justify-content: center !important;',
+          '  text-align: center !important;',
+          '  color: #8e8e8e !important;',
+          '  font-family: var(--font-mono, \'Space Mono\', monospace) !important;',
+          '  font-size: 0.75rem !important;',
+          '  letter-spacing: 0.18em !important;',
+          '  text-transform: uppercase !important;',
+          '  text-decoration: none !important;',
           '}',
           '.sonarline-status-pill {',
           '  display: inline-flex !important;',
@@ -744,11 +986,11 @@
           '[data-section-key="ticker"] .ticker-item:not([data-ticker-formatted]):not(:has(+ [class*="bullet"])):not(:has(+ [class*="sep"]))::after,',
           '.ticker-item:not([data-ticker-formatted]):not(:has(+ [class*="bullet"])):not(:has(+ [class*="sep"]))::after,',
           '.marquee-item:not([data-ticker-formatted]):not(:has(+ [class*="bullet"])):not(:has(+ [class*="sep"]))::after {',
-          '  content: \' •\';',
+          '  content: \'•\';',
           '  color: #FF2A2A !important;',
-          '  margin-left: 1.25rem;',
-          '  margin-right: 0;',
-          '  font-size: 0.75rem;',
+          '  margin: 0 1.25rem !important;',
+          '  font-size: 0.75rem !important;',
+          '  display: inline-block !important;',
           '}'
         ].join('\n');
         (document.head || document.documentElement).appendChild(styleTag);
@@ -759,6 +1001,7 @@
       'ANALOG WARMTH',
       'PURE GRIT',
       'NO FILLER SOUNDS',
+      'PREMIUM SOUNDS',
       'DRUM KITS',
       'SAMPLE PACKS',
       'MULTI-KITS',
@@ -1028,7 +1271,7 @@
       }
 
       var heroSubtitles = document.querySelectorAll(
-        '[data-section-key="headline"] p, [data-section-key="headline"] .text, [data-section-key="headline"] .richtext, [data-section-key="headline"] .richtext p, [data-section-key="headline"] .section-contents p, #content-section-LBNmnP42zK p, #content-section-LBNmnP42zK .richtext p, .section-hero p, .section-hero .richtext p, .hero p, .hero .richtext p, [data-section-type="hero"] p, [data-section-type="hero"] .richtext p, .theme-tusk .hero p, .theme-tusk .banner p'
+        '[data-section-key="headline"] .category-list, [data-section-key="headline"] .categories, [data-section-key="headline"] .category-links, [data-section-key="headline"] .category-link-wrapper, [data-section-key="headline"] .categories-wrapper, [data-section-key="headline"] [class*="category"], [data-section-key="headline"] [class*="categories"], [data-section-key="headline"] p, [data-section-key="headline"] .text, [data-section-key="headline"] .richtext, [data-section-key="headline"] .richtext p, [data-section-key="headline"] .section-contents p, #content-section-LBNmnP42zK p, #content-section-LBNmnP42zK .richtext, #content-section-LBNmnP42zK .richtext p, #content-section-LBNmnP42zK .section-contents p, #content-section-LBNmnP42zK .category-list, #content-section-LBNmnP42zK .categories, #content-section-LBNmnP42zK .category-links, .section-hero p, .section-hero .richtext, .section-hero .richtext p, .section-hero .section-contents p, .section-hero .category-list, .section-hero .categories, .hero p, .hero .richtext, .hero .richtext p, .hero .section-contents p, .hero .category-list, .hero .categories, [data-section-type="hero"] p, [data-section-type="hero"] .richtext, [data-section-type="hero"] .richtext p, [data-section-type="hero"] .section-contents p, [data-section-type="hero"] .category-list, [data-section-type="hero"] .categories, .theme-tusk .hero p, .theme-tusk .banner p'
       );
       for (var hs = 0; hs < heroSubtitles.length; hs++) {
         heroSubtitles[hs].style.setProperty('text-align', 'center', 'important');
@@ -1036,8 +1279,12 @@
         heroSubtitles[hs].style.setProperty('align-items', 'center', 'important');
         heroSubtitles[hs].style.setProperty('display', 'flex', 'important');
         heroSubtitles[hs].style.setProperty('flex-wrap', 'wrap', 'important');
-        heroSubtitles[hs].style.setProperty('margin', '0.5rem auto 0', 'important');
+        heroSubtitles[hs].style.setProperty('margin-left', 'auto', 'important');
+        heroSubtitles[hs].style.setProperty('margin-right', 'auto', 'important');
+        heroSubtitles[hs].style.setProperty('margin-top', '0.5rem', 'important');
+        heroSubtitles[hs].style.setProperty('margin-bottom', '0px', 'important');
         heroSubtitles[hs].style.setProperty('width', '100%', 'important');
+        heroSubtitles[hs].style.setProperty('max-width', '100%', 'important');
       }
 
       var statusPills = document.querySelectorAll('.sonarline-status-pill');
@@ -1061,6 +1308,14 @@
         terminalPrompts[tp].style.setProperty('width', '100%', 'important');
       }
 
+      // Zero bottom margin on header so ticker hugs navbar cleanly
+      var headers = document.querySelectorAll(
+        'header, .header, .site-header, [data-section-key="header"], [data-section-type="header"], .header-wrapper, .site-header-wrapper'
+      );
+      for (var h = 0; h < headers.length; h++) {
+        headers[h].style.setProperty('margin-bottom', '0px', 'important');
+      }
+
       // Outer ticker wrapper: sleek 36px height + single border + flex centering (no glow)
       var outerTickers = document.querySelectorAll(
         '[data-section-key="ticker"], #content-section-QW9Kn45mB6'
@@ -1069,10 +1324,11 @@
         var tw = outerTickers[t];
         tw.style.setProperty('margin-top', '0px', 'important');
         tw.style.setProperty('margin-bottom', '0px', 'important');
-        tw.style.setProperty('padding', '0px', 'important');
+        tw.style.setProperty('padding', '0px 0px 2px 0px', 'important');
         tw.style.setProperty('height', '36px', 'important');
         tw.style.setProperty('min-height', '36px', 'important');
         tw.style.setProperty('max-height', '36px', 'important');
+        tw.style.setProperty('line-height', '34px', 'important');
         tw.style.setProperty('overflow-x', 'hidden', 'important');
         tw.style.setProperty('overflow-y', 'visible', 'important');
         tw.style.setProperty('border-top', '1px solid #FF2A2A', 'important');
@@ -1102,7 +1358,7 @@
       );
       for (var s = 0; s < svgs.length; s++) {
         svgs[s].style.setProperty('overflow', 'visible', 'important');
-        svgs[s].style.setProperty('transform', 'translateY(-4.5px)', 'important');
+        svgs[s].style.setProperty('transform', 'translateY(-3.5px)', 'important');
         svgs[s].style.setProperty('filter', 'none', 'important');
         svgs[s].setAttribute('xml:space', 'preserve');
       }
@@ -1429,7 +1685,21 @@
         var scaleVal = Math.max(1 - fadeProgress * 0.18, 0.82).toFixed(3);
 
         // Coordinate ALL hero components together in lockstep
-        var heroElements = heroEl.querySelectorAll('.sonarline-status-pill, h1, h2, .heading-text, .hero-title, .title, #sonarline-glitch-title, p, .richtext p, .sonarline-terminal-prompt');
+        var candidates = heroEl.querySelectorAll('.sonarline-status-pill, h1, h2, .heading-text, .hero-title, .title, #sonarline-glitch-title, p, .richtext p, .category-list, .categories, .category-links, .category-link-wrapper, .categories-wrapper, [class*="category"], .sonarline-terminal-prompt');
+        var heroElements = [];
+        for (var c = 0; c < candidates.length; c++) {
+          var cand = candidates[c];
+          var isDescendant = false;
+          for (var k = 0; k < candidates.length; k++) {
+            if (k !== c && candidates[k].contains(cand)) {
+              isDescendant = true;
+              break;
+            }
+          }
+          if (!isDescendant) {
+            heroElements.push(cand);
+          }
+        }
         for (var i = 0; i < heroElements.length; i++) {
           var el = heroElements[i];
           el.style.filter = 'blur(' + blurPx + 'px)';
@@ -1544,18 +1814,25 @@
         h1.addEventListener('mouseenter', runScramble);
       }
 
-      // Format Subtitle Bullets & Center Subtitle
-      var subtitleP = heroContents.querySelector('p, .richtext p');
-      if (subtitleP) {
+      // Format Subtitle Bullets & Center Subtitle and Category List
+      var subtitleElements = heroContents.querySelectorAll('p, .richtext p, .category-list, .categories, .category-links, .category-link-wrapper, .categories-wrapper, [class*="category"]');
+      for (var se = 0; se < subtitleElements.length; se++) {
+        var subtitleP = subtitleElements[se];
         if (!subtitleP.getAttribute('data-bullets-styled')) {
           subtitleP.setAttribute('data-bullets-styled', 'true');
-          var formattedHtml = rawHtml.replace(/(?:&bull;|&#8226;|[•·●])/g, '<span style="color: #ff3b30; font-size: 0.9rem; margin: 0 4px;">&bull;</span>');
-          subtitleP.innerHTML = formattedHtml;
+          var rawHtml = subtitleP.innerHTML;
+          if (rawHtml && /(?:&bull;|&#8226;|[•·●])/.test(rawHtml)) {
+            var formattedHtml = rawHtml.replace(/(?:&bull;|&#8226;|[•·●])/g, '<span style="color: #ff3b30; font-size: 0.9rem; margin: 0 6px; display: inline-flex; align-items: center; justify-content: center; vertical-align: middle;">&bull;</span>');
+            subtitleP.innerHTML = formattedHtml;
+          }
         }
         subtitleP.style.setProperty('text-align', 'center', 'important');
         subtitleP.style.setProperty('justify-content', 'center', 'important');
         subtitleP.style.setProperty('align-items', 'center', 'important');
-        subtitleP.style.setProperty('margin', '0.5rem auto 0', 'important');
+        subtitleP.style.setProperty('margin-left', 'auto', 'important');
+        subtitleP.style.setProperty('margin-right', 'auto', 'important');
+        subtitleP.style.setProperty('margin-top', '0.5rem', 'important');
+        subtitleP.style.setProperty('margin-bottom', '0px', 'important');
         subtitleP.style.setProperty('display', 'flex', 'important');
         subtitleP.style.setProperty('flex-wrap', 'wrap', 'important');
         subtitleP.style.setProperty('width', '100%', 'important');
