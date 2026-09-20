@@ -14,8 +14,10 @@
 
 <style>
   /* Terminal / HUD Preloader Overlay - Reference Image 4 */
-  #sonarline-hud-preloader {
+  #sonarline-hud-preloader,
+  #sonarline-preloader {
     position: fixed !important;
+    inset: 0 !important;
     top: 0 !important;
     left: 0 !important;
     width: 100vw !important;
@@ -26,7 +28,7 @@
       linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px) !important;
     background-size: 60px 60px !important;
     background-position: center top !important;
-    z-index: 9999999 !important;
+    z-index: 999999 !important;
     display: flex !important;
     flex-direction: column !important;
     justify-content: center !important;
@@ -188,336 +190,383 @@
     color: #ffffff;
     font-weight: 700;
   }
+
+  /* Base Layout Reset: Restore Collapsed DOM & Unblock Main Content */
+  .content-main-wrapper {
+    position: relative !important;
+    display: block !important;
+    width: 100% !important;
+    min-height: 100vh !important;
+  }
+  .section-hero, [data-section-key="hero"] {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
 </style>
 
 <script>
   (function() {
-    // Execution gate: restrict fullscreen preloader strictly to homepage root
-    var path = (window.location.pathname || '').toLowerCase().replace(/\/+$/, '') || '/';
-    var isHomepage = (path === '/' || path === '' || path === '/index' || path === '/index.html' || path === '/sonarlineaudio');
-    if (!isHomepage) {
-      var existing = document.getElementById('sonarline-hud-preloader');
-      if (existing && existing.parentNode) {
-        existing.parentNode.removeChild(existing);
+    function dismissPreloader() {
+      try {
+        var ids = ['sonarline-preloader', 'sonarline-hud-preloader'];
+        for (var i = 0; i < ids.length; i++) {
+          var el = document.getElementById(ids[i]);
+          if (el) {
+            el.style.setProperty('display', 'none', 'important');
+            el.style.setProperty('visibility', 'hidden', 'important');
+            el.style.setProperty('opacity', '0', 'important');
+            el.style.setProperty('pointer-events', 'none', 'important');
+            if (typeof el.remove === 'function') {
+              el.remove();
+            } else if (el.parentNode) {
+              el.parentNode.removeChild(el);
+            }
+          }
+        }
+        if (preloader && preloader.parentNode) {
+          preloader.style.setProperty('display', 'none', 'important');
+          if (typeof preloader.remove === 'function') {
+            preloader.remove();
+          } else {
+            preloader.parentNode.removeChild(preloader);
+          }
+        }
+        if (document.body) {
+          document.body.style.overflow = '';
+        }
+        if (document.documentElement) {
+          document.documentElement.style.overflow = '';
+        }
+      } catch (err) {
+        console.error('dismissPreloader error:', err);
       }
-      return;
     }
 
-    // Dynamic Preloader Construction (Homepage only)
-    var preloader = document.getElementById('sonarline-hud-preloader');
-    if (!preloader) {
-      preloader = document.createElement('div');
-      preloader.id = 'sonarline-hud-preloader';
-      preloader.innerHTML = '<div class="hud-center-container">' +
-        '<div class="hud-brand-header">' +
-          '<div class="hud-brand-title" id="hud-brand-title"><span class="hud-title-first">SONARLINE</span> <span class="hud-slash">/</span> <span class="hud-title-second">lab</span></div>' +
-          '<div class="hud-brand-sub" id="hud-brand-sub">SOUND DESIGN LAB</div>' +
-        '</div>' +
-        '<div class="hud-terminal-readout" id="hud-terminal-readout">' +
-          '<div class="hud-line" id="hud-line-0"><span class="hud-prompt">&gt;</span> <span class="hud-cmd">initializing system...</span><span class="hud-dots"></span><span class="hud-status"></span></div>' +
-          '<div class="hud-line" id="hud-line-1"><span class="hud-prompt">&gt;</span> <span class="hud-cmd">loading core modules</span><span class="hud-dots">............</span> <span class="hud-status">[<span class="hud-ok">OK</span>]</span></div>' +
-          '<div class="hud-line" id="hud-line-2"><span class="hud-prompt">&gt;</span> <span class="hud-cmd">connecting audio engine</span><span class="hud-dots">.........</span> <span class="hud-status">[<span class="hud-ok">OK</span>]</span></div>' +
-          '<div class="hud-line" id="hud-line-3"><span class="hud-prompt">&gt;</span> <span class="hud-cmd">loading sample library</span><span class="hud-dots">..........</span> <span class="hud-status">[<span class="hud-ok">OK</span>]</span></div>' +
-          '<div class="hud-line" id="hud-line-4"><span class="hud-prompt">&gt;</span> <span class="hud-cmd">calibrating interface</span><span class="hud-dots">...........</span> <span class="hud-status">[<span class="hud-ok">OK</span>]</span></div>' +
-          '<div class="hud-line" id="hud-line-5"><span class="hud-prompt">&gt;</span> <span class="hud-cmd">loading assets</span><span class="hud-dots">..................</span> <span class="hud-status">[<span class="hud-ok">OK</span>]</span></div>' +
-          '<div class="hud-line" id="hud-line-6"><span class="hud-prompt">&gt;</span> <span class="hud-cmd">verifying session</span><span class="hud-dots">...............</span> <span class="hud-status">[<span class="hud-ok">OK</span>]</span></div>' +
-          '<div class="hud-line" id="hud-line-7"><span class="hud-prompt">&gt;</span> <span class="hud-cmd">final checks</span><span class="hud-dots">....................</span> <span class="hud-status">[<span class="hud-ok">OK</span>]</span></div>' +
-          '<div class="hud-line" id="hud-line-8"><span class="hud-prompt">&gt;</span> <span class="hud-ready">system ready.</span> <span class="hud-welcome">welcome.</span><span class="hud-dots"></span><span class="hud-status"></span></div>' +
-        '</div>' +
-        '<div class="hud-progress-bar-wrap">' +
-          '<div class="hud-progress-line"><div class="hud-progress-fill" id="hud-progress-fill"></div></div>' +
-          '<div class="hud-progress-footer">' +
-            '<div class="hud-progress-status"><span class="hud-ready-sq">&#9632;</span> READY</div>' +
-            '<div class="hud-progress-pct" id="hud-progress-pct">0%</div>' +
+    // Mandatory fail-safe timer: if preloader has not finished within 2.5 seconds, force-dismiss
+    var failsafeTimer = setTimeout(function() {
+      dismissPreloader();
+    }, 2500);
+
+    var preloader = null;
+
+    try {
+      // Execution gate: restrict fullscreen preloader strictly to homepage root
+      var path = (window.location.pathname || '').toLowerCase().replace(/\/+$/, '') || '/';
+      var isHomepage = (path === '/' || path === '' || path === '/index' || path === '/index.html' || path === '/sonarlineaudio');
+      if (!isHomepage) {
+        dismissPreloader();
+        if (failsafeTimer) clearTimeout(failsafeTimer);
+        return;
+      }
+
+      // Dynamic Preloader Construction (Homepage only)
+      preloader = document.getElementById('sonarline-hud-preloader') || document.getElementById('sonarline-preloader');
+      if (!preloader) {
+        preloader = document.createElement('div');
+        preloader.id = 'sonarline-hud-preloader';
+        preloader.innerHTML = '<div class="hud-center-container">' +
+          '<div class="hud-brand-header">' +
+            '<div class="hud-brand-title" id="hud-brand-title"><span class="hud-title-first">SONARLINE</span> <span class="hud-slash">/</span> <span class="hud-title-second">lab</span></div>' +
+            '<div class="hud-brand-sub" id="hud-brand-sub">SOUND DESIGN LAB</div>' +
           '</div>' +
-        '</div>' +
-      '</div>';
-      if (document.body) {
-        document.body.insertBefore(preloader, document.body.firstChild);
-      } else {
-        document.documentElement.appendChild(preloader);
-      }
-    }
-
-    var defaultLines = [
-      '<span class="hud-prompt">&gt;</span> <span class="hud-cmd">initializing system...</span><span class="hud-dots"></span><span class="hud-status"></span>',
-      '<span class="hud-prompt">&gt;</span> <span class="hud-cmd">loading core modules</span><span class="hud-dots">............</span> <span class="hud-status">[<span class="hud-ok">OK</span>]</span>',
-      '<span class="hud-prompt">&gt;</span> <span class="hud-cmd">connecting audio engine</span><span class="hud-dots">.........</span> <span class="hud-status">[<span class="hud-ok">OK</span>]</span>',
-      '<span class="hud-prompt">&gt;</span> <span class="hud-cmd">loading sample library</span><span class="hud-dots">..........</span> <span class="hud-status">[<span class="hud-ok">OK</span>]</span>',
-      '<span class="hud-prompt">&gt;</span> <span class="hud-cmd">calibrating interface</span><span class="hud-dots">...........</span> <span class="hud-status">[<span class="hud-ok">OK</span>]</span>',
-      '<span class="hud-prompt">&gt;</span> <span class="hud-cmd">loading assets</span><span class="hud-dots">..................</span> <span class="hud-status">[<span class="hud-ok">OK</span>]</span>',
-      '<span class="hud-prompt">&gt;</span> <span class="hud-cmd">verifying session</span><span class="hud-dots">...............</span> <span class="hud-status">[<span class="hud-ok">OK</span>]</span>',
-      '<span class="hud-prompt">&gt;</span> <span class="hud-cmd">final checks</span><span class="hud-dots">....................</span> <span class="hud-status">[<span class="hud-ok">OK</span>]</span>',
-      '<span class="hud-prompt">&gt;</span> <span class="hud-ready">system ready.</span> <span class="hud-welcome">welcome.</span><span class="hud-dots"></span><span class="hud-status"></span>'
-    ];
-
-    function escapeHtml(str) {
-      return (str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-    }
-
-    function renderBrandHeader(titleStr, secondaryStr) {
-      var titleEl = document.getElementById('hud-brand-title');
-      var subEl = document.getElementById('hud-brand-sub');
-
-      var rawTitle = (titleStr || 'SONARLINE / lab').trim();
-      if (titleEl) {
-        if (rawTitle.indexOf('/') !== -1) {
-          var parts = rawTitle.split('/');
-          var first = parts[0].trim();
-          var second = parts.slice(1).join('/').trim();
-          titleEl.innerHTML = '<span class="hud-title-first">' + escapeHtml(first) + '</span> <span class="hud-slash">/</span> <span class="hud-title-second">' + escapeHtml(second) + '</span>';
+          '<div class="hud-terminal-readout" id="hud-terminal-readout">' +
+            '<div class="hud-line" id="hud-line-0"><span class="hud-prompt">&gt;</span> <span class="hud-cmd">initializing system...</span><span class="hud-dots"></span><span class="hud-status"></span></div>' +
+            '<div class="hud-line" id="hud-line-1"><span class="hud-prompt">&gt;</span> <span class="hud-cmd">loading core modules</span><span class="hud-dots">............</span> <span class="hud-status">[<span class="hud-ok">OK</span>]</span></div>' +
+            '<div class="hud-line" id="hud-line-2"><span class="hud-prompt">&gt;</span> <span class="hud-cmd">connecting audio engine</span><span class="hud-dots">.........</span> <span class="hud-status">[<span class="hud-ok">OK</span>]</span></div>' +
+            '<div class="hud-line" id="hud-line-3"><span class="hud-prompt">&gt;</span> <span class="hud-cmd">loading sample library</span><span class="hud-dots">..........</span> <span class="hud-status">[<span class="hud-ok">OK</span>]</span></div>' +
+            '<div class="hud-line" id="hud-line-4"><span class="hud-prompt">&gt;</span> <span class="hud-cmd">calibrating interface</span><span class="hud-dots">...........</span> <span class="hud-status">[<span class="hud-ok">OK</span>]</span></div>' +
+            '<div class="hud-line" id="hud-line-5"><span class="hud-prompt">&gt;</span> <span class="hud-cmd">loading assets</span><span class="hud-dots">..................</span> <span class="hud-status">[<span class="hud-ok">OK</span>]</span></div>' +
+            '<div class="hud-line" id="hud-line-6"><span class="hud-prompt">&gt;</span> <span class="hud-cmd">verifying session</span><span class="hud-dots">...............</span> <span class="hud-status">[<span class="hud-ok">OK</span>]</span></div>' +
+            '<div class="hud-line" id="hud-line-7"><span class="hud-prompt">&gt;</span> <span class="hud-cmd">final checks</span><span class="hud-dots">....................</span> <span class="hud-status">[<span class="hud-ok">OK</span>]</span></div>' +
+            '<div class="hud-line" id="hud-line-8"><span class="hud-prompt">&gt;</span> <span class="hud-ready">system ready.</span> <span class="hud-welcome">welcome.</span><span class="hud-dots"></span><span class="hud-status"></span></div>' +
+          '</div>' +
+          '<div class="hud-progress-bar-wrap">' +
+            '<div class="hud-progress-line"><div class="hud-progress-fill" id="hud-progress-fill"></div></div>' +
+            '<div class="hud-progress-footer">' +
+              '<div class="hud-progress-status"><span class="hud-ready-sq">&#9632;</span> READY</div>' +
+              '<div class="hud-progress-pct" id="hud-progress-pct">0%</div>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+        if (document.body) {
+          document.body.insertBefore(preloader, document.body.firstChild);
         } else {
-          titleEl.innerHTML = '<span class="hud-title-first">' + escapeHtml(rawTitle) + '</span>';
+          document.documentElement.appendChild(preloader);
         }
       }
 
-      var rawSub = (secondaryStr || 'SOUND DESIGN LAB').trim();
-      if (subEl) {
-        subEl.textContent = rawSub;
+      var defaultLines = [
+        '<span class="hud-prompt">&gt;</span> <span class="hud-cmd">initializing system...</span><span class="hud-dots"></span><span class="hud-status"></span>',
+        '<span class="hud-prompt">&gt;</span> <span class="hud-cmd">loading core modules</span><span class="hud-dots">............</span> <span class="hud-status">[<span class="hud-ok">OK</span>]</span>',
+        '<span class="hud-prompt">&gt;</span> <span class="hud-cmd">connecting audio engine</span><span class="hud-dots">.........</span> <span class="hud-status">[<span class="hud-ok">OK</span>]</span>',
+        '<span class="hud-prompt">&gt;</span> <span class="hud-cmd">loading sample library</span><span class="hud-dots">..........</span> <span class="hud-status">[<span class="hud-ok">OK</span>]</span>',
+        '<span class="hud-prompt">&gt;</span> <span class="hud-cmd">calibrating interface</span><span class="hud-dots">...........</span> <span class="hud-status">[<span class="hud-ok">OK</span>]</span>',
+        '<span class="hud-prompt">&gt;</span> <span class="hud-cmd">loading assets</span><span class="hud-dots">..................</span> <span class="hud-status">[<span class="hud-ok">OK</span>]</span>',
+        '<span class="hud-prompt">&gt;</span> <span class="hud-cmd">verifying session</span><span class="hud-dots">...............</span> <span class="hud-status">[<span class="hud-ok">OK</span>]</span>',
+        '<span class="hud-prompt">&gt;</span> <span class="hud-cmd">final checks</span><span class="hud-dots">....................</span> <span class="hud-status">[<span class="hud-ok">OK</span>]</span>',
+        '<span class="hud-prompt">&gt;</span> <span class="hud-ready">system ready.</span> <span class="hud-welcome">welcome.</span><span class="hud-dots"></span><span class="hud-status"></span>'
+      ];
+
+      function escapeHtml(str) {
+        return (str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
       }
-    }
 
-    function formatCustomLine(rawText, isLast) {
-      var s = rawText.trim();
-      s = s.replace(/^(?:&gt;|>)\s*/, '');
-      var okMatch = s.match(/(.*?)\s*\[\s*ok\s*\]/i);
-      if (okMatch) {
-        var cmd = okMatch[1].replace(/\.+$/, '').trim();
-        return '<span class="hud-prompt">&gt;</span> <span class="hud-cmd">' + escapeHtml(cmd) + '</span><span class="hud-dots">..................</span> <span class="hud-status">[<span class="hud-ok">OK</span>]</span>';
-      }
-      if (isLast || /ready/i.test(s)) {
-        var readyMatch = s.match(/^(.*?(?:ready\.?|welcome\.?))\s*(.*)$/i);
-        if (readyMatch && readyMatch[1] && readyMatch[2]) {
-          return '<span class="hud-prompt">&gt;</span> <span class="hud-ready">' + escapeHtml(readyMatch[1]) + '</span> <span class="hud-welcome">' + escapeHtml(readyMatch[2]) + '</span><span class="hud-dots"></span><span class="hud-status"></span>';
-        }
-        return '<span class="hud-prompt">&gt;</span> <span class="hud-ready">' + escapeHtml(s) + '</span><span class="hud-dots"></span><span class="hud-status"></span>';
-      }
-      return '<span class="hud-prompt">&gt;</span> <span class="hud-cmd">' + escapeHtml(s) + '</span><span class="hud-dots"></span><span class="hud-status"></span>';
-    }
+      function renderBrandHeader(titleStr, secondaryStr) {
+        var titleEl = document.getElementById('hud-brand-title');
+        var subEl = document.getElementById('hud-brand-sub');
 
-    function scanForPreloaderConfig() {
-      var root = document.body || document.documentElement;
-      var config = {
-        title: null,
-        secondary: null,
-        lines: null
-      };
-      if (!root) return config;
-
-      var titleRe = /\[\[loader-title:\s*([\s\S]*?)\]\](?=[^\]]|$)/i;
-      var secondaryRe = /\[\[loader-secondary:\s*([\s\S]*?)\]\](?=[^\]]|$)/i;
-      var linesRe = /\[\[preloader:\s*([\s\S]*?)\]\](?=[^\]]|$)/i;
-      var allTokensRe = /\[\[(?:loader-title|loader-secondary|preloader):\s*[\s\S]*?\]\]/gi;
-
-      function sanitizeElement(el) {
-        if (!el) return;
-        el.style.setProperty('display', 'none', 'important');
-        el.style.setProperty('visibility', 'hidden', 'important');
-        el.style.setProperty('height', '0px', 'important');
-        el.setAttribute('data-preloader-hidden', 'true');
-        var sWrap = el.parentElement ? el.parentElement.closest('.section-wrapper, [data-section-key], .section, section, .rich-text-section') : null;
-        if (sWrap) {
-          var rem = (sWrap.textContent || '').replace(allTokensRe, '').trim();
-          if (rem.length < 5) {
-            sWrap.style.setProperty('display', 'none', 'important');
-            sWrap.style.setProperty('visibility', 'hidden', 'important');
-            sWrap.style.setProperty('height', '0px', 'important');
-            sWrap.style.setProperty('margin', '0px', 'important');
-            sWrap.style.setProperty('padding', '0px', 'important');
-            sWrap.setAttribute('data-preloader-hidden', 'true');
+        var rawTitle = (titleStr || 'SONARLINE / lab').trim();
+        if (titleEl) {
+          if (rawTitle.indexOf('/') !== -1) {
+            var parts = rawTitle.split('/');
+            var first = parts[0].trim();
+            var second = parts.slice(1).join('/').trim();
+            titleEl.innerHTML = '<span class="hud-title-first">' + escapeHtml(first) + '</span> <span class="hud-slash">/</span> <span class="hud-title-second">' + escapeHtml(second) + '</span>';
+          } else {
+            titleEl.innerHTML = '<span class="hud-title-first">' + escapeHtml(rawTitle) + '</span>';
           }
+        }
+
+        var rawSub = (secondaryStr || 'SOUND DESIGN LAB').trim();
+        if (subEl) {
+          subEl.textContent = rawSub;
         }
       }
 
-      var all = root.querySelectorAll('p, div, section, span, [data-section-key], article, main');
-      for (var i = 0; i < all.length; i++) {
-        var el = all[i];
-        if (el.id === 'sonarline-hud-preloader' || el.closest('#sonarline-hud-preloader')) continue;
-        if (el.tagName === 'SCRIPT' || el.tagName === 'STYLE') continue;
-
-        var html = el.innerHTML || '';
-        var normalized = html.replace(/<br\s*\/?>/gi, '\n')
-                             .replace(/<\/(?:p|div)>\s*<(?:p|div)[^>]*>/gi, '\n')
-                             .replace(/<[^>]+>/g, ' ')
-                             .replace(/&nbsp;/gi, ' ')
-                             .replace(/&#160;/g, ' ');
-        var textContent = (el.textContent || '').replace(/&nbsp;/gi, ' ').replace(/&#160;/g, ' ');
-        var textToCheck = (normalized && normalized.length > textContent.length) ? normalized : textContent;
-
-        var matched = false;
-        if (titleRe.test(textToCheck)) {
-          var tm = textToCheck.match(titleRe);
-          if (tm && tm[1] && !config.title) {
-            config.title = tm[1].trim();
-            matched = true;
+      function formatCustomLine(rawText, isLast) {
+        var s = rawText.trim();
+        s = s.replace(/^(?:&gt;|>)\s*/, '');
+        var okMatch = s.match(/(.*?)\s*\[\s*ok\s*\]/i);
+        if (okMatch) {
+          var cmd = okMatch[1].replace(/\.+$/, '').trim();
+          return '<span class="hud-prompt">&gt;</span> <span class="hud-cmd">' + escapeHtml(cmd) + '</span><span class="hud-dots">..................</span> <span class="hud-status">[<span class="hud-ok">OK</span>]</span>';
+        }
+        if (isLast || /ready/i.test(s)) {
+          var readyMatch = s.match(/^(.*?(?:ready\.?|welcome\.?))\s*(.*)$/i);
+          if (readyMatch && readyMatch[1] && readyMatch[2]) {
+            return '<span class="hud-prompt">&gt;</span> <span class="hud-ready">' + escapeHtml(readyMatch[1]) + '</span> <span class="hud-welcome">' + escapeHtml(readyMatch[2]) + '</span><span class="hud-dots"></span><span class="hud-status"></span>';
           }
+          return '<span class="hud-prompt">&gt;</span> <span class="hud-ready">' + escapeHtml(s) + '</span><span class="hud-dots"></span><span class="hud-status"></span>';
         }
-        if (secondaryRe.test(textToCheck)) {
-          var sm = textToCheck.match(secondaryRe);
-          if (sm && sm[1] && !config.secondary) {
-            config.secondary = sm[1].trim();
-            matched = true;
-          }
-        }
-        if (linesRe.test(textToCheck)) {
-          var lm = textToCheck.match(linesRe);
-          if (lm && lm[1] && !config.lines) {
-            var rawLines = lm[1].split(/\r?\n|\|/);
-            var parsed = [];
-            for (var r = 0; r < rawLines.length; r++) {
-              var line = rawLines[r].trim();
-              if (line.length > 0) parsed.push(line);
-            }
-            if (parsed.length > 0) config.lines = parsed;
-            matched = true;
-          }
-        }
-        if (matched) {
-          sanitizeElement(el);
-        }
+        return '<span class="hud-prompt">&gt;</span> <span class="hud-cmd">' + escapeHtml(s) + '</span><span class="hud-dots"></span><span class="hud-status"></span>';
       }
 
-      // Fallback TreeWalker for text nodes to catch any uncaptured tokens and sanitize
-      var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null, false);
-      var textNode;
-      while ((textNode = walker.nextNode())) {
-        var val = (textNode.nodeValue || '').replace(/&nbsp;/gi, ' ').replace(/&#160;/g, ' ');
-        if (val && (titleRe.test(val) || secondaryRe.test(val) || linesRe.test(val))) {
-          if (titleRe.test(val) && !config.title) {
-            var tm2 = val.match(titleRe);
-            if (tm2 && tm2[1]) config.title = tm2[1].trim();
+      function scanForPreloaderConfig() {
+        var root = document.body || document.documentElement;
+        var config = {
+          title: null,
+          secondary: null,
+          lines: null
+        };
+        if (!root) return config;
+
+        var titleRe = /\[\[loader-title:\s*([\s\S]*?)\]\]/i;
+        var secondaryRe = /\[\[loader-secondary:\s*([\s\S]*?)\]\]/i;
+        var linesRe = /\[\[preloader:\s*([\s\S]*?)\]\]/i;
+
+        var titleGlobalRe = /\[\[loader-title:\s*[\s\S]*?\]\]/gi;
+        var secondaryGlobalRe = /\[\[loader-secondary:\s*[\s\S]*?\]\]/gi;
+        var linesGlobalRe = /\[\[preloader:\s*[\s\S]*?\]\]/gi;
+
+        // 1. Target ONLY specific native Payhip Rich Text sections containing [[preloader:
+        // We hide only that specific section and extract the preloader lines if present.
+        var richTextSections = root.querySelectorAll('.rich-text, [data-section-key="rich-text"]');
+        for (var r = 0; r < richTextSections.length; r++) {
+          var rtSection = richTextSections[r];
+          if (rtSection.id === 'sonarline-hud-preloader' || rtSection.id === 'sonarline-preloader' ||
+              rtSection.closest('#sonarline-hud-preloader, #sonarline-preloader')) {
+            continue;
           }
-          if (secondaryRe.test(val) && !config.secondary) {
-            var sm2 = val.match(secondaryRe);
-            if (sm2 && sm2[1]) config.secondary = sm2[1].trim();
-          }
-          if (linesRe.test(val) && !config.lines) {
-            var lm2 = val.match(linesRe);
-            if (lm2 && lm2[1]) {
-              var linesArr = lm2[1].split(/\r?\n|\|/);
-              var res = [];
-              for (var x = 0; x < linesArr.length; x++) {
-                var item = linesArr[x].trim();
-                if (item.length > 0) res.push(item);
+
+          var rtText = (rtSection.textContent || '').replace(/&nbsp;/gi, ' ').replace(/&#160;/g, ' ');
+          if (linesRe.test(rtText)) {
+            if (!config.lines) {
+              var lm = rtText.match(linesRe);
+              if (lm && lm[1]) {
+                var rawLines = lm[1].split(/\r?\n|\|/);
+                var parsed = [];
+                for (var l = 0; l < rawLines.length; l++) {
+                  var line = rawLines[l].trim();
+                  if (line.length > 0) parsed.push(line);
+                }
+                if (parsed.length > 0) config.lines = parsed;
               }
-              if (res.length > 0) config.lines = res;
+            }
+            rtSection.style.display = 'none';
+          }
+        }
+
+        // 2. Walk text nodes to safely extract and replace tokens without touching surrounding layout/containers
+        var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null, false);
+        var textNode;
+        while ((textNode = walker.nextNode())) {
+          if (!textNode.parentElement) continue;
+          if (textNode.parentElement.id === 'sonarline-hud-preloader' || textNode.parentElement.id === 'sonarline-preloader' ||
+              textNode.parentElement.closest('#sonarline-hud-preloader, #sonarline-preloader')) {
+            continue;
+          }
+          var parentTag = textNode.parentElement.tagName;
+          if (parentTag === 'SCRIPT' || parentTag === 'STYLE' || parentTag === 'NOSCRIPT') continue;
+
+          var val = textNode.nodeValue || '';
+          if (!val) continue;
+
+          if (titleRe.test(val)) {
+            if (!config.title) {
+              var tm = val.match(titleRe);
+              if (tm && tm[1]) config.title = tm[1].trim();
+            }
+            textNode.textContent = textNode.textContent.replace(titleGlobalRe, '');
+            val = textNode.nodeValue || '';
+          }
+
+          if (secondaryRe.test(val)) {
+            if (!config.secondary) {
+              var sm = val.match(secondaryRe);
+              if (sm && sm[1]) config.secondary = sm[1].trim();
+            }
+            textNode.textContent = textNode.textContent.replace(secondaryGlobalRe, '');
+            val = textNode.nodeValue || '';
+          }
+
+          if (linesRe.test(val)) {
+            if (!config.lines) {
+              var lm2 = val.match(linesRe);
+              if (lm2 && lm2[1]) {
+                var rawLines2 = lm2[1].split(/\r?\n|\|/);
+                var parsed2 = [];
+                for (var k = 0; k < rawLines2.length; k++) {
+                  var line2 = rawLines2[k].trim();
+                  if (line2.length > 0) parsed2.push(line2);
+                }
+                if (parsed2.length > 0) config.lines = parsed2;
+              }
+            }
+            textNode.textContent = textNode.textContent.replace(linesGlobalRe, '');
+            var containingRt = textNode.parentElement.closest('.rich-text, [data-section-key="rich-text"]');
+            if (containingRt) {
+              containingRt.style.display = 'none';
             }
           }
-          if (textNode.parentElement && textNode.parentElement.id !== 'sonarline-hud-preloader' && !textNode.parentElement.closest('#sonarline-hud-preloader')) {
-            sanitizeElement(textNode.parentElement);
-            textNode.nodeValue = val.replace(allTokensRe, '');
+        }
+
+        return config;
+      }
+
+      function startSequence(config) {
+        config = config || {};
+        renderBrandHeader(config.title, config.secondary);
+
+        var readoutEl = document.querySelector('#sonarline-hud-preloader .hud-terminal-readout');
+        var pctEl = document.getElementById('hud-progress-pct');
+        var fillEl = document.getElementById('hud-progress-fill');
+        
+        if (!fillEl) {
+          var lineEl = document.querySelector('#sonarline-hud-preloader .hud-progress-line');
+          if (lineEl) {
+            fillEl = document.createElement('div');
+            fillEl.className = 'hud-progress-fill';
+            fillEl.id = 'hud-progress-fill';
+            lineEl.appendChild(fillEl);
           }
         }
-      }
 
-      return config;
-    }
-
-    function startSequence(config) {
-      config = config || {};
-      renderBrandHeader(config.title, config.secondary);
-
-      var readoutEl = document.querySelector('#sonarline-hud-preloader .hud-terminal-readout');
-      var pctEl = document.getElementById('hud-progress-pct');
-      var fillEl = document.getElementById('hud-progress-fill');
-      
-      if (!fillEl) {
-        var lineEl = document.querySelector('#sonarline-hud-preloader .hud-progress-line');
-        if (lineEl) {
-          fillEl = document.createElement('div');
-          fillEl.className = 'hud-progress-fill';
-          fillEl.id = 'hud-progress-fill';
-          lineEl.appendChild(fillEl);
-        }
-      }
-
-      var customLines = config.lines;
-      var htmlLines = [];
-      if (customLines && customLines.length > 0) {
-        for (var c = 0; c < customLines.length; c++) {
-          htmlLines.push(formatCustomLine(customLines[c], c === customLines.length - 1));
-        }
-      } else {
-        htmlLines = defaultLines.slice();
-      }
-
-      var total = htmlLines.length;
-      if (readoutEl) {
-        var linesHtml = '';
-        for (var h = 0; h < total; h++) {
-          linesHtml += '<div class="hud-line" id="hud-line-' + h + '">' + htmlLines[h] + '</div>';
-        }
-        readoutEl.innerHTML = linesHtml;
-      }
-
-      var domLines = [];
-      for (var d = 0; d < total; d++) {
-        domLines.push(document.getElementById('hud-line-' + d));
-      }
-
-      // Precalculate ascending random incremental percentages
-      var currentProgress = 0;
-      var stepPcts = [];
-      for (var s = 0; s < total; s++) {
-        if (s === total - 1) {
-          stepPcts.push(100);
+        var customLines = config.lines;
+        var htmlLines = [];
+        if (customLines && customLines.length > 0) {
+          for (var c = 0; c < customLines.length; c++) {
+            htmlLines.push(formatCustomLine(customLines[c], c === customLines.length - 1));
+          }
         } else {
-          currentProgress += Math.floor(Math.random() * 20) + 10;
-          if (currentProgress > 95) currentProgress = 95;
-          if (s > 0 && currentProgress <= stepPcts[s - 1]) {
-            currentProgress = Math.min(stepPcts[s - 1] + Math.floor(Math.random() * 5) + 1, 95);
+          htmlLines = defaultLines.slice();
+        }
+
+        var total = htmlLines.length;
+        if (readoutEl) {
+          var linesHtml = '';
+          for (var h = 0; h < total; h++) {
+            linesHtml += '<div class="hud-line" id="hud-line-' + h + '">' + htmlLines[h] + '</div>';
           }
-          stepPcts.push(currentProgress);
+          readoutEl.innerHTML = linesHtml;
+        }
+
+        var domLines = [];
+        for (var d = 0; d < total; d++) {
+          domLines.push(document.getElementById('hud-line-' + d));
+        }
+
+        // Precalculate ascending random incremental percentages
+        var currentProgress = 0;
+        var stepPcts = [];
+        for (var s = 0; s < total; s++) {
+          if (s === total - 1) {
+            stepPcts.push(100);
+          } else {
+            currentProgress += Math.floor(Math.random() * 20) + 10;
+            if (currentProgress > 95) currentProgress = 95;
+            if (s > 0 && currentProgress <= stepPcts[s - 1]) {
+              currentProgress = Math.min(stepPcts[s - 1] + Math.floor(Math.random() * 5) + 1, 95);
+            }
+            stepPcts.push(currentProgress);
+          }
+        }
+
+        var totalDuration = 1600;
+        for (var idx = 0; idx < total; idx++) {
+          (function(stepIdx) {
+            var delay = (total <= 1) ? 100 : Math.round(100 + stepIdx * (totalDuration / (total - 1)));
+            var pct = stepPcts[stepIdx];
+            setTimeout(function() {
+              if (domLines[stepIdx]) domLines[stepIdx].classList.add('active');
+              if (pctEl) pctEl.textContent = pct + '%';
+              if (fillEl) fillEl.style.width = pct + '%';
+
+              // When final sequence completes at 100%, hold for 150ms, then smoothly fade out and unmount
+              if (stepIdx === total - 1) {
+                setTimeout(function() {
+                  var ov = document.getElementById('sonarline-hud-preloader') || document.getElementById('sonarline-preloader') || preloader;
+                  if (ov) {
+                    ov.style.opacity = '0';
+                    ov.style.pointerEvents = 'none';
+                  }
+                  setTimeout(function() {
+                    dismissPreloader();
+                    if (failsafeTimer) clearTimeout(failsafeTimer);
+                  }, 300);
+                }, 150);
+              }
+            }, delay);
+          })(idx);
         }
       }
 
-      var totalDuration = 2400;
-      for (var idx = 0; idx < total; idx++) {
-        (function(stepIdx) {
-          var delay = (total <= 1) ? 150 : Math.round(150 + stepIdx * (totalDuration / (total - 1)));
-          var pct = stepPcts[stepIdx];
-          setTimeout(function() {
-            if (domLines[stepIdx]) domLines[stepIdx].classList.add('active');
-            if (pctEl) pctEl.textContent = pct + '%';
-            if (fillEl) fillEl.style.width = pct + '%';
-
-            // When final sequence completes at 100%, hold for 200ms, then smoothly fade out and unmount
-            if (stepIdx === total - 1) {
-              setTimeout(function() {
-                preloader.style.opacity = '0';
-                preloader.style.pointerEvents = 'none';
-                setTimeout(function() {
-                  if (preloader.parentNode) preloader.parentNode.removeChild(preloader);
-                }, 450);
-              }, 200);
-            }
-          }, delay);
-        })(idx);
-      }
-    }
-
-    var config = scanForPreloaderConfig();
-    if (config.lines || config.title || config.secondary) {
-      startSequence(config);
-    } else if (document.readyState === 'loading') {
-      var started = false;
-      var onReady = function() {
-        if (started) return;
-        started = true;
-        document.removeEventListener('DOMContentLoaded', onReady);
-        var found = scanForPreloaderConfig();
-        startSequence(found);
-      };
-      document.addEventListener('DOMContentLoaded', onReady);
-      setTimeout(function() {
-        if (!started) {
+      var config = scanForPreloaderConfig();
+      if (config.lines || config.title || config.secondary) {
+        startSequence(config);
+      } else if (document.readyState === 'loading') {
+        var started = false;
+        var onReady = function() {
+          if (started) return;
           started = true;
+          document.removeEventListener('DOMContentLoaded', onReady);
           var found = scanForPreloaderConfig();
           startSequence(found);
-        }
-      }, 1500);
-    } else {
-      startSequence({});
+        };
+        document.addEventListener('DOMContentLoaded', onReady);
+        setTimeout(function() {
+          if (!started) {
+            started = true;
+            var found = scanForPreloaderConfig();
+            startSequence(found);
+          }
+        }, 500);
+      } else {
+        startSequence({});
+      }
+    } catch (lifecycleErr) {
+      console.error('Preloader lifecycle exception:', lifecycleErr);
+      dismissPreloader();
     }
   })();
 </script>
@@ -1155,6 +1204,18 @@
           '#page-wrap,',
           'main.main-content {',
           '  padding-top: var(--sonarline-header-height, 132px) !important;',
+          '}',
+          '/* Base Layout Reset: Restore Collapsed DOM & Unblock Main Content */',
+          '.content-main-wrapper {',
+          '  position: relative !important;',
+          '  display: block !important;',
+          '  width: 100% !important;',
+          '  min-height: 100vh !important;',
+          '}',
+          '.section-hero, [data-section-key="hero"] {',
+          '  display: block !important;',
+          '  visibility: visible !important;',
+          '  opacity: 1 !important;',
           '}',
           'header, .header, .site-header, [data-section-key="header"], [data-section-type="header"], .header-wrapper, .site-header-wrapper {',
           '  margin-bottom: 0 !important;',
@@ -2215,6 +2276,33 @@
       // Calibrate header offset to prevent ticker and content from being buried under fixed navbar
       syncHeaderOffset();
 
+      // Ensure content-main-wrapper and section-hero are explicitly restored and unblocked
+      var mainWrappers = document.querySelectorAll('.content-main-wrapper');
+      for (var mw = 0; mw < mainWrappers.length; mw++) {
+        mainWrappers[mw].style.setProperty('position', 'relative', 'important');
+        mainWrappers[mw].style.setProperty('display', 'block', 'important');
+        mainWrappers[mw].style.setProperty('width', '100%', 'important');
+        mainWrappers[mw].style.setProperty('min-height', '100vh', 'important');
+        mainWrappers[mw].style.setProperty('visibility', 'visible', 'important');
+        mainWrappers[mw].style.setProperty('opacity', '1', 'important');
+      }
+
+      var heroSecs = document.querySelectorAll('.section-hero, [data-section-key="hero"]');
+      for (var hsIdx = 0; hsIdx < heroSecs.length; hsIdx++) {
+        heroSecs[hsIdx].style.setProperty('display', 'block', 'important');
+        heroSecs[hsIdx].style.setProperty('visibility', 'visible', 'important');
+        heroSecs[hsIdx].style.setProperty('opacity', '1', 'important');
+      }
+
+      var mainContents = document.querySelectorAll('.main-content, main');
+      for (var mc = 0; mc < mainContents.length; mc++) {
+        mainContents[mc].style.setProperty('visibility', 'visible', 'important');
+        mainContents[mc].style.setProperty('opacity', '1', 'important');
+        if (mainContents[mc].style.display === 'none') {
+          mainContents[mc].style.removeProperty('display');
+        }
+      }
+
       // Hide embed code section and rogue announcement bar dropzones at top of header
       var rogueElements = document.querySelectorAll(
         '[data-section-key="embed-code"], #content-section-yBbkPa6OGD, #remote-custom-embed, .sonarline-hero-section, .sonarline-homepage-experience, .announcement-bar-dropzone, .announcement-bar, [data-section-type="announcement"]'
@@ -2246,6 +2334,9 @@
         heroWrappers[hw].style.setProperty('margin-left', 'auto', 'important');
         heroWrappers[hw].style.setProperty('margin-right', 'auto', 'important');
         heroWrappers[hw].style.setProperty('width', '100%', 'important');
+        if (heroWrappers[hw].classList.contains('section-hero') || heroWrappers[hw].getAttribute('data-section-key') === 'hero') {
+          heroWrappers[hw].style.setProperty('display', 'block', 'important');
+        }
       }
 
       var heroInnerWrappers = document.querySelectorAll(
