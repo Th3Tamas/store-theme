@@ -64,7 +64,7 @@
   - Robust fallback sequence when shortcode is omitted.
   - Prepends red prompt arrows (`>`) and formats `[OK]` status markers to the right edge with dot leaders (`......... [OK]`).
 - `[x]` **Brand Header Shortcodes (`[[loader-title: ...]]` & `[[loader-secondary: ...]]`):**
-  - `[[loader-title: FIRST / SECOND]]`: Primary title split by `/` with first part in bold uppercase white `Space Grotesk` and second part in crimson red. Defaults to `SONARLINE / lab`.
+  - `[[loader-title: FIRST / SECOND]]`: Primary title split by `/` with first part in bold uppercase white `Space Grotesk`, and both the slash (`/`) and second part in solid crimson red (`#FF2A2A` / `#FF3B30`). Defaults to `SONARLINE / lab`.
   - `[[loader-secondary: TEXT]]`: Centered subtext under the title in muted, tracked-out `Space Mono` (`letter-spacing: 0.25em`). Defaults to `SOUND DESIGN LAB`.
   - DOM sanitization strips all tokens from normal page flow.
 - `[x]` **Dynamic Incrementing Progress Bar & Percentage Engine:**
@@ -217,6 +217,11 @@
 ---
 
 ## 10. Changelog & Revision History
+
+### [2026-09-20 - Release 3]
+- **Fixed:** Suppressed preloader configuration setup section (`#content-section-ZGXLnKKrGq` / `[data-section-key="text-simple"]`) from normal page flow with immediate CSS suppression and robust multi-line token extraction and DOM clearing.
+- **Fixed:** Enforced crimson red (`#FF2A2A` / `#FF3B30`) on both the slash (`/`) and the second title word (`.hud-title-second`) in the preloader HUD brand title via high-specificity CSS and inline styling.
+- **Hardened:** Preloader fail-safe unmount timer (2.5s) and full `try...catch` lifecycle guards to guarantee normal page interaction under all conditions.
 
 ### [2026-09-20 - Release 2]
 - **Fixed:** Ticker navbar overlap via dynamic header offset calibration (`syncHeaderOffset` + `--sonarline-header-height: 132px`).

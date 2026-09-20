@@ -102,13 +102,16 @@
   font-weight: 700 !important;
   text-transform: uppercase !important;
 }
-.hud-brand-title .hud-slash {
-  color: #ff3b30 !important;
+.hud-brand-title .hud-slash,
+#sonarline-hud-preloader .hud-brand-title .hud-slash {
+  color: #FF2A2A !important;
   margin: 0 4px !important;
 }
 .hud-brand-title .hud-lab,
-.hud-brand-title .hud-title-second {
-  color: #ff3b30 !important;
+.hud-brand-title .hud-title-second,
+#sonarline-hud-preloader .hud-brand-title .hud-lab,
+#sonarline-hud-preloader .hud-brand-title .hud-title-second {
+  color: #FF2A2A !important;
   font-weight: 400 !important;
 }
 .hud-brand-sub {
@@ -619,6 +622,26 @@ main.main-content {
 .content-main-wrapper .main-content,
 .content-main-wrapper main {
   padding-top: 0 !important;
+}
+
+/* Preloader Setup Section Suppression: Guarantee Zero Syntax Leaks */
+#content-section-ZGXLnKKrGq,
+[data-section-unique-id="content-section-ZGXLnKKrGq"],
+.section-wrapper[data-preloader-hidden],
+[data-section-key="text-simple"]:has([data-preloader-hidden]),
+[data-preloader-hidden] {
+  display: none !important;
+  visibility: hidden !important;
+  height: 0px !important;
+  min-height: 0px !important;
+  max-height: 0px !important;
+  margin: 0px !important;
+  padding: 0px !important;
+  padding-top: 0px !important;
+  padding-bottom: 0px !important;
+  border: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
 }
 
 /* Section overflow guards */

@@ -66,13 +66,16 @@
     font-weight: 700;
     text-transform: uppercase;
   }
-  .hud-brand-title .hud-slash {
-    color: #ff3b30;
+  .hud-brand-title .hud-slash,
+  #sonarline-hud-preloader .hud-brand-title .hud-slash {
+    color: #FF2A2A !important;
     margin: 0 4px;
   }
   .hud-brand-title .hud-lab,
-  .hud-brand-title .hud-title-second {
-    color: #ff3b30;
+  .hud-brand-title .hud-title-second,
+  #sonarline-hud-preloader .hud-brand-title .hud-lab,
+  #sonarline-hud-preloader .hud-brand-title .hud-title-second {
+    color: #FF2A2A !important;
     font-weight: 400;
   }
   .hud-brand-sub {
@@ -283,7 +286,7 @@
         preloader.id = 'sonarline-hud-preloader';
         preloader.innerHTML = '<div class="hud-center-container">' +
           '<div class="hud-brand-header">' +
-            '<div class="hud-brand-title" id="hud-brand-title"><span class="hud-title-first">SONARLINE</span> <span class="hud-slash">/</span> <span class="hud-title-second">lab</span></div>' +
+            '<div class="hud-brand-title" id="hud-brand-title"><span class="hud-title-first" style="color: #ffffff !important; font-weight: 700 !important;">SONARLINE</span> <span class="hud-slash" style="color: #FF2A2A !important; margin: 0 4px !important; font-weight: 700 !important;">/</span> <span class="hud-title-second" style="color: #FF2A2A !important; font-weight: 400 !important;">lab</span></div>' +
             '<div class="hud-brand-sub" id="hud-brand-sub">SOUND DESIGN LAB</div>' +
           '</div>' +
           '<div class="hud-terminal-readout" id="hud-terminal-readout">' +
@@ -338,9 +341,11 @@
             var parts = rawTitle.split('/');
             var first = parts[0].trim();
             var second = parts.slice(1).join('/').trim();
-            titleEl.innerHTML = '<span class="hud-title-first">' + escapeHtml(first) + '</span> <span class="hud-slash">/</span> <span class="hud-title-second">' + escapeHtml(second) + '</span>';
+            titleEl.innerHTML = '<span class="hud-title-first" style="color: #ffffff !important; font-weight: 700 !important; text-transform: uppercase !important;">' + escapeHtml(first) + '</span> ' +
+              '<span class="hud-slash" style="color: #FF2A2A !important; margin: 0 4px !important; font-weight: 700 !important;">/</span> ' +
+              '<span class="hud-title-second" style="color: #FF2A2A !important; font-weight: 400 !important; text-transform: uppercase !important;">' + escapeHtml(second) + '</span>';
           } else {
-            titleEl.innerHTML = '<span class="hud-title-first">' + escapeHtml(rawTitle) + '</span>';
+            titleEl.innerHTML = '<span class="hud-title-first" style="color: #ffffff !important; font-weight: 700 !important; text-transform: uppercase !important;">' + escapeHtml(rawTitle) + '</span>';
           }
         }
 
@@ -385,28 +390,31 @@
         var secondaryGlobalRe = /\[\[loader-secondary:\s*[\s\S]*?\]\]/gi;
         var linesGlobalRe = /\[\[preloader:\s*[\s\S]*?\]\]/gi;
 
-        // 1. Target ONLY specific native Payhip Rich Text sections containing [[preloader:
-        // We hide only that specific section and extract the preloader lines if present.
-        var richTextSections = root.querySelectorAll('.rich-text, [data-section-key="rich-text"]');
-        for (var r = 0; r < richTextSections.length; r++) {
-          var rtSection = richTextSections[r];
-          if (rtSection.id === 'sonarline-hud-preloader' || rtSection.id === 'sonarline-preloader' ||
-              rtSection.closest('#sonarline-hud-preloader, #sonarline-preloader')) {
+        // 1. Target sections and containers containing [[preloader:
+        var candidateElements = root.querySelectorAll(
+          '#content-section-ZGXLnKKrGq, [data-section-unique-id="content-section-ZGXLnKKrGq"], [data-section-key="text-simple"], [data-section-key="rich-text"], .richtext, .rich-text, .section-wrapper'
+        );
+        for (var r = 0; r < candidateElements.length; r++) {
+          var cand = candidateElements[r];
+          if (!cand || cand.id === 'sonarline-hud-preloader' || cand.id === 'sonarline-preloader' ||
+              cand.closest('#sonarline-hud-preloader, #sonarline-preloader')) {
             continue;
           }
 
-          var rawHtml = rtSection.innerHTML || '';
-          var normalizedText = (rtSection.innerText || '') || rawHtml
-            .replace(/<br\s*\/?>/gi, '\n')
-            .replace(/<\/(?:p|div|li)>\s*<(?:p|div|li)[^>]*>/gi, '\n')
-            .replace(/<[^>]+>/g, ' ');
-          normalizedText = normalizedText.replace(/&nbsp;/gi, ' ').replace(/&#160;/g, ' ');
+          var rawHtml = cand.innerHTML || '';
+          var candText = cand.textContent || '';
+          var candInner = cand.innerText || '';
 
-          var textContent = (rtSection.textContent || '').replace(/&nbsp;/gi, ' ').replace(/&#160;/g, ' ');
+          if (candText.indexOf('[[preloader:') !== -1 || rawHtml.indexOf('[[preloader:') !== -1 || candInner.indexOf('[[preloader:') !== -1) {
+            var normalizedText = rawHtml
+              .replace(/<br\s*\/?>/gi, '\n')
+              .replace(/<\/(?:p|div|li)>\s*<(?:p|div|li)[^>]*>/gi, '\n')
+              .replace(/<[^>]+>/g, ' ')
+              .replace(/&nbsp;/gi, ' ')
+              .replace(/&#160;/g, ' ');
 
-          if (linesRe.test(normalizedText) || linesRe.test(textContent)) {
             if (!config.lines) {
-              var lm = normalizedText.match(linesRe) || textContent.match(linesRe);
+              var lm = normalizedText.match(linesRe) || candInner.match(linesRe) || candText.match(linesRe);
               if (lm && lm[1]) {
                 var rawLines = lm[1].split(/\r?\n|\|/);
                 var parsed = [];
@@ -417,13 +425,37 @@
                 if (parsed.length > 0) config.lines = parsed;
               }
             }
-            rtSection.style.setProperty('display', 'none', 'important');
-            rtSection.style.display = 'none';
-            var parentRtSec = rtSection.closest('[data-section-key="rich-text"]');
-            if (parentRtSec) {
-              parentRtSec.style.setProperty('display', 'none', 'important');
-              parentRtSec.style.display = 'none';
+
+            if (!config.title && (candText.indexOf('[[loader-title:') !== -1 || rawHtml.indexOf('[[loader-title:') !== -1)) {
+              var tm = normalizedText.match(titleRe) || candInner.match(titleRe) || candText.match(titleRe);
+              if (tm && tm[1]) config.title = tm[1].trim();
             }
+            if (!config.secondary && (candText.indexOf('[[loader-secondary:') !== -1 || rawHtml.indexOf('[[loader-secondary:') !== -1)) {
+              var sm = normalizedText.match(secondaryRe) || candInner.match(secondaryRe) || candText.match(secondaryRe);
+              if (sm && sm[1]) config.secondary = sm[1].trim();
+            }
+
+            var sec = cand.closest('[data-section-key="text-simple"], [data-section-key="rich-text"], #content-section-ZGXLnKKrGq, .section-wrapper');
+            if (!sec) sec = cand;
+
+            if (sec !== document.body && sec !== document.documentElement && !sec.classList.contains('content-main-wrapper')) {
+              sec.style.setProperty('display', 'none', 'important');
+              sec.style.setProperty('visibility', 'hidden', 'important');
+              sec.style.setProperty('height', '0px', 'important');
+              sec.style.setProperty('min-height', '0px', 'important');
+              sec.style.setProperty('max-height', '0px', 'important');
+              sec.style.setProperty('margin', '0px', 'important');
+              sec.style.setProperty('padding', '0px', 'important');
+              sec.style.setProperty('padding-top', '0px', 'important');
+              sec.style.setProperty('padding-bottom', '0px', 'important');
+              sec.style.setProperty('opacity', '0', 'important');
+              sec.style.setProperty('pointer-events', 'none', 'important');
+              sec.setAttribute('data-preloader-hidden', 'true');
+              sec.innerHTML = '';
+            }
+            cand.style.setProperty('display', 'none', 'important');
+            cand.setAttribute('data-preloader-hidden', 'true');
+            cand.innerHTML = '';
           }
         }
 
@@ -444,8 +476,8 @@
 
           if (titleRe.test(val)) {
             if (!config.title) {
-              var tm = val.match(titleRe);
-              if (tm && tm[1]) config.title = tm[1].trim();
+              var tm2 = val.match(titleRe);
+              if (tm2 && tm2[1]) config.title = tm2[1].trim();
             }
             textNode.textContent = textNode.textContent.replace(titleGlobalRe, '');
             val = textNode.nodeValue || '';
@@ -453,8 +485,8 @@
 
           if (secondaryRe.test(val)) {
             if (!config.secondary) {
-              var sm = val.match(secondaryRe);
-              if (sm && sm[1]) config.secondary = sm[1].trim();
+              var sm2 = val.match(secondaryRe);
+              if (sm2 && sm2[1]) config.secondary = sm2[1].trim();
             }
             textNode.textContent = textNode.textContent.replace(secondaryGlobalRe, '');
             val = textNode.nodeValue || '';
@@ -474,10 +506,15 @@
               }
             }
             textNode.textContent = textNode.textContent.replace(linesGlobalRe, '');
-            var containingRt = textNode.parentElement.closest('.rich-text, [data-section-key="rich-text"]');
-            if (containingRt) {
-              containingRt.style.setProperty('display', 'none', 'important');
-              containingRt.style.display = 'none';
+            var containingSec = textNode.parentElement.closest('[data-section-key="text-simple"], [data-section-key="rich-text"], #content-section-ZGXLnKKrGq, .section-wrapper, .richtext, .rich-text');
+            if (containingSec && containingSec !== document.body && containingSec !== document.documentElement && !containingSec.classList.contains('content-main-wrapper')) {
+              containingSec.style.setProperty('display', 'none', 'important');
+              containingSec.style.setProperty('visibility', 'hidden', 'important');
+              containingSec.style.setProperty('height', '0px', 'important');
+              containingSec.style.setProperty('padding', '0px', 'important');
+              containingSec.style.setProperty('margin', '0px', 'important');
+              containingSec.setAttribute('data-preloader-hidden', 'true');
+              containingSec.innerHTML = '';
             }
           }
         }
@@ -1268,6 +1305,25 @@
           '.content-main-wrapper .main-content,',
           '.content-main-wrapper main {',
           '  padding-top: 0 !important;',
+          '}',
+          '/* Preloader Setup Section Suppression: Guarantee Zero Syntax Leaks */',
+          '#content-section-ZGXLnKKrGq,',
+          '[data-section-unique-id="content-section-ZGXLnKKrGq"],',
+          '.section-wrapper[data-preloader-hidden],',
+          '[data-section-key="text-simple"]:has([data-preloader-hidden]),',
+          '[data-preloader-hidden] {',
+          '  display: none !important;',
+          '  visibility: hidden !important;',
+          '  height: 0px !important;',
+          '  min-height: 0px !important;',
+          '  max-height: 0px !important;',
+          '  margin: 0px !important;',
+          '  padding: 0px !important;',
+          '  padding-top: 0px !important;',
+          '  padding-bottom: 0px !important;',
+          '  border: none !important;',
+          '  opacity: 0 !important;',
+          '  pointer-events: none !important;',
           '}',
           '/* Base Layout Reset: Restore Collapsed DOM & Unblock Main Content */',
           '.content-main-wrapper {',
