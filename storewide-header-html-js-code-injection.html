@@ -184,39 +184,21 @@
   }
 </style>
 
-<div id="sonarline-hud-preloader">
-  <div class="hud-center-container">
-    <div class="hud-brand-header">
-      <div class="hud-brand-title">SONARLINE <span class="hud-slash">/</span> <span class="hud-lab">lab</span></div>
-      <div class="hud-brand-sub">SOUND DESIGN LAB</div>
-    </div>
-    <div class="hud-terminal-readout" id="hud-terminal-readout">
-      <div class="hud-line" id="hud-line-0"><span class="hud-prompt">&gt;</span> <span class="hud-cmd">initializing system...</span><span class="hud-dots"></span><span class="hud-status"></span></div>
-      <div class="hud-line" id="hud-line-1"><span class="hud-prompt">&gt;</span> <span class="hud-cmd">loading core modules</span><span class="hud-dots">............</span> <span class="hud-status">[<span class="hud-ok">OK</span>]</span></div>
-      <div class="hud-line" id="hud-line-2"><span class="hud-prompt">&gt;</span> <span class="hud-cmd">connecting audio engine</span><span class="hud-dots">.........</span> <span class="hud-status">[<span class="hud-ok">OK</span>]</span></div>
-      <div class="hud-line" id="hud-line-3"><span class="hud-prompt">&gt;</span> <span class="hud-cmd">loading sample library</span><span class="hud-dots">..........</span> <span class="hud-status">[<span class="hud-ok">OK</span>]</span></div>
-      <div class="hud-line" id="hud-line-4"><span class="hud-prompt">&gt;</span> <span class="hud-cmd">calibrating interface</span><span class="hud-dots">...........</span> <span class="hud-status">[<span class="hud-ok">OK</span>]</span></div>
-      <div class="hud-line" id="hud-line-5"><span class="hud-prompt">&gt;</span> <span class="hud-cmd">loading assets</span><span class="hud-dots">..................</span> <span class="hud-status">[<span class="hud-ok">OK</span>]</span></div>
-      <div class="hud-line" id="hud-line-6"><span class="hud-prompt">&gt;</span> <span class="hud-cmd">verifying session</span><span class="hud-dots">...............</span> <span class="hud-status">[<span class="hud-ok">OK</span>]</span></div>
-      <div class="hud-line" id="hud-line-7"><span class="hud-prompt">&gt;</span> <span class="hud-cmd">final checks</span><span class="hud-dots">....................</span> <span class="hud-status">[<span class="hud-ok">OK</span>]</span></div>
-      <div class="hud-line" id="hud-line-8"><span class="hud-prompt">&gt;</span> <span class="hud-ready">system ready.</span> <span class="hud-welcome">welcome.</span><span class="hud-dots"></span><span class="hud-status"></span></div>
-    </div>
-    <div class="hud-progress-bar-wrap">
-      <div class="hud-progress-line"><div class="hud-progress-fill" id="hud-progress-fill"></div></div>
-      <div class="hud-progress-footer">
-        <div class="hud-progress-status"><span class="hud-ready-sq">&#9632;</span> READY</div>
-        <div class="hud-progress-pct" id="hud-progress-pct">0%</div>
-      </div>
-    </div>
-  </div>
-</div>
-
 <script>
   (function() {
-    // Dynamic Preloader Construction (Guarantees mounting even when injected via script-only loaders)
+    // Execution gate: restrict fullscreen preloader strictly to homepage root
+    var path = (window.location.pathname || '').toLowerCase().replace(/\/+$/, '') || '/';
+    var isHomepage = (path === '/' || path === '' || path === '/index' || path === '/index.html' || path === '/sonarlineaudio');
+    if (!isHomepage) {
+      var existing = document.getElementById('sonarline-hud-preloader');
+      if (existing && existing.parentNode) {
+        existing.parentNode.removeChild(existing);
+      }
+      return;
+    }
+
+    // Dynamic Preloader Construction (Homepage only)
     var preloader = document.getElementById('sonarline-hud-preloader');
-    
-    // Always show preloader on every page load (no session gating)
     if (!preloader) {
       preloader = document.createElement('div');
       preloader.id = 'sonarline-hud-preloader';
@@ -621,18 +603,109 @@
           cardInner.style.setProperty('padding-top', '0', 'important');
           cardInner.style.setProperty('padding-bottom', '100%', 'important');
           cardInner.style.setProperty('box-sizing', 'content-box', 'important');
+          cardInner.style.setProperty('border-radius', '7px 7px 0 0', 'important');
         }
 
         // 3. Fix card__media: force absolute positioning
         var cardMedias = card.querySelectorAll('.card__media, .media');
         for (var k = 0; k < cardMedias.length; k++) {
           fixCardMedia(cardMedias[k]);
+          cardMedias[k].style.setProperty('border-radius', '7px 7px 0 0', 'important');
         }
 
         // 4. Fix all images inside cards: force position and top:0
         var imgs = card.querySelectorAll('img');
         for (var m = 0; m < imgs.length; m++) {
           fixCardImage(imgs[m]);
+          imgs[m].style.setProperty('border-radius', '7px 7px 0 0', 'important');
+        }
+
+        // 5. Two-Row Metadata Layout & [[tag: CATEGORY_NAME]] Shortcode Engine (Image 1)
+        var content = card.querySelector('.card > .card__content, .card__content:not(.card__inner *)');
+        if (content) {
+          var titleEl = content.querySelector('.card__heading, .font-section-collection-productName, h3, h4, .product-title, .product-name');
+          var tagText = '';
+
+          // Check title for [[tag: ...]]
+          if (titleEl) {
+            var rawTitle = titleEl.textContent || titleEl.innerText || '';
+            var tagMatch = rawTitle.match(/\[\[tag:\s*([\s\S]*?)\]\]/i);
+            if (tagMatch) {
+              tagText = tagMatch[1].trim();
+              // Strip [[tag: ...]] completely from title text and links
+              var links = titleEl.querySelectorAll('a');
+              if (links.length > 0) {
+                for (var l = 0; l < links.length; l++) {
+                  links[l].textContent = (links[l].textContent || '').replace(/\[\[tag:\s*([\s\S]*?)\]\]/gi, '').trim();
+                }
+              }
+              titleEl.textContent = (titleEl.textContent || '').replace(/\[\[tag:\s*([\s\S]*?)\]\]/gi, '').trim();
+            }
+          }
+
+          // Check card for [[tag: ...]] if not in title
+          if (!tagText) {
+            var cardRaw = card.textContent || '';
+            var tagMatch2 = cardRaw.match(/\[\[tag:\s*([\s\S]*?)\]\]/i);
+            if (tagMatch2) {
+              tagText = tagMatch2[1].trim();
+              var walker = document.createTreeWalker(card, NodeFilter.SHOW_TEXT, null, false);
+              var tn;
+              while ((tn = walker.nextNode())) {
+                if (tn.nodeValue && tn.nodeValue.includes('[[tag:')) {
+                  tn.nodeValue = tn.nodeValue.replace(/\[\[tag:\s*([\s\S]*?)\]\]/gi, '').trim();
+                }
+              }
+            }
+          }
+
+          // Fallback category if none specified
+          if (!tagText) {
+            var tUpper = (titleEl ? titleEl.textContent : card.textContent).toUpperCase();
+            if (tUpper.includes('BUNDLE')) tagText = 'BUNDLE / KITS';
+            else if (tUpper.includes('SAMPLE')) tagText = 'SAMPLE PACK';
+            else if (tUpper.includes('DRUM')) tagText = 'DRUM KIT';
+            else if (tUpper.includes('CREATIVE')) tagText = 'CREATIVE KIT';
+            else if (tUpper.includes('MULTI')) tagText = 'MULTI-KIT';
+            else if (tUpper.includes('PLUGIN') || tUpper.includes('WARMTONE')) tagText = 'PLUGIN';
+            else tagText = 'SOUND LAB';
+          }
+
+          // Build or update two-row metadata container
+          var metaWrap = content.querySelector('.sonarline-card-metadata');
+          if (!metaWrap) {
+            metaWrap = document.createElement('div');
+            metaWrap.className = 'sonarline-card-metadata';
+            metaWrap.innerHTML = 
+              '<div class="sonarline-card-row-top">' +
+                '<div class="sonarline-card-title-wrap"></div>' +
+                '<div class="sonarline-card-info-badge" title="Information">i</div>' +
+              '</div>' +
+              '<div class="sonarline-card-row-bottom">' +
+                '<div class="sonarline-card-tag-pill"></div>' +
+                '<div class="sonarline-card-price-wrap"></div>' +
+              '</div>';
+            content.appendChild(metaWrap);
+          }
+
+          // Place title in row 1
+          var titleWrap = metaWrap.querySelector('.sonarline-card-title-wrap');
+          if (titleEl && titleEl.parentElement !== titleWrap) {
+            titleWrap.appendChild(titleEl);
+          }
+
+          // Update pill text in row 2
+          var pillEl = metaWrap.querySelector('.sonarline-card-tag-pill');
+          if (pillEl && pillEl.textContent !== tagText) {
+            pillEl.textContent = tagText;
+          }
+
+          // Place price in row 2
+          var priceEl = content.querySelector('.price-block, .price, [class*="price"]:not(.sonarline-card-price-wrap):not(.sonarline-card-row-bottom)');
+          var priceWrap = metaWrap.querySelector('.sonarline-card-price-wrap');
+          if (priceEl && priceEl.parentElement !== priceWrap && priceEl !== priceWrap) {
+            priceWrap.appendChild(priceEl);
+          }
         }
       }
     }
@@ -809,7 +882,7 @@
           '  text-shadow: none !important;',
           '  filter: none !important;',
           '}',
-          '/* 5. Product Card Price Area: Clean Single-Line Price with Zero Ghost Lines */',
+          '/* 5. Product Card Price Area & Two-Row Metadata Layout (Image 1) */',
           '.card-wrapper .price-block *,',
           '.card-wrapper .price,',
           '.card-wrapper .price__container,',
@@ -826,10 +899,135 @@
           '  outline: none !important;',
           '}',
           '.card-wrapper .price-block {',
-          '  margin-top: auto !important;',
-          '  padding-top: 8px !important;',
+          '  margin: 0 !important;',
+          '  padding: 0 !important;',
           '  border: none !important;',
-          '  border-top: 1px solid rgba(255, 255, 255, 0.08) !important;',
+          '  border-top: none !important;',
+          '  box-shadow: none !important;',
+          '  background: transparent !important;',
+          '}',
+          'div.card-wrapper.product-card-wrapper, .card-wrapper.product-card-wrapper, .product-card-wrapper, .product-card, .card-wrapper {',
+          '  background: #0e0e0e !important;',
+          '  border: 1px solid rgba(255, 255, 255, 0.08) !important;',
+          '  border-radius: 8px !important;',
+          '  padding: 0 !important;',
+          '  margin: 0 !important;',
+          '  overflow: hidden !important;',
+          '  display: flex !important;',
+          '  flex-direction: column !important;',
+          '}',
+          '.card-wrapper .card__inner, .product-card .card__inner {',
+          '  border-radius: 7px 7px 0 0 !important;',
+          '}',
+          '.card-wrapper .card__inner .card__media, .card-wrapper .card__media, .card-wrapper img, .product-card img {',
+          '  border-radius: 7px 7px 0 0 !important;',
+          '}',
+          '.sonarline-card-metadata {',
+          '  padding: 16px 18px 18px 18px !important;',
+          '  display: flex !important;',
+          '  flex-direction: column !important;',
+          '  gap: 12px !important;',
+          '  flex-grow: 1 !important;',
+          '  box-sizing: border-box !important;',
+          '  background: transparent !important;',
+          '  border: none !important;',
+          '  justify-content: space-between !important;',
+          '}',
+          '.sonarline-card-row-top {',
+          '  display: flex !important;',
+          '  align-items: center !important;',
+          '  justify-content: space-between !important;',
+          '  width: 100% !important;',
+          '  gap: 10px !important;',
+          '}',
+          '.sonarline-card-title-wrap, .card-wrapper .card__heading, .card-wrapper h3, .card-wrapper h4, .product-title {',
+          '  margin: 0 !important;',
+          '  padding: 0 !important;',
+          '  flex: 1 1 auto !important;',
+          '  text-align: left !important;',
+          '  overflow: hidden !important;',
+          '  text-overflow: ellipsis !important;',
+          '  white-space: nowrap !important;',
+          '}',
+          '.card__heading, .card__heading a, .product-title {',
+          '  font-family: var(--font-sans, \'Space Grotesk\', sans-serif) !important;',
+          '  font-size: 0.95rem !important;',
+          '  font-weight: 700 !important;',
+          '  text-transform: uppercase !important;',
+          '  letter-spacing: 0.06em !important;',
+          '  color: #ffffff !important;',
+          '  text-decoration: none !important;',
+          '  text-align: left !important;',
+          '  line-height: 1.2 !important;',
+          '  margin: 0 !important;',
+          '}',
+          '.sonarline-card-info-badge {',
+          '  display: inline-flex !important;',
+          '  align-items: center !important;',
+          '  justify-content: center !important;',
+          '  width: 20px !important;',
+          '  height: 20px !important;',
+          '  min-width: 20px !important;',
+          '  border-radius: 50% !important;',
+          '  border: 1px solid rgba(255, 255, 255, 0.25) !important;',
+          '  color: rgba(255, 255, 255, 0.6) !important;',
+          '  font-family: var(--font-mono, monospace) !important;',
+          '  font-size: 0.7rem !important;',
+          '  font-weight: 700 !important;',
+          '  font-style: italic !important;',
+          '  line-height: 1 !important;',
+          '  user-select: none !important;',
+          '  cursor: pointer !important;',
+          '  flex: 0 0 20px !important;',
+          '}',
+          '.sonarline-card-row-bottom {',
+          '  display: flex !important;',
+          '  align-items: center !important;',
+          '  justify-content: space-between !important;',
+          '  width: 100% !important;',
+          '  gap: 10px !important;',
+          '  margin-top: auto !important;',
+          '}',
+          '.sonarline-card-tag-pill {',
+          '  display: inline-flex !important;',
+          '  align-items: center !important;',
+          '  justify-content: center !important;',
+          '  padding: 4px 12px !important;',
+          '  border-radius: 9999px !important;',
+          '  background: rgba(255, 255, 255, 0.05) !important;',
+          '  border: 1px solid rgba(255, 255, 255, 0.1) !important;',
+          '  color: #999999 !important;',
+          '  font-family: var(--font-mono, monospace) !important;',
+          '  font-size: 0.68rem !important;',
+          '  font-weight: 600 !important;',
+          '  letter-spacing: 0.08em !important;',
+          '  text-transform: uppercase !important;',
+          '  line-height: 1.2 !important;',
+          '  white-space: nowrap !important;',
+          '  overflow: hidden !important;',
+          '  text-overflow: ellipsis !important;',
+          '  max-width: 60% !important;',
+          '}',
+          '.sonarline-card-price-wrap, .card-wrapper .price, .card-wrapper [class*="price"], .product-price, .price {',
+          '  font-family: var(--font-mono, \'Space Mono\', monospace) !important;',
+          '  font-size: 0.88rem !important;',
+          '  font-weight: 700 !important;',
+          '  color: #ffffff !important;',
+          '  letter-spacing: 0.04em !important;',
+          '  text-transform: uppercase !important;',
+          '  margin: 0 !important;',
+          '  padding: 0 !important;',
+          '  border: none !important;',
+          '  border-top: none !important;',
+          '  box-shadow: none !important;',
+          '  outline: none !important;',
+          '  background: transparent !important;',
+          '  text-align: right !important;',
+          '  display: flex !important;',
+          '  align-items: center !important;',
+          '  justify-content: flex-end !important;',
+          '  margin-left: auto !important;',
+          '  flex: 0 0 auto !important;',
           '}',
           '/* 6. Collection catalog slides over receding headline like a curtain */',
           '#page-section-collection,',
@@ -1004,6 +1202,30 @@
           '  text-align: center !important;',
           '  margin: 0.5rem auto 0 !important;',
           '  width: 100% !important;',
+          '  font-family: var(--font-mono, \'Space Mono\', monospace) !important;',
+          '  font-size: 0.85rem !important;',
+          '  letter-spacing: 0.05em !important;',
+          '}',
+          '.sonarline-terminal-prompt .terminal-prompt-user {',
+          '  color: #FF3B30 !important;',
+          '  font-weight: 700 !important;',
+          '  margin-right: 8px !important;',
+          '}',
+          '.sonarline-terminal-prompt .terminal-prompt-cmd {',
+          '  color: #FFFFFF !important;',
+          '  font-weight: 700 !important;',
+          '  margin-right: 6px !important;',
+          '}',
+          '.sonarline-terminal-prompt .terminal-prompt-flag {',
+          '  color: #4E9A06 !important;',
+          '  font-weight: 500 !important;',
+          '}',
+          '.sonarline-terminal-prompt .terminal-prompt-args {',
+          '  color: #888888 !important;',
+          '}',
+          '.sonarline-terminal-prompt .sonarline-cursor-blink {',
+          '  color: #FF3B30 !important;',
+          '  margin-left: 6px !important;',
           '}',
           '/* Ticker bullets and separators */',
           '.sonarline-ticker-bullet,',
@@ -1619,12 +1841,23 @@
       }
       var tokens = cmd.split(' ');
       var mainCmd = tokens[0] || '';
-      var rest = tokens.slice(1).join(' ');
-      return '<div class="sonarline-terminal-prompt" data-shortcode-parsed="true" style="display: flex !important; align-items: center !important; justify-content: center !important; text-align: center !important; margin: 0.5rem auto 0 !important; width: 100% !important;">' +
-        '<span style="color: #ff3b30;">' + prompt + '</span> ' +
-        '<span style="color: #ffffff;">' + mainCmd + '</span> ' +
-        '<span style="color: #888888;">' + rest + '</span>' +
-        '<span class="sonarline-cursor-blink">&#9646;</span>' +
+      var restTokens = tokens.slice(1);
+
+      var restHtml = '';
+      for (var r = 0; r < restTokens.length; r++) {
+        var t = restTokens[r];
+        if (t.indexOf('-') === 0) {
+          restHtml += ' <span class="terminal-prompt-flag" style="color: #4E9A06 !important; font-weight: 500 !important;">' + escapeHtml(t) + '</span>';
+        } else {
+          restHtml += ' <span class="terminal-prompt-args" style="color: #888888 !important;">' + escapeHtml(t) + '</span>';
+        }
+      }
+
+      return '<div class="sonarline-terminal-prompt" data-shortcode-parsed="true" style="display: flex !important; align-items: center !important; justify-content: center !important; text-align: center !important; margin: 0.5rem auto 0 !important; width: 100% !important; font-family: var(--font-mono, \'Space Mono\', monospace) !important; font-size: 0.85rem !important; letter-spacing: 0.05em !important;">' +
+        '<span class="terminal-prompt-user" style="color: #FF3B30 !important; font-weight: 700 !important; margin-right: 8px !important;">' + escapeHtml(prompt) + '</span>' +
+        '<span class="terminal-prompt-cmd" style="color: #FFFFFF !important; font-weight: 700 !important; margin-right: 6px !important;">' + escapeHtml(mainCmd) + '</span>' +
+        restHtml +
+        '<span class="sonarline-cursor-blink" style="color: #FF3B30 !important; margin-left: 6px !important;">&#9646;</span>' +
       '</div>';
     }
 

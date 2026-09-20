@@ -487,11 +487,10 @@ img[src*="mountain"],
   text-decoration: none !important;
 }
 
-/* Terminal Prompt */
+/* Terminal Prompt (Bash Syntax Highlighting) */
 .sonarline-terminal-prompt {
-  font-family: var(--font-mono, monospace) !important;
+  font-family: var(--font-mono, 'Space Mono', monospace) !important;
   font-size: 0.85rem !important;
-  color: #555555 !important;
   margin-top: 0.5rem !important;
   margin-left: auto !important;
   margin-right: auto !important;
@@ -502,6 +501,32 @@ img[src*="mountain"],
   text-align: center !important;
   order: 4 !important;
   width: 100% !important;
+  letter-spacing: 0.05em !important;
+}
+
+.sonarline-terminal-prompt .terminal-prompt-user {
+  color: #FF3B30 !important;
+  font-weight: 700 !important;
+  margin-right: 8px !important;
+}
+
+.sonarline-terminal-prompt .terminal-prompt-cmd {
+  color: #FFFFFF !important;
+  font-weight: 700 !important;
+  margin-right: 6px !important;
+}
+
+.sonarline-terminal-prompt .terminal-prompt-flag {
+  color: #888888 !important;
+}
+
+.sonarline-terminal-prompt .terminal-prompt-args {
+  color: #888888 !important;
+}
+
+.sonarline-terminal-prompt .sonarline-cursor-blink {
+  color: #FF3B30 !important;
+  margin-left: 4px !important;
 }
 
 /* Completely hide any post-added embed hero sections, embed-code sections, and their parent wrappers */
@@ -1428,7 +1453,7 @@ select:focus {
    9. ZERO-TOLERANCE ATOMIC QA & PRODUCTION FIX OVERRIDES (CASCADE WINNER)
    ========================================================================== */
 
-/* 3. Product Titles: Uppercase Space Grotesk Bold */
+/* 3. Product Titles: Uppercase Space Grotesk Bold Left-Aligned (Image 1) */
 .card__heading,
 .card__heading a,
 .card__heading span,
@@ -1446,15 +1471,19 @@ h4.card__heading,
 [data-product-id] h3,
 [data-product-id] h4 {
   font-family: var(--font-sans, 'Space Grotesk', sans-serif) !important;
-  font-size: 1.1rem !important;
+  font-size: 0.95rem !important;
   font-weight: 700 !important;
   text-transform: uppercase !important;
-  letter-spacing: 0.08em !important;
+  letter-spacing: 0.06em !important;
   color: #ffffff !important;
   text-decoration: none !important;
+  text-align: left !important;
+  line-height: 1.2 !important;
+  margin: 0 !important;
 }
 
-/* 4. Product Prices: Monospace Red (#ff3b30) */
+/* 4. Product Prices: Monospace Clean Type Aligned Right (Image 1) */
+.sonarline-card-price-wrap,
 .card-wrapper .price,
 .card-wrapper [class*="price"],
 .product-price,
@@ -1467,11 +1496,35 @@ h4.card__heading,
 [class*="product-price"],
 [class*="price"] {
   font-family: var(--font-mono, 'Space Mono', monospace) !important;
-  font-size: 0.9rem !important;
+  font-size: 0.88rem !important;
   font-weight: 700 !important;
-  color: #ff3b30 !important;
-  letter-spacing: 0.08em !important;
+  color: #ffffff !important;
+  letter-spacing: 0.04em !important;
   text-transform: uppercase !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  border-top: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+  background: transparent !important;
+  text-align: right !important;
+}
+
+.price__sale,
+.price-item--sale {
+  color: #ffffff !important;
+}
+
+.price-item--sale .price-item__old,
+.price s,
+.price del,
+.price-item--regular s {
+  color: #666666 !important;
+  font-weight: 400 !important;
+  text-decoration: line-through !important;
+  font-size: 0.78rem !important;
+  margin-right: 6px !important;
 }
 
 /* 5. Eliminate Horizontal Overflow across Desktop and Mobile Viewports */
@@ -1512,42 +1565,41 @@ html, body {
   overflow: visible !important;
 }
 
-/* 6. Product Card Single Exterior Border & Flush Edge-to-Edge Media (Cascade Winner) */
+/* 6. Product Card Framing & Two-Row Metadata Layout (Reference Image 1) */
 div.card-wrapper.product-card-wrapper,
 .card-wrapper.product-card-wrapper,
-.product-card-wrapper {
-  background: #0f0f0f !important;
+.product-card-wrapper,
+.product-card,
+.card-wrapper {
+  background: #0e0e0e !important;
   border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 8px !important;
   padding: 0 !important;
   margin: 0 !important;
   overflow: hidden !important;
+  box-shadow: none !important;
+  display: flex !important;
+  flex-direction: column !important;
+  transition: border-color 0.25s ease, transform 0.25s ease !important;
 }
 
-.card-wrapper .card__inner .card__content,
-.card-wrapper .card__inner .card__information,
-.product-card .card__inner .card__content,
-.product-card .card__inner .card__information {
-  display: none !important;
-  visibility: hidden !important;
-  height: 0 !important;
-  max-height: 0 !important;
-  padding: 0 !important;
-  margin: 0 !important;
-  overflow: hidden !important;
-  opacity: 0 !important;
-  pointer-events: none !important;
+div.card-wrapper.product-card-wrapper:hover,
+.card-wrapper:hover {
+  border-color: rgba(255, 255, 255, 0.2) !important;
 }
 
+/* 1:1 Square Media Flush to Top, Left, Right */
 html body .card-wrapper .card__inner,
 html body .product-card .card__inner,
 .card-wrapper .card__inner.ratio {
   border: none !important;
+  border-radius: 7px 7px 0 0 !important;
   width: 100% !important;
   height: 0 !important;
   padding: 0 !important;
   padding-bottom: 100% !important;
   margin: 0 !important;
-  background: #0f0f0f !important;
+  background: #0a0a0a !important;
   box-shadow: none !important;
   position: relative !important;
   overflow: hidden !important;
@@ -1573,6 +1625,7 @@ html body .product-card .media,
   padding: 0 !important;
   overflow: hidden !important;
   display: block !important;
+  border-radius: 7px 7px 0 0 !important;
 }
 
 html body .card-wrapper img,
@@ -1596,19 +1649,139 @@ html body .card-wrapper .card__inner .media img {
   opacity: 1 !important;
   visibility: visible !important;
   display: block !important;
+  border-radius: 7px 7px 0 0 !important;
 }
 
+.card-wrapper .card__inner .card__content,
+.card-wrapper .card__inner .card__information,
+.product-card .card__inner .card__content,
+.product-card .card__inner .card__information {
+  display: none !important;
+  visibility: hidden !important;
+  height: 0 !important;
+  max-height: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Two-Row Metadata Container */
 .card-wrapper > .card > .card__content,
 .card-wrapper .card > .card__content:not(.card__inner .card__content),
 .card-wrapper .card__content:not(.card__inner *),
-.product-card > .card__content {
-  padding: 16px 20px 20px 20px !important;
+.product-card > .card__content,
+.sonarline-card-metadata {
+  padding: 16px 18px 18px 18px !important;
   display: flex !important;
   flex-direction: column !important;
+  gap: 12px !important;
   flex-grow: 1 !important;
   box-sizing: border-box !important;
   background: transparent !important;
   border: none !important;
+  justify-content: space-between !important;
+}
+
+/* Upper Row: Title Left + Info Badge Right */
+.sonarline-card-row-top {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  width: 100% !important;
+  gap: 10px !important;
+}
+
+.sonarline-card-title-wrap,
+.card-wrapper .card__heading,
+.card-wrapper h3,
+.card-wrapper h4,
+.product-title {
+  margin: 0 !important;
+  padding: 0 !important;
+  flex: 1 1 auto !important;
+  text-align: left !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+/* Circular Info Badge (Upper Right) */
+.sonarline-card-info-badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 20px !important;
+  height: 20px !important;
+  min-width: 20px !important;
+  border-radius: 50% !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  color: rgba(255, 255, 255, 0.6) !important;
+  font-family: var(--font-mono, monospace) !important;
+  font-size: 0.7rem !important;
+  font-weight: 700 !important;
+  font-style: italic !important;
+  line-height: 1 !important;
+  user-select: none !important;
+  cursor: pointer !important;
+  transition: border-color 0.2s ease, color 0.2s ease !important;
+  flex: 0 0 20px !important;
+}
+
+.sonarline-card-info-badge:hover {
+  border-color: rgba(255, 255, 255, 0.6) !important;
+  color: #ffffff !important;
+}
+
+/* Lower Row: Category Pill Left + Price Right */
+.sonarline-card-row-bottom {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  width: 100% !important;
+  gap: 10px !important;
+  margin-top: auto !important;
+}
+
+/* Category Pill Badge */
+.sonarline-card-tag-pill {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 4px 12px !important;
+  border-radius: 9999px !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: #999999 !important;
+  font-family: var(--font-mono, monospace) !important;
+  font-size: 0.68rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  line-height: 1.2 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  max-width: 60% !important;
+}
+
+/* Price Tag: Clean Monospace Aligned Right (No Red Line / Divider) */
+.sonarline-card-price-wrap {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  margin-left: auto !important;
+  flex: 0 0 auto !important;
+}
+
+.card-wrapper .price-block {
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  border-top: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
 }
 
 /* 7. Native Marquee Ticker Hairline Divider Accents (Cascade Winner) */
