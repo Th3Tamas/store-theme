@@ -593,7 +593,7 @@
                   if (isDismissed) return;
                   if (domLines[stepIdx]) domLines[stepIdx].classList.add('active');
                   if (pctEl) pctEl.textContent = pct + '%';
-                  if (fillEl) fillEl.style.setProperty('width', pct + '%', 'important');
+                  if (fillEl) fillEl.style.width = pct + '%';
 
                   // When final sequence completes at 100%, hold for 100ms, then smoothly fade out and unmount
                   if (stepIdx === total - 1) {
@@ -1388,277 +1388,6 @@
     setTimeout(cleanProductCards, 500);
     setTimeout(cleanProductCards, 1500);
     setTimeout(cleanProductCards, 3000);
-  })();
-
-  // ==========================================================================
-  // Product Rail ("Most Popular" looping marquee)
-  // All collection grids sitewide. Right-to-left auto-scroll (rAF) +
-  // manual drag/swipe. Scoped via [data-sl-rail="done"] so each converted
-  // grid is wrapped exactly once.
-  // NOTE: pushing to git is not enough — paste this whole file into
-  // Payhip's storewide header injection slot for the JS to go live.
-  // ==========================================================================
-  (function() {
-    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-
-    var RAIL_CSS = [
-      '[data-sl-rail="done"] { max-width: none !important; background: #080808 !important; border-top: 1px solid rgba(255,255,255,0.08) !important; border-bottom: 1px solid rgba(255,255,255,0.08) !important; padding: 0 0 8px !important; overflow: clip !important; }',
-      '[data-sl-rail="done"] .sl-rail-header { display: flex !important; align-items: center !important; justify-content: space-between !important; gap: 12px !important; padding: 12px 24px !important; border-bottom: 1px solid rgba(255,255,255,0.08) !important; font-family: \'Space Mono\', monospace !important; user-select: none !important; }',
-      '[data-sl-rail="done"] .sl-rail-label { display: inline-flex !important; align-items: center !important; gap: 8px !important; color: #FF2A2A !important; font-size: 0.72rem !important; font-weight: 700 !important; letter-spacing: 0.22em !important; text-transform: uppercase !important; white-space: nowrap !important; }',
-      '[data-sl-rail="done"] .sl-rail-label .sl-rail-dot { width: 6px !important; height: 6px !important; border-radius: 50% !important; background: #FF2A2A !important; display: inline-block !important; }',
-      '[data-sl-rail="done"] .sl-rail-count { color: #666666 !important; font-size: 0.72rem !important; letter-spacing: 0.14em !important; white-space: nowrap !important; }',
-      '[data-sl-rail="done"] .sl-rail-viewport { position: relative !important; overflow: hidden !important; width: 100% !important; max-width: 100vw !important; padding: 24px 24px 32px !important; box-sizing: border-box !important; touch-action: pan-y !important; user-select: none !important; -webkit-user-select: none !important; }',
-      '[data-sl-rail="done"] .sl-rail-viewport.sl-rail-dragging { touch-action: none !important; }',
-      '[data-sl-rail="done"] .sl-rail-viewport::before, [data-sl-rail="done"] .sl-rail-viewport::after { content: \'\' !important; position: absolute !important; top: 0 !important; bottom: 0 !important; width: 72px !important; z-index: 3 !important; pointer-events: none !important; }',
-      '[data-sl-rail="done"] .sl-rail-viewport::before { left: 0 !important; background: linear-gradient(to right, #080808 0%, rgba(8,8,8,0) 100%) !important; }',
-      '[data-sl-rail="done"] .sl-rail-viewport::after { right: 0 !important; background: linear-gradient(to left, #080808 0%, rgba(8,8,8,0) 100%) !important; }',
-      '[data-sl-rail="done"] .grid-list.js-grid-list.sl-rail-track, [data-sl-rail="done"] .grid-list.sl-rail-track { display: flex !important; flex-wrap: nowrap !important; align-items: stretch !important; gap: 20px !important; grid-template-columns: none !important; width: max-content !important; max-width: none !important; margin: 0 !important; padding: 4px 24px 4px 0 !important; box-sizing: border-box !important; will-change: transform !important; }',
-      '[data-sl-rail="done"] .card-wrapper.product-card-wrapper, [data-sl-rail="done"] .card-wrapper, [data-sl-rail="done"] .product-card { flex: 0 0 auto !important; width: 280px !important; min-width: 280px !important; max-width: 280px !important; background: #0f0f0f !important; border: 1px solid rgba(255,255,255,0.08) !important; border-radius: 8px !important; overflow: hidden !important; transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease !important; }',
-      '[data-sl-rail="done"] .card-wrapper.product-card-wrapper.is-active { border-color: rgba(255,42,42,0.9) !important; box-shadow: 0 0 24px rgba(255,42,42,0.35), 0 12px 35px rgba(0,0,0,0.6) !important; }',
-      '@media (max-width: 640px) { [data-sl-rail="done"] .card-wrapper.product-card-wrapper, [data-sl-rail="done"] .card-wrapper, [data-sl-rail="done"] .product-card { width: 220px !important; min-width: 220px !important; max-width: 220px !important; } }'
-    ].join('\n');
-
-    function ensureRailCss() {
-      if (document.getElementById('sl-rail-styles')) return;
-      var st = document.createElement('style');
-      st.id = 'sl-rail-styles';
-      st.textContent = RAIL_CSS;
-      (document.head || document.documentElement).appendChild(st);
-    }
-
-    var rails = [];
-
-    function mirrorClones(rail) {
-      try {
-        for (var i = 0; i < rail.clones.length; i++) {
-          var cl = rail.clones[i];
-          var src = rail.originals[cl.getAttribute('data-sl-clone-index') % rail.originals.length];
-          if (!src) continue;
-          if (cl.getAttribute('data-sonarline-sync') !== 'queued') cl.setAttribute('data-sonarline-sync', 'queued');
-          var srcAudio = src.getAttribute('data-audio-src');
-          if (srcAudio && cl.getAttribute('data-audio-src') !== srcAudio) cl.setAttribute('data-audio-src', srcAudio);
-          var srcPill = src.querySelector('.sonarline-card-tag-pill');
-          var clPill = cl.querySelector('.sonarline-card-tag-pill');
-          if (srcPill && clPill && clPill.textContent !== srcPill.textContent) {
-            clPill.textContent = srcPill.textContent;
-            clPill.style.setProperty('display', srcPill.textContent.trim() ? 'inline-flex' : 'none', 'important');
-          }
-        }
-      } catch (e) {}
-    }
-
-    function highlightCenter(rail) {
-      try {
-        var vpRect = rail.viewport.getBoundingClientRect();
-        var center = vpRect.left + vpRect.width / 2;
-        var best = null, bestDist = Infinity;
-        var cards = rail.track.querySelectorAll('.card-wrapper, .product-card');
-        for (var i = 0; i < cards.length; i++) {
-          var r = cards[i].getBoundingClientRect();
-          var d = Math.abs((r.left + r.width / 2) - center);
-          if (d < bestDist) { bestDist = d; best = cards[i]; }
-        }
-        if (best && best !== rail.active) {
-          if (rail.active) rail.active.classList.remove('is-active');
-          best.classList.add('is-active');
-          rail.active = best;
-        }
-      } catch (e) {}
-    }
-
-    function buildRail(grid) {
-      if (!grid || grid.getAttribute('data-sl-rail-track') === '1') return;
-      var originals = [];
-      var all = grid.querySelectorAll('.card-wrapper, .product-card');
-      for (var i = 0; i < all.length; i++) {
-        if (!all[i].hasAttribute('data-sl-clone')) originals.push(all[i]);
-      }
-      if (originals.length < 2) return;
-      var section = grid.closest('#page-section-collection, [data-section-key="collection"]') || grid.parentNode;
-      if (section.hasAttribute('data-sl-rail')) return;
-
-      ensureRailCss();
-      section.setAttribute('data-sl-rail', 'done');
-      grid.setAttribute('data-sl-rail-track', '1');
-      grid.classList.add('sl-rail-track');
-
-      var header = document.createElement('div');
-      header.className = 'sl-rail-header';
-      header.setAttribute('aria-hidden', 'false');
-      header.innerHTML = '<span class="sl-rail-label"><span class="sl-rail-dot"></span>MOST POPULAR</span>' +
-        '<span class="sl-rail-count">' + originals.length + ' products</span>';
-      var block = grid.closest('.grid-block') || grid.parentNode;
-      if (block && block.parentNode === section) section.insertBefore(header, block);
-      else section.insertBefore(header, grid);
-
-      var viewport = document.createElement('div');
-      viewport.className = 'sl-rail-viewport';
-      grid.parentNode.insertBefore(viewport, grid);
-      viewport.appendChild(grid);
-
-      var sets = originals.length < 4 ? 3 : 1;
-      var clones = [];
-      for (var s = 0; s < sets; s++) {
-        for (var c = 0; c < originals.length; c++) {
-          var cl = originals[c].cloneNode(true);
-          cl.setAttribute('data-sl-clone', '1');
-          cl.setAttribute('data-sl-clone-index', String(c));
-          cl.setAttribute('data-sonarline-sync', 'queued');
-          cl.setAttribute('aria-hidden', 'true');
-          var ids = cl.querySelectorAll('[id]');
-          for (var k = 0; k < ids.length; k++) ids[k].removeAttribute('id');
-          cl.removeAttribute('id');
-          grid.appendChild(cl);
-          clones.push(cl);
-        }
-      }
-
-      var rail = {
-        grid: grid, track: grid, viewport: viewport, section: section,
-        originals: originals, clones: clones, sets: sets + 1,
-        x: 0, setWidth: 0, dragging: false, hovering: false,
-        dragStartX: 0, dragStartScroll: 0, moved: false, resumeAt: 0, active: null
-      };
-
-      function measure() {
-        try {
-          var total = rail.track.scrollWidth;
-          rail.setWidth = total / rail.sets;
-        } catch (e) {}
-      }
-      rail.measure = measure;
-      measure();
-
-      grid.addEventListener('click', function(e) {
-        var badge = e.target.closest ? e.target.closest('.sonarline-card-info-badge') : null;
-        if (!badge) return;
-        var card = badge.closest ? badge.closest('.card-wrapper, .product-card') : null;
-        if (card && card.hasAttribute('data-sl-clone')) {
-          e.preventDefault();
-          e.stopPropagation();
-          if (typeof window.openProductModal === 'function') window.openProductModal(card);
-        }
-      });
-
-      viewport.addEventListener('pointerdown', function(e) {
-        if (e.button !== undefined && e.button !== 0) return;
-        rail.dragging = true;
-        rail.moved = false;
-        rail.dragStartX = e.clientX;
-        rail.dragStartScroll = rail.x;
-        viewport.classList.add('sl-rail-dragging');
-        try { viewport.setPointerCapture(e.pointerId); } catch (err) {}
-      });
-      viewport.addEventListener('pointermove', function(e) {
-        if (!rail.dragging) return;
-        var dx = e.clientX - rail.dragStartX;
-        if (Math.abs(dx) > 6) rail.moved = true;
-        rail.x = rail.dragStartScroll - dx;
-        if (rail.setWidth > 0) rail.x = ((rail.x % rail.setWidth) + rail.setWidth) % rail.setWidth;
-        rail.track.style.transform = 'translate3d(' + (-rail.x) + 'px, 0, 0)';
-      }, { passive: true });
-      function endDrag() {
-        if (!rail.dragging) return;
-        rail.dragging = false;
-        rail.resumeAt = Date.now() + 2000;
-        viewport.classList.remove('sl-rail-dragging');
-      }
-      viewport.addEventListener('pointerup', endDrag);
-      viewport.addEventListener('pointercancel', endDrag);
-      viewport.addEventListener('mouseenter', function() { rail.hovering = true; });
-      viewport.addEventListener('mouseleave', function() { rail.hovering = false; endDrag(); });
-      viewport.addEventListener('click', function(e) {
-        if (rail.moved) { e.preventDefault(); e.stopPropagation(); rail.moved = false; }
-      }, true);
-
-      rails.push(rail);
-      mirrorClones(rail);
-      highlightCenter(rail);
-      return rail;
-    }
-
-    function initRail() {
-      try {
-        var grids = document.querySelectorAll('#page-section-collection .grid-list, [data-section-key="collection"] .grid-list, .product-list-block .grid-list');
-        for (var i = 0; i < grids.length; i++) buildRail(grids[i]);
-        for (var r = 0; r < rails.length; r++) {
-          try { rails[r].measure(); mirrorClones(rails[r]); } catch (e) {}
-        }
-      } catch (e) {}
-    }
-
-    var lastT = 0, lastHi = 0;
-    function tick(t) {
-      try {
-        if (!document.hidden && rails.length) {
-          var dt = Math.min((t - lastT) / 1000, 0.1);
-          for (var i = 0; i < rails.length; i++) {
-            var rail = rails[i];
-            var paused = rail.dragging || rail.hovering || Date.now() < rail.resumeAt;
-            if (!paused && rail.setWidth > 0 && dt > 0) {
-              rail.x += 45 * dt;
-              rail.x = rail.x % rail.setWidth;
-              rail.track.style.transform = 'translate3d(' + (-rail.x) + 'px, 0, 0)';
-            }
-          }
-          if (t - lastHi > 200) {
-            lastHi = t;
-            for (var j = 0; j < rails.length; j++) {
-              mirrorClones(rails[j]);
-              highlightCenter(rails[j]);
-            }
-          }
-        }
-      } catch (e) {}
-      lastT = t;
-      window.requestAnimationFrame(tick);
-    }
-
-    window.slRailInit = initRail;
-    // Late grids: Payhip lazy-renders collection grids after load.
-    var railObsT = null;
-    if (typeof MutationObserver !== 'undefined') {
-      var railObs = new MutationObserver(function(muts) {
-        for (var i = 0; i < muts.length; i++) {
-          var added = muts[i].addedNodes;
-          for (var j = 0; added && j < added.length; j++) {
-            var n = added[j];
-            if (n.nodeType !== 1) continue;
-            if ((n.classList && n.classList.contains('grid-list')) ||
-                (n.querySelector && n.querySelector('.grid-list'))) {
-              if (railObsT) clearTimeout(railObsT);
-              railObsT = setTimeout(initRail, 300);
-              break;
-            }
-          }
-        }
-      });
-      try { railObs.observe(document.documentElement, { childList: true, subtree: true }); } catch (e) {}
-    }    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', function() {
-        ensureRailCss();
-        initRail();
-        window.requestAnimationFrame(tick);
-      });
-    } else {
-      ensureRailCss();
-      initRail();
-      window.requestAnimationFrame(tick);
-    }
-    var resizeT = null;
-    window.addEventListener('resize', function() {
-      if (resizeT) clearTimeout(resizeT);
-      resizeT = setTimeout(function() {
-        for (var i = 0; i < rails.length; i++) { try { rails[i].measure(); } catch (e) {} }
-      }, 200);
-    });
-    window.addEventListener('load', function() {
-      initRail();
-      for (var i = 0; i < rails.length; i++) { try { rails[i].measure(); } catch (e) {} }
-    });
-    setTimeout(initRail, 500);
-    setTimeout(initRail, 1500);
-    setTimeout(initRail, 3000);
   })();
 
   // ==========================================================================
@@ -3250,9 +2979,11 @@
   })();
 
   // ==========================================================================
-  // Subtask 1: Custom Cursor - single bigger white inverting dot
-  // White dot with mix-blend-mode: difference for negative effect.
-  // No outer circle. OS native cursor suppressed across entire page.
+  // Subtask 1: Custom Kinetic Cursor
+  // Lead: High-visibility Orange dot (#FF5500, instant)
+  // Trailing: Thin White wireframe circle (lerp lag)
+  // Difference blend mode for dynamic inversion over white/light backgrounds
+  // OS native cursor suppressed across entire page
   // ==========================================================================
   (function() {
     if (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) {
@@ -3269,9 +3000,9 @@
       '  position: fixed !important;',
       '  top: 0 !important;',
       '  left: 0 !important;',
-      '  width: 14px !important;',
-      '  height: 14px !important;',
-      '  background: #ffffff !important;',
+      '  width: 5px !important;',
+      '  height: 5px !important;',
+      '  background: #FF5500 !important;',
       '  border-radius: 50% !important;',
       '  pointer-events: none !important;',
       '  z-index: 2147483646 !important;',
@@ -3279,37 +3010,81 @@
       '  transform: translate3d(-100px, -100px, 0);',
       '  will-change: transform;',
       '}',
-      '#sl-cursor-circle { display: none !important; }',
+      '#sl-cursor-circle {',
+      '  position: fixed !important;',
+      '  top: 0 !important;',
+      '  left: 0 !important;',
+      '  width: 28px !important;',
+      '  height: 28px !important;',
+      '  border: 1px solid rgba(255, 255, 255, 0.85) !important;',
+      '  border-radius: 50% !important;',
+      '  pointer-events: none !important;',
+      '  z-index: 2147483645 !important;',
+      '  mix-blend-mode: difference !important;',
+      '  transform: translate3d(-100px, -100px, 0);',
+      '  transition: width 0.2s cubic-bezier(0.16, 1, 0.3, 1), height 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease, transform 0.04s linear !important;',
+      '  will-change: transform;',
+      '}',
+      '#sl-cursor-circle.hovered {',
+      '  width: 44px !important;',
+      '  height: 44px !important;',
+      '  border-color: rgba(255, 85, 0, 0.9) !important;',
+      '}',
       '@media (pointer: coarse) {',
       '  #sl-cursor-dot, #sl-cursor-circle { display: none !important; }',
       '  html, body, a, button, input, select, textarea, [role="button"], * { cursor: auto !important; }',
       '}'
     ].join('\n');
-    var existing = document.getElementById('sl-cursor-styles');
-    if (existing && existing.parentNode) existing.parentNode.removeChild(existing);
     (document.head || document.documentElement).appendChild(style);
 
-    var staleCircle = document.getElementById('sl-cursor-circle');
-    if (staleCircle && staleCircle.parentNode) staleCircle.parentNode.removeChild(staleCircle);
-
-    var dot = document.getElementById('sl-cursor-dot');
-    if (!dot) {
-      dot = document.createElement('div');
-      dot.id = 'sl-cursor-dot';
-    }
+    var dot = document.createElement('div');
+    dot.id = 'sl-cursor-dot';
+    var circle = document.createElement('div');
+    circle.id = 'sl-cursor-circle';
 
     function mountCursor() {
       if (!document.getElementById('sl-cursor-dot')) {
         (document.body || document.documentElement).appendChild(dot);
+        (document.body || document.documentElement).appendChild(circle);
       }
-      var leftover = document.getElementById('sl-cursor-circle');
-      if (leftover && leftover.parentNode) leftover.parentNode.removeChild(leftover);
     }
     if (document.body) mountCursor();
     else document.addEventListener('DOMContentLoaded', mountCursor);
 
+    var mouseX = -100, mouseY = -100;
+    var circleX = -100, circleY = -100;
+    var isHovered = false;
+
     window.addEventListener('mousemove', function(e) {
-      dot.style.transform = 'translate3d(' + (e.clientX - 7) + 'px, ' + (e.clientY - 7) + 'px, 0)';
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+      dot.style.transform = 'translate3d(' + (mouseX - 2.5) + 'px, ' + (mouseY - 2.5) + 'px, 0)';
+    }, { passive: true });
+
+    function lerpCursor() {
+      if (!document.hidden) {
+        var targetOffset = isHovered ? 22 : 14;
+        circleX += (mouseX - targetOffset - circleX) * 0.18;
+        circleY += (mouseY - targetOffset - circleY) * 0.18;
+        circle.style.transform = 'translate3d(' + circleX + 'px, ' + circleY + 'px, 0)';
+      }
+      window.requestAnimationFrame(lerpCursor);
+    }
+    window.requestAnimationFrame(lerpCursor);
+
+    var interactiveSelector = 'a, button, input, textarea, select, [role="button"], .card-wrapper, .product-card, .payhip-btn, .btn';
+    document.addEventListener('mouseover', function(e) {
+      if (e.target.closest && e.target.closest(interactiveSelector)) {
+        isHovered = true;
+        circle.classList.add('hovered');
+      }
+    }, { passive: true });
+
+    document.addEventListener('mouseout', function(e) {
+      if (e.target.closest && e.target.closest(interactiveSelector)) {
+        isHovered = false;
+        circle.classList.remove('hovered');
+      }
     }, { passive: true });
   })();
 
