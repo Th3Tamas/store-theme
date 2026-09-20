@@ -544,19 +544,31 @@
           '[data-section-key="ticker"] svg,',
           '.ticker svg,',
           '.js-ticker-svg,',
-          '.ticker-display,',
-          '.js-ticker-svg-wrapper,',
-          '.ticker-measure {',
+          'svg.ticker-measure,',
+          '.theme-tusk .marquee svg {',
           '  overflow: visible !important;',
           '  transform: translateY(-4.5px) !important;',
           '  filter: none !important;',
+          '}',
+          '/* Prevent transform compounding on ticker intermediate wrappers */',
+          '[data-section-key="ticker"] .ticker-display,',
+          '[data-section-key="ticker"] .js-ticker-svg-wrapper,',
+          '.ticker-wrapper,',
+          '.ticker-block {',
+          '  transform: none !important;',
           '}',
           '/* 4. Ticker text thin Space Grotesk without ambient light halos */',
           '[data-section-key="ticker"] text,',
           '[data-section-key="ticker"] tspan,',
           '[data-section-key="ticker"] textPath,',
+          '[data-section-key="ticker"] span,',
+          '[data-section-key="ticker"] p,',
+          '[data-section-key="ticker"] a,',
           '.ticker text,',
-          '.ticker tspan {',
+          '.ticker tspan,',
+          '.ticker span,',
+          '.ticker p,',
+          '.ticker a {',
           '  fill: #FF2A2A !important;',
           '  color: #FF2A2A !important;',
           '  font-family: \'Space Grotesk\', sans-serif !important;',
@@ -672,7 +684,7 @@
       }
 
       var svgs = document.querySelectorAll(
-        '[data-section-key="ticker"] svg, .ticker svg, .js-ticker-svg, .ticker-display, .js-ticker-svg-wrapper, .ticker-measure'
+        '[data-section-key="ticker"] svg, .ticker svg, .js-ticker-svg, svg.ticker-measure, .theme-tusk .marquee svg'
       );
       for (var s = 0; s < svgs.length; s++) {
         svgs[s].style.setProperty('overflow', 'visible', 'important');
@@ -680,8 +692,15 @@
         svgs[s].style.setProperty('filter', 'none', 'important');
       }
 
+      var tickerWrappers = document.querySelectorAll(
+        '[data-section-key="ticker"] .ticker-display, [data-section-key="ticker"] .js-ticker-svg-wrapper, .ticker-wrapper, .ticker-block'
+      );
+      for (var twi = 0; twi < tickerWrappers.length; twi++) {
+        tickerWrappers[twi].style.setProperty('transform', 'none', 'important');
+      }
+
       var texts = document.querySelectorAll(
-        '[data-section-key="ticker"] text, [data-section-key="ticker"] tspan, [data-section-key="ticker"] textPath, .ticker text, .ticker tspan'
+        '[data-section-key="ticker"] text, [data-section-key="ticker"] tspan, [data-section-key="ticker"] textPath, [data-section-key="ticker"] span, [data-section-key="ticker"] p, [data-section-key="ticker"] a, .ticker text, .ticker tspan, .ticker span, .ticker p, .ticker a'
       );
       for (var x = 0; x < texts.length; x++) {
         texts[x].style.setProperty('fill', '#FF2A2A', 'important');
@@ -991,7 +1010,7 @@
         var scaleVal = Math.max(1 - fadeProgress * 0.18, 0.82).toFixed(3);
 
         // Coordinate ALL hero components together in lockstep
-        var heroElements = heroEl.querySelectorAll('.sonarline-status-pill, h1, .heading-text, #sonarline-glitch-title, p, .richtext p, .sonarline-terminal-prompt');
+        var heroElements = heroEl.querySelectorAll('.sonarline-status-pill, h1, h2, .heading-text, .hero-title, .title, #sonarline-glitch-title, p, .richtext p, .sonarline-terminal-prompt');
         for (var i = 0; i < heroElements.length; i++) {
           var el = heroElements[i];
           el.style.filter = 'blur(' + blurPx + 'px)';
@@ -1004,6 +1023,11 @@
       ticking = false;
     }
 
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', updateHeroParallax);
+    } else {
+      updateHeroParallax();
+    }
     window.addEventListener('scroll', function() {
       if (!ticking) {
         window.requestAnimationFrame(updateHeroParallax);
