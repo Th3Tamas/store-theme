@@ -2521,10 +2521,10 @@ body.sonarline-modal-open {
 }
 
 /* --------------------------------------------------------------------------
-   9. Homepage Product Rail ("Most Popular" looping marquee)
-   Scoped strictly to [data-sl-rail="done"] so collection / product pages
-   and non-homepage grids keep the native grid layout.
-   Direction: right-to-left auto-scroll (JS rAF) + manual drag / swipe.
+   9. Product Rail ("Most Popular" looping marquee, all collection grids)
+   Scoped strictly to [data-sl-rail="done"] so each converted grid is
+   wrapped exactly once. Direction: right-to-left auto-scroll (JS rAF)
+   + manual drag / swipe.
    -------------------------------------------------------------------------- */
 [data-sl-rail="done"] {
   max-width: none !important;

@@ -1391,16 +1391,14 @@
   })();
 
   // ==========================================================================
-  // Homepage Product Rail ("Most Popular" looping marquee)
-  // Homepage grid only. Right-to-left auto-scroll (rAF) + manual drag/swipe.
-  // Scoped via [data-sl-rail="done"] so other pages keep native grid.
+  // Product Rail ("Most Popular" looping marquee)
+  // All collection grids sitewide. Right-to-left auto-scroll (rAF) +
+  // manual drag/swipe. Scoped via [data-sl-rail="done"] so each converted
+  // grid is wrapped exactly once.
+  // NOTE: pushing to git is not enough — paste this whole file into
+  // Payhip's storewide header injection slot for the JS to go live.
   // ==========================================================================
   (function() {
-    function isHomepage() {
-      var path = (window.location.pathname || '').toLowerCase().replace(/\/+$/, '') || '/';
-      return (path === '/' || path === '' || path === '/index' || path === '/index.html' || path === '/sonarlineaudio');
-    }
-    if (!isHomepage()) return;
     if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
     var RAIL_CSS = [
@@ -1581,8 +1579,7 @@
 
     function initRail() {
       try {
-        if (!isHomepage()) return;
-        var grids = document.querySelectorAll('#page-section-collection .grid-list, [data-section-key="collection"] .grid-list');
+        var grids = document.querySelectorAll('#page-section-collection .grid-list, [data-section-key="collection"] .grid-list, .product-list-block .grid-list');
         for (var i = 0; i < grids.length; i++) buildRail(grids[i]);
         for (var r = 0; r < rails.length; r++) {
           try { rails[r].measure(); mirrorClones(rails[r]); } catch (e) {}
@@ -1618,7 +1615,26 @@
     }
 
     window.slRailInit = initRail;
-    if (document.readyState === 'loading') {
+    // Late grids: Payhip lazy-renders collection grids after load.
+    var railObsT = null;
+    if (typeof MutationObserver !== 'undefined') {
+      var railObs = new MutationObserver(function(muts) {
+        for (var i = 0; i < muts.length; i++) {
+          var added = muts[i].addedNodes;
+          for (var j = 0; added && j < added.length; j++) {
+            var n = added[j];
+            if (n.nodeType !== 1) continue;
+            if ((n.classList && n.classList.contains('grid-list')) ||
+                (n.querySelector && n.querySelector('.grid-list'))) {
+              if (railObsT) clearTimeout(railObsT);
+              railObsT = setTimeout(initRail, 300);
+              break;
+            }
+          }
+        }
+      });
+      try { railObs.observe(document.documentElement, { childList: true, subtree: true }); } catch (e) {}
+    }    if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', function() {
         ensureRailCss();
         initRail();
