@@ -1730,17 +1730,18 @@ html body .card-wrapper .card__inner .media img {
   font-family: var(--font-mono, monospace) !important;
   font-size: 0.7rem !important;
   font-weight: 700 !important;
-  font-style: italic !important;
+  font-style: normal !important;
   line-height: 1 !important;
   user-select: none !important;
   cursor: pointer !important;
-  transition: border-color 0.2s ease, color 0.2s ease !important;
+  transition: border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease !important;
   flex: 0 0 20px !important;
 }
 
 .sonarline-card-info-badge:hover {
-  border-color: rgba(255, 255, 255, 0.6) !important;
+  border-color: rgba(255, 255, 255, 0.8) !important;
   color: #ffffff !important;
+  background-color: rgba(255, 255, 255, 0.08) !important;
 }
 
 /* Lower Row: Category Pill Left + Price Right */
@@ -1773,6 +1774,10 @@ html body .card-wrapper .card__inner .media img {
   overflow: hidden !important;
   text-overflow: ellipsis !important;
   max-width: 60% !important;
+}
+
+.sonarline-card-tag-pill:empty {
+  display: none !important;
 }
 
 /* Price Tag: Clean Monospace Aligned Right (No Red Line / Divider) */
@@ -2022,6 +2027,390 @@ html, body, a, button, input, select, textarea, [role="button"], * {
     margin: 0 auto !important;
     box-sizing: border-box !important;
   }
+}
+
+/* ==========================================================================
+   9. Brutalist Product & Backblaze Audio Preview Modal Engine
+   ========================================================================== */
+body.sonarline-modal-open {
+  overflow: hidden !important;
+}
+
+#sonarline-product-modal.sonarline-modal-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  z-index: 99999999 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 24px !important;
+  box-sizing: border-box !important;
+  user-select: none !important;
+}
+
+.sonarline-modal-backdrop {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  background: rgba(0, 0, 0, 0.85) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  z-index: 1 !important;
+}
+
+.sonarline-modal-container {
+  position: relative !important;
+  z-index: 2 !important;
+  background: #0d0d0d !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  border-radius: 12px !important;
+  width: 100% !important;
+  max-width: 820px !important;
+  max-height: 90vh !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  box-shadow: 0 32px 64px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(255, 255, 255, 0.05) !important;
+  box-sizing: border-box !important;
+  animation: sonarlineModalFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+@keyframes sonarlineModalFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.sonarline-modal-close {
+  position: absolute !important;
+  top: 16px !important;
+  right: 16px !important;
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 50% !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  color: #ffffff !important;
+  font-size: 1.2rem !important;
+  line-height: 1 !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 10 !important;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease !important;
+}
+
+.sonarline-modal-close:hover {
+  background: rgba(255, 59, 48, 0.2) !important;
+  border-color: #FF3B30 !important;
+  color: #FF3B30 !important;
+  transform: rotate(90deg) !important;
+}
+
+.sonarline-modal-nav {
+  position: absolute !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 50% !important;
+  background: rgba(20, 20, 20, 0.8) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  color: #ffffff !important;
+  font-size: 1.1rem !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 10 !important;
+  transition: background 0.2s ease, border-color 0.2s ease !important;
+}
+
+.sonarline-modal-nav:hover {
+  background: #FF3B30 !important;
+  border-color: #FF3B30 !important;
+  color: #000000 !important;
+}
+
+.sonarline-modal-prev {
+  left: 14px !important;
+}
+
+.sonarline-modal-next {
+  right: 14px !important;
+}
+
+.sonarline-modal-body {
+  display: flex !important;
+  flex-direction: row !important;
+  gap: 28px !important;
+  padding: 32px !important;
+  box-sizing: border-box !important;
+}
+
+@media (max-width: 768px) {
+  .sonarline-modal-body {
+    flex-direction: column !important;
+    padding: 24px 20px !important;
+    gap: 20px !important;
+  }
+  .sonarline-modal-nav {
+    display: none !important;
+  }
+}
+
+.sonarline-modal-media-wrap {
+  flex: 0 0 320px !important;
+  width: 320px !important;
+  max-width: 100% !important;
+  aspect-ratio: 1 / 1 !important;
+  border-radius: 8px !important;
+  overflow: hidden !important;
+  background: #141414 !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  position: relative !important;
+}
+
+@media (max-width: 768px) {
+  .sonarline-modal-media-wrap {
+    flex: 0 0 auto !important;
+    width: 100% !important;
+    max-width: 340px !important;
+    margin: 0 auto !important;
+  }
+}
+
+.sonarline-modal-img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  display: block !important;
+}
+
+.sonarline-modal-info {
+  flex: 1 1 auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  gap: 16px !important;
+  min-width: 0 !important;
+}
+
+.sonarline-modal-meta-row {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+}
+
+.sonarline-modal-tag-pill {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 4px 12px !important;
+  border-radius: 9999px !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  color: #a0a0a0 !important;
+  font-family: var(--font-mono, 'Space Mono', monospace) !important;
+  font-size: 0.72rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+}
+
+.sonarline-modal-price {
+  font-family: var(--font-mono, 'Space Mono', monospace) !important;
+  font-size: 1rem !important;
+  font-weight: 700 !important;
+  color: #ffffff !important;
+  letter-spacing: 0.04em !important;
+  margin-left: auto !important;
+}
+
+.sonarline-modal-title {
+  font-family: var(--font-heading, 'Space Grotesk', sans-serif) !important;
+  font-size: clamp(1.3rem, 3vw, 1.8rem) !important;
+  font-weight: 700 !important;
+  color: #ffffff !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.06em !important;
+  line-height: 1.2 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.sonarline-modal-desc {
+  font-family: var(--font-body, 'Space Grotesk', sans-serif) !important;
+  font-size: 0.88rem !important;
+  line-height: 1.6 !important;
+  color: #888888 !important;
+  margin: 0 !important;
+  max-height: 120px !important;
+  overflow-y: auto !important;
+}
+
+/* Audio Player in Modal */
+.sonarline-modal-audio-player {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 8px !important;
+  padding: 14px 16px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+  box-sizing: border-box !important;
+}
+
+.sonarline-audio-header {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  width: 100% !important;
+}
+
+.sonarline-audio-label {
+  font-family: var(--font-mono, 'Space Mono', monospace) !important;
+  font-size: 0.65rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.14em !important;
+  color: #FF3B30 !important;
+  text-transform: uppercase !important;
+}
+
+.sonarline-audio-time {
+  font-family: var(--font-mono, 'Space Mono', monospace) !important;
+  font-size: 0.72rem !important;
+  color: #888888 !important;
+  letter-spacing: 0.05em !important;
+}
+
+.sonarline-audio-controls {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 16px !important;
+  width: 100% !important;
+}
+
+.sonarline-audio-play-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  background: #FF3B30 !important;
+  color: #080808 !important;
+  border: none !important;
+  border-radius: 4px !important;
+  padding: 6px 14px !important;
+  font-family: var(--font-mono, 'Space Mono', monospace) !important;
+  font-size: 0.72rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.08em !important;
+  cursor: pointer !important;
+  transition: background 0.15s ease, transform 0.1s ease !important;
+}
+
+.sonarline-audio-play-btn:hover {
+  background: #ff5247 !important;
+  transform: translateY(-1px) !important;
+}
+
+.sonarline-audio-play-btn.is-playing {
+  background: #ffffff !important;
+  color: #080808 !important;
+}
+
+.sonarline-audio-vol-wrap {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+.sonarline-vol-icon {
+  font-size: 0.85rem !important;
+  color: #777777 !important;
+}
+
+.sonarline-audio-volume {
+  width: 70px !important;
+  accent-color: #FF3B30 !important;
+  cursor: pointer !important;
+}
+
+.sonarline-audio-track-wrap {
+  position: relative !important;
+  width: 100% !important;
+  height: 6px !important;
+  cursor: pointer !important;
+}
+
+.sonarline-audio-track-bg {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-radius: 3px !important;
+  overflow: hidden !important;
+}
+
+.sonarline-audio-track-progress {
+  height: 100% !important;
+  width: 0% !important;
+  background: #FF3B30 !important;
+  transition: width 0.1s linear !important;
+}
+
+.sonarline-audio-scrubber {
+  position: absolute !important;
+  top: -5px !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 16px !important;
+  opacity: 0 !important;
+  cursor: pointer !important;
+  margin: 0 !important;
+}
+
+.sonarline-modal-action-row {
+  margin-top: 8px !important;
+}
+
+.sonarline-modal-cta {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100% !important;
+  padding: 12px 20px !important;
+  background: transparent !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  color: #ffffff !important;
+  border-radius: 6px !important;
+  font-family: var(--font-mono, 'Space Mono', monospace) !important;
+  font-size: 0.82rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase !important;
+  text-decoration: none !important;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease !important;
+  box-sizing: border-box !important;
+}
+
+.sonarline-modal-cta:hover {
+  background: #ffffff !important;
+  color: #080808 !important;
+  border-color: #ffffff !important;
 }
 
 

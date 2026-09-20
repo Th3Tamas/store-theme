@@ -577,6 +577,292 @@
       img.style.setProperty('padding', '0', 'important');
     }
 
+    // Brutalist Product & Backblaze Audio Preview Modal Engine
+    var modalHtml = 
+      '<div id="sonarline-product-modal" class="sonarline-modal-overlay" style="display: none;" aria-hidden="true" role="dialog">' +
+        '<div class="sonarline-modal-backdrop"></div>' +
+        '<div class="sonarline-modal-container">' +
+          '<button class="sonarline-modal-close" type="button" aria-label="Close modal">&times;</button>' +
+          '<button class="sonarline-modal-nav sonarline-modal-prev" type="button" aria-label="Previous product">&larr;</button>' +
+          '<button class="sonarline-modal-nav sonarline-modal-next" type="button" aria-label="Next product">&rarr;</button>' +
+          '<div class="sonarline-modal-body">' +
+            '<div class="sonarline-modal-media-wrap">' +
+              '<img class="sonarline-modal-img" src="" alt="Product Artwork" />' +
+            '</div>' +
+            '<div class="sonarline-modal-info">' +
+              '<div class="sonarline-modal-meta-row">' +
+                '<span class="sonarline-modal-tag-pill" style="display: none;"></span>' +
+                '<span class="sonarline-modal-price"></span>' +
+              '</div>' +
+              '<h2 class="sonarline-modal-title"></h2>' +
+              '<div class="sonarline-modal-desc" style="display: none;"></div>' +
+              '<div class="sonarline-modal-audio-player" style="display: none;">' +
+                '<div class="sonarline-audio-header">' +
+                  '<span class="sonarline-audio-label">AUDIO PREVIEW</span>' +
+                  '<div class="sonarline-audio-time">0:00 / 0:00</div>' +
+                '</div>' +
+                '<div class="sonarline-audio-controls">' +
+                  '<button class="sonarline-audio-play-btn" type="button" aria-label="Play demo">' +
+                    '<span class="sonarline-audio-icon">&#9654;</span>' +
+                    '<span class="sonarline-audio-btn-text">PLAY DEMO</span>' +
+                  '</button>' +
+                  '<div class="sonarline-audio-vol-wrap">' +
+                    '<span class="sonarline-vol-icon">&#128266;</span>' +
+                    '<input type="range" class="sonarline-audio-volume" min="0" max="1" step="0.05" value="0.8" aria-label="Volume">' +
+                  '</div>' +
+                '</div>' +
+                '<div class="sonarline-audio-track-wrap">' +
+                  '<div class="sonarline-audio-track-bg">' +
+                    '<div class="sonarline-audio-track-progress"></div>' +
+                  '</div>' +
+                  '<input type="range" class="sonarline-audio-scrubber" min="0" max="100" value="0" step="0.1" aria-label="Audio scrubber">' +
+                '</div>' +
+              '</div>' +
+              '<div class="sonarline-modal-action-row">' +
+                '<a class="sonarline-modal-cta" href="#" target="_self">EXPLORE PRODUCT &rarr;</a>' +
+              '</div>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+
+    var audioEngine = new Audio();
+    var allCards = [];
+    var currentCardIndex = -1;
+
+    function formatTime(seconds) {
+      if (isNaN(seconds) || seconds < 0) return '0:00';
+      var m = Math.floor(seconds / 60);
+      var s = Math.floor(seconds % 60);
+      return m + ':' + (s < 10 ? '0' : '') + s;
+    }
+
+    function stopAudio() {
+      try {
+        audioEngine.pause();
+        audioEngine.currentTime = 0;
+        audioEngine.removeAttribute('src');
+      } catch (e) {}
+      var playBtn = document.querySelector('.sonarline-audio-play-btn');
+      if (playBtn) {
+        var icon = playBtn.querySelector('.sonarline-audio-icon');
+        var text = playBtn.querySelector('.sonarline-audio-btn-text');
+        if (icon) icon.innerHTML = '&#9654;';
+        if (text) text.textContent = 'PLAY DEMO';
+        playBtn.classList.remove('is-playing');
+      }
+      var progress = document.querySelector('.sonarline-audio-track-progress');
+      if (progress) progress.style.width = '0%';
+      var scrubber = document.querySelector('.sonarline-audio-scrubber');
+      if (scrubber) scrubber.value = 0;
+      var timeEl = document.querySelector('.sonarline-audio-time');
+      if (timeEl) timeEl.textContent = '0:00 / 0:00';
+    }
+
+    function ensureModal() {
+      var modal = document.getElementById('sonarline-product-modal');
+      if (!modal) {
+        var wrapper = document.createElement('div');
+        wrapper.innerHTML = modalHtml;
+        modal = wrapper.firstElementChild;
+        (document.body || document.documentElement).appendChild(modal);
+
+        var closeBtn = modal.querySelector('.sonarline-modal-close');
+        var backdrop = modal.querySelector('.sonarline-modal-backdrop');
+        var prevBtn = modal.querySelector('.sonarline-modal-prev');
+        var nextBtn = modal.querySelector('.sonarline-modal-next');
+        var playBtn = modal.querySelector('.sonarline-audio-play-btn');
+        var scrubber = modal.querySelector('.sonarline-audio-scrubber');
+        var volumeInput = modal.querySelector('.sonarline-audio-volume');
+        var progress = modal.querySelector('.sonarline-audio-track-progress');
+        var timeEl = modal.querySelector('.sonarline-audio-time');
+
+        if (closeBtn) closeBtn.addEventListener('click', closeModal);
+        if (backdrop) backdrop.addEventListener('click', closeModal);
+
+        document.addEventListener('keydown', function(e) {
+          if (e.key === 'Escape') closeModal();
+        });
+
+        if (prevBtn) {
+          prevBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            allCards = Array.prototype.slice.call(document.querySelectorAll('.card-wrapper, .product-card'));
+            if (allCards.length > 0) {
+              currentCardIndex = (currentCardIndex - 1 + allCards.length) % allCards.length;
+              populateModal(allCards[currentCardIndex]);
+            }
+          });
+        }
+
+        if (nextBtn) {
+          nextBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            allCards = Array.prototype.slice.call(document.querySelectorAll('.card-wrapper, .product-card'));
+            if (allCards.length > 0) {
+              currentCardIndex = (currentCardIndex + 1) % allCards.length;
+              populateModal(allCards[currentCardIndex]);
+            }
+          });
+        }
+
+        if (playBtn) {
+          playBtn.addEventListener('click', function() {
+            var icon = playBtn.querySelector('.sonarline-audio-icon');
+            var text = playBtn.querySelector('.sonarline-audio-btn-text');
+            if (audioEngine.paused) {
+              audioEngine.play().then(function() {
+                playBtn.classList.add('is-playing');
+                if (icon) icon.innerHTML = '&#10074;&#10074;';
+                if (text) text.textContent = 'PAUSE DEMO';
+              }).catch(function(err) {
+                console.error('Audio playback error:', err);
+              });
+            } else {
+              audioEngine.pause();
+              playBtn.classList.remove('is-playing');
+              if (icon) icon.innerHTML = '&#9654;';
+              if (text) text.textContent = 'PLAY DEMO';
+            }
+          });
+        }
+
+        if (scrubber) {
+          scrubber.addEventListener('input', function() {
+            if (audioEngine.duration) {
+              var seek = (scrubber.value / 100) * audioEngine.duration;
+              audioEngine.currentTime = seek;
+            }
+          });
+        }
+
+        if (volumeInput) {
+          volumeInput.addEventListener('input', function() {
+            audioEngine.volume = parseFloat(volumeInput.value);
+          });
+        }
+
+        audioEngine.addEventListener('timeupdate', function() {
+          if (audioEngine.duration) {
+            var pct = (audioEngine.currentTime / audioEngine.duration) * 100;
+            if (progress) progress.style.width = pct + '%';
+            if (scrubber) scrubber.value = pct;
+            if (timeEl) timeEl.textContent = formatTime(audioEngine.currentTime) + ' / ' + formatTime(audioEngine.duration);
+          }
+        });
+
+        audioEngine.addEventListener('loadedmetadata', function() {
+          if (timeEl) timeEl.textContent = '0:00 / ' + formatTime(audioEngine.duration);
+        });
+
+        audioEngine.addEventListener('ended', function() {
+          stopAudio();
+        });
+      }
+      return modal;
+    }
+
+    function closeModal() {
+      var modal = document.getElementById('sonarline-product-modal');
+      if (modal) {
+        modal.style.setProperty('display', 'none', 'important');
+        modal.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('sonarline-modal-open');
+      }
+      stopAudio();
+    }
+
+    function populateModal(card) {
+      if (!card) return;
+      var modal = ensureModal();
+      stopAudio();
+
+      allCards = Array.prototype.slice.call(document.querySelectorAll('.card-wrapper, .product-card'));
+      currentCardIndex = allCards.indexOf(card);
+
+      // 1. Artwork
+      var imgEl = card.querySelector('img');
+      var modalImg = modal.querySelector('.sonarline-modal-img');
+      if (modalImg) {
+        modalImg.src = imgEl ? (imgEl.currentSrc || imgEl.src || '') : '';
+        modalImg.alt = imgEl ? (imgEl.alt || 'Product Artwork') : 'Product Artwork';
+      }
+
+      // 2. Title
+      var titleEl = card.querySelector('.card__heading, .font-section-collection-productName, h3, h4, .product-title, .product-name');
+      var title = '';
+      if (titleEl) {
+        title = (titleEl.textContent || '').replace(/\[\[tag:\s*[\s\S]*?\]\]/gi, '').replace(/\[\[audio:\s*[\s\S]*?\]\]/gi, '').trim();
+      }
+      var modalTitle = modal.querySelector('.sonarline-modal-title');
+      if (modalTitle) modalTitle.textContent = title;
+
+      // 3. Tag (strictly conditional)
+      var tagPill = card.querySelector('.sonarline-card-tag-pill');
+      var modalTag = modal.querySelector('.sonarline-modal-tag-pill');
+      if (modalTag) {
+        if (tagPill && tagPill.textContent.trim() && tagPill.style.display !== 'none') {
+          modalTag.textContent = tagPill.textContent.trim();
+          modalTag.style.setProperty('display', 'inline-flex', 'important');
+        } else {
+          modalTag.style.setProperty('display', 'none', 'important');
+        }
+      }
+
+      // 4. Price
+      var priceEl = card.querySelector('.price, .price-block, [class*="price"]:not(.sonarline-card-price-wrap):not(.sonarline-card-row-bottom)');
+      var modalPrice = modal.querySelector('.sonarline-modal-price');
+      if (modalPrice) {
+        modalPrice.textContent = priceEl ? priceEl.textContent.trim() : '';
+      }
+
+      // 5. Description
+      var descEl = card.querySelector('.card__description, .product-description, .font-section-collection-productDesc, p:not(.price)');
+      var descText = descEl ? descEl.textContent.replace(/\[\[tag:\s*[\s\S]*?\]\]/gi, '').replace(/\[\[audio:\s*[\s\S]*?\]\]/gi, '').trim() : '';
+      var modalDesc = modal.querySelector('.sonarline-modal-desc');
+      if (modalDesc) {
+        if (descText) {
+          modalDesc.textContent = descText;
+          modalDesc.style.setProperty('display', 'block', 'important');
+        } else {
+          modalDesc.style.setProperty('display', 'none', 'important');
+        }
+      }
+
+      // 6. Product Link / CTA
+      var linkEl = card.querySelector('a');
+      var modalCta = modal.querySelector('.sonarline-modal-cta');
+      if (modalCta) {
+        modalCta.href = linkEl ? linkEl.href : '#';
+      }
+
+      // 7. Audio Player (Backblaze shortcode engine)
+      var audioSrc = card.getAttribute('data-audio-src') || '';
+      var audioPlayer = modal.querySelector('.sonarline-modal-audio-player');
+      if (audioPlayer) {
+        if (audioSrc) {
+          audioPlayer.style.setProperty('display', 'flex', 'important');
+          audioEngine.src = audioSrc;
+          audioEngine.load();
+        } else {
+          audioPlayer.style.setProperty('display', 'none', 'important');
+        }
+      }
+
+      // 8. Nav arrows visibility
+      var prevBtn = modal.querySelector('.sonarline-modal-prev');
+      var nextBtn = modal.querySelector('.sonarline-modal-next');
+      if (prevBtn) prevBtn.style.setProperty('display', allCards.length > 1 ? 'flex' : 'none', 'important');
+      if (nextBtn) nextBtn.style.setProperty('display', allCards.length > 1 ? 'flex' : 'none', 'important');
+
+      modal.style.setProperty('display', 'flex', 'important');
+      modal.setAttribute('aria-hidden', 'false');
+      document.body.classList.add('sonarline-modal-open');
+    }
+
+    window.openProductModal = populateModal;
+    window.closeProductModal = closeModal;
+
     function cleanProductCards() {
       var cards = document.querySelectorAll('.card-wrapper, .product-card');
       for (var i = 0; i < cards.length; i++) {
@@ -592,7 +878,6 @@
         }
 
         // 2. Fix card__inner: use padding-bottom:100% + height:0 ratio pattern
-        // (NOT aspect-ratio - Payhip's theme uses padding-bottom trick; all children are position:absolute)
         var cardInner = card.querySelector('.card__inner');
         if (cardInner) {
           cardInner.style.setProperty('position', 'relative', 'important');
@@ -620,11 +905,27 @@
           imgs[m].style.setProperty('border-radius', '7px 7px 0 0', 'important');
         }
 
-        // 5. Two-Row Metadata Layout & [[tag: CATEGORY_NAME]] Shortcode Engine (Image 1)
+        // 5. Two-Row Metadata Layout, [[tag: ...]] & [[audio: ...]] Shortcode Engine
         var content = card.querySelector('.card > .card__content, .card__content:not(.card__inner *)');
         if (content) {
           var titleEl = content.querySelector('.card__heading, .font-section-collection-productName, h3, h4, .product-title, .product-name');
           var tagText = '';
+
+          // Parse [[audio: URL_HERE]] shortcode from card
+          var audioUrl = '';
+          var cardRawText = card.textContent || '';
+          var audioMatch = cardRawText.match(/\[\[audio:\s*([\s\S]*?)\]\]/i);
+          if (audioMatch) {
+            audioUrl = audioMatch[1].trim();
+            card.setAttribute('data-audio-src', audioUrl);
+            var aWalker = document.createTreeWalker(card, NodeFilter.SHOW_TEXT, null, false);
+            var aNode;
+            while ((aNode = aWalker.nextNode())) {
+              if (aNode.nodeValue && /\[\[audio:/i.test(aNode.nodeValue)) {
+                aNode.nodeValue = aNode.nodeValue.replace(/\[\[audio:\s*[\s\S]*?\]\]/gi, '').trim();
+              }
+            }
+          }
 
           // Check title for [[tag: ...]]
           if (titleEl) {
@@ -659,18 +960,6 @@
             }
           }
 
-          // Fallback category if none specified
-          if (!tagText) {
-            var tUpper = (titleEl ? titleEl.textContent : card.textContent).toUpperCase();
-            if (tUpper.includes('BUNDLE')) tagText = 'BUNDLE / KITS';
-            else if (tUpper.includes('SAMPLE')) tagText = 'SAMPLE PACK';
-            else if (tUpper.includes('DRUM')) tagText = 'DRUM KIT';
-            else if (tUpper.includes('CREATIVE')) tagText = 'CREATIVE KIT';
-            else if (tUpper.includes('MULTI')) tagText = 'MULTI-KIT';
-            else if (tUpper.includes('PLUGIN') || tUpper.includes('WARMTONE')) tagText = 'PLUGIN';
-            else tagText = 'SOUND LAB';
-          }
-
           // Build or update two-row metadata container
           var metaWrap = content.querySelector('.sonarline-card-metadata');
           if (!metaWrap) {
@@ -679,7 +968,7 @@
             metaWrap.innerHTML = 
               '<div class="sonarline-card-row-top">' +
                 '<div class="sonarline-card-title-wrap"></div>' +
-                '<div class="sonarline-card-info-badge" title="Information">i</div>' +
+                '<div class="sonarline-card-info-badge" title="Product Preview">!</div>' +
               '</div>' +
               '<div class="sonarline-card-row-bottom">' +
                 '<div class="sonarline-card-tag-pill"></div>' +
@@ -688,16 +977,39 @@
             content.appendChild(metaWrap);
           }
 
+          // Circular exclamation badge with interactive modal trigger
+          var badgeEl = metaWrap.querySelector('.sonarline-card-info-badge');
+          if (badgeEl) {
+            if (badgeEl.textContent !== '!') badgeEl.textContent = '!';
+            badgeEl.title = 'Product Preview';
+            if (!badgeEl.getAttribute('data-modal-bound')) {
+              badgeEl.setAttribute('data-modal-bound', 'true');
+              (function(currentCard) {
+                badgeEl.addEventListener('click', function(e) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  populateModal(currentCard);
+                });
+              })(card);
+            }
+          }
+
           // Place title in row 1
           var titleWrap = metaWrap.querySelector('.sonarline-card-title-wrap');
           if (titleEl && titleEl.parentElement !== titleWrap) {
             titleWrap.appendChild(titleEl);
           }
 
-          // Update pill text in row 2
+          // Update pill in row 2 (Strictly conditional, ZERO fallback/inferred tags)
           var pillEl = metaWrap.querySelector('.sonarline-card-tag-pill');
-          if (pillEl && pillEl.textContent !== tagText) {
-            pillEl.textContent = tagText;
+          if (pillEl) {
+            if (tagText) {
+              pillEl.textContent = tagText;
+              pillEl.style.setProperty('display', 'inline-flex', 'important');
+            } else {
+              pillEl.textContent = '';
+              pillEl.style.setProperty('display', 'none', 'important');
+            }
           }
 
           // Place price in row 2
@@ -980,11 +1292,17 @@
           '  font-family: var(--font-mono, monospace) !important;',
           '  font-size: 0.7rem !important;',
           '  font-weight: 700 !important;',
-          '  font-style: italic !important;',
+          '  font-style: normal !important;',
           '  line-height: 1 !important;',
           '  user-select: none !important;',
           '  cursor: pointer !important;',
+          '  transition: border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease !important;',
           '  flex: 0 0 20px !important;',
+          '}',
+          '.sonarline-card-info-badge:hover {',
+          '  border-color: rgba(255, 255, 255, 0.8) !important;',
+          '  color: #ffffff !important;',
+          '  background-color: rgba(255, 255, 255, 0.08) !important;',
           '}',
           '.sonarline-card-row-bottom {',
           '  display: flex !important;',
@@ -1013,6 +1331,340 @@
           '  overflow: hidden !important;',
           '  text-overflow: ellipsis !important;',
           '  max-width: 60% !important;',
+          '}',
+          '.sonarline-card-tag-pill:empty {',
+          '  display: none !important;',
+          '}',
+          '/* Brutalist Product Modal Overlay */',
+          'body.sonarline-modal-open {',
+          '  overflow: hidden !important;',
+          '}',
+          '#sonarline-product-modal.sonarline-modal-overlay {',
+          '  position: fixed !important;',
+          '  top: 0 !important;',
+          '  left: 0 !important;',
+          '  width: 100vw !important;',
+          '  height: 100vh !important;',
+          '  z-index: 99999999 !important;',
+          '  display: flex !important;',
+          '  align-items: center !important;',
+          '  justify-content: center !important;',
+          '  padding: 20px !important;',
+          '  box-sizing: border-box !important;',
+          '  user-select: none !important;',
+          '}',
+          '.sonarline-modal-backdrop {',
+          '  position: absolute !important;',
+          '  top: 0 !important;',
+          '  left: 0 !important;',
+          '  width: 100% !important;',
+          '  height: 100% !important;',
+          '  background: rgba(0, 0, 0, 0.85) !important;',
+          '  backdrop-filter: blur(16px) !important;',
+          '  -webkit-backdrop-filter: blur(16px) !important;',
+          '  z-index: 1 !important;',
+          '}',
+          '.sonarline-modal-container {',
+          '  position: relative !important;',
+          '  z-index: 2 !important;',
+          '  background: #0d0d0d !important;',
+          '  border: 1px solid rgba(255, 255, 255, 0.15) !important;',
+          '  border-radius: 12px !important;',
+          '  width: 100% !important;',
+          '  max-width: 820px !important;',
+          '  max-height: 90vh !important;',
+          '  overflow-y: auto !important;',
+          '  overflow-x: hidden !important;',
+          '  box-shadow: 0 32px 64px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(255, 255, 255, 0.05) !important;',
+          '  box-sizing: border-box !important;',
+          '  animation: sonarlineModalFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;',
+          '}',
+          '@keyframes sonarlineModalFadeIn {',
+          '  from { opacity: 0; transform: scale(0.96) translateY(8px); }',
+          '  to { opacity: 1; transform: scale(1) translateY(0); }',
+          '}',
+          '.sonarline-modal-close {',
+          '  position: absolute !important;',
+          '  top: 16px !important;',
+          '  right: 16px !important;',
+          '  width: 32px !important;',
+          '  height: 32px !important;',
+          '  border-radius: 50% !important;',
+          '  background: rgba(255, 255, 255, 0.05) !important;',
+          '  border: 1px solid rgba(255, 255, 255, 0.2) !important;',
+          '  color: #ffffff !important;',
+          '  font-size: 1.2rem !important;',
+          '  line-height: 1 !important;',
+          '  cursor: pointer !important;',
+          '  display: flex !important;',
+          '  align-items: center !important;',
+          '  justify-content: center !important;',
+          '  z-index: 10 !important;',
+          '  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease !important;',
+          '}',
+          '.sonarline-modal-close:hover {',
+          '  background: rgba(255, 59, 48, 0.2) !important;',
+          '  border-color: #FF3B30 !important;',
+          '  color: #FF3B30 !important;',
+          '  transform: rotate(90deg) !important;',
+          '}',
+          '.sonarline-modal-nav {',
+          '  position: absolute !important;',
+          '  top: 50% !important;',
+          '  transform: translateY(-50%) !important;',
+          '  width: 36px !important;',
+          '  height: 36px !important;',
+          '  border-radius: 50% !important;',
+          '  background: rgba(20, 20, 20, 0.8) !important;',
+          '  border: 1px solid rgba(255, 255, 255, 0.2) !important;',
+          '  color: #ffffff !important;',
+          '  font-size: 1.1rem !important;',
+          '  cursor: pointer !important;',
+          '  display: flex !important;',
+          '  align-items: center !important;',
+          '  justify-content: center !important;',
+          '  z-index: 10 !important;',
+          '  transition: background 0.2s ease, border-color 0.2s ease !important;',
+          '}',
+          '.sonarline-modal-nav:hover {',
+          '  background: #FF3B30 !important;',
+          '  border-color: #FF3B30 !important;',
+          '  color: #000000 !important;',
+          '}',
+          '.sonarline-modal-prev { left: 14px !important; }',
+          '.sonarline-modal-next { right: 14px !important; }',
+          '.sonarline-modal-body {',
+          '  display: flex !important;',
+          '  flex-direction: row !important;',
+          '  gap: 28px !important;',
+          '  padding: 32px !important;',
+          '  box-sizing: border-box !important;',
+          '}',
+          '@media (max-width: 768px) {',
+          '  .sonarline-modal-body {',
+          '    flex-direction: column !important;',
+          '    padding: 24px 20px !important;',
+          '    gap: 20px !important;',
+          '  }',
+          '  .sonarline-modal-nav {',
+          '    display: none !important;',
+          '  }',
+          '}',
+          '.sonarline-modal-media-wrap {',
+          '  flex: 0 0 320px !important;',
+          '  width: 320px !important;',
+          '  max-width: 100% !important;',
+          '  aspect-ratio: 1 / 1 !important;',
+          '  border-radius: 8px !important;',
+          '  overflow: hidden !important;',
+          '  background: #141414 !important;',
+          '  border: 1px solid rgba(255, 255, 255, 0.1) !important;',
+          '  position: relative !important;',
+          '}',
+          '@media (max-width: 768px) {',
+          '  .sonarline-modal-media-wrap {',
+          '    flex: 0 0 auto !important;',
+          '    width: 100% !important;',
+          '    max-width: 340px !important;',
+          '    margin: 0 auto !important;',
+          '  }',
+          '}',
+          '.sonarline-modal-img {',
+          '  width: 100% !important;',
+          '  height: 100% !important;',
+          '  object-fit: cover !important;',
+          '  display: block !important;',
+          '}',
+          '.sonarline-modal-info {',
+          '  flex: 1 1 auto !important;',
+          '  display: flex !important;',
+          '  flex-direction: column !important;',
+          '  justify-content: space-between !important;',
+          '  gap: 16px !important;',
+          '  min-width: 0 !important;',
+          '}',
+          '.sonarline-modal-meta-row {',
+          '  display: flex !important;',
+          '  align-items: center !important;',
+          '  justify-content: space-between !important;',
+          '  gap: 12px !important;',
+          '}',
+          '.sonarline-modal-tag-pill {',
+          '  display: inline-flex !important;',
+          '  align-items: center !important;',
+          '  justify-content: center !important;',
+          '  padding: 4px 12px !important;',
+          '  border-radius: 9999px !important;',
+          '  background: rgba(255, 255, 255, 0.05) !important;',
+          '  border: 1px solid rgba(255, 255, 255, 0.12) !important;',
+          '  color: #a0a0a0 !important;',
+          '  font-family: var(--font-mono, \'Space Mono\', monospace) !important;',
+          '  font-size: 0.72rem !important;',
+          '  font-weight: 600 !important;',
+          '  letter-spacing: 0.08em !important;',
+          '  text-transform: uppercase !important;',
+          '}',
+          '.sonarline-modal-price {',
+          '  font-family: var(--font-mono, \'Space Mono\', monospace) !important;',
+          '  font-size: 1rem !important;',
+          '  font-weight: 700 !important;',
+          '  color: #ffffff !important;',
+          '  letter-spacing: 0.04em !important;',
+          '  margin-left: auto !important;',
+          '}',
+          '.sonarline-modal-title {',
+          '  font-family: var(--font-heading, \'Space Grotesk\', sans-serif) !important;',
+          '  font-size: clamp(1.3rem, 3vw, 1.8rem) !important;',
+          '  font-weight: 700 !important;',
+          '  color: #ffffff !important;',
+          '  text-transform: uppercase !important;',
+          '  letter-spacing: 0.06em !important;',
+          '  line-height: 1.2 !important;',
+          '  margin: 0 !important;',
+          '  padding: 0 !important;',
+          '}',
+          '.sonarline-modal-desc {',
+          '  font-family: var(--font-body, \'Space Grotesk\', sans-serif) !important;',
+          '  font-size: 0.88rem !important;',
+          '  line-height: 1.6 !important;',
+          '  color: #888888 !important;',
+          '  margin: 0 !important;',
+          '  max-height: 120px !important;',
+          '  overflow-y: auto !important;',
+          '}',
+          '.sonarline-modal-audio-player {',
+          '  background: rgba(255, 255, 255, 0.03) !important;',
+          '  border: 1px solid rgba(255, 255, 255, 0.1) !important;',
+          '  border-radius: 8px !important;',
+          '  padding: 14px 16px !important;',
+          '  display: flex !important;',
+          '  flex-direction: column !important;',
+          '  gap: 10px !important;',
+          '  box-sizing: border-box !important;',
+          '}',
+          '.sonarline-audio-header {',
+          '  display: flex !important;',
+          '  align-items: center !important;',
+          '  justify-content: space-between !important;',
+          '  width: 100% !important;',
+          '}',
+          '.sonarline-audio-label {',
+          '  font-family: var(--font-mono, \'Space Mono\', monospace) !important;',
+          '  font-size: 0.65rem !important;',
+          '  font-weight: 700 !important;',
+          '  letter-spacing: 0.14em !important;',
+          '  color: #FF3B30 !important;',
+          '  text-transform: uppercase !important;',
+          '}',
+          '.sonarline-audio-time {',
+          '  font-family: var(--font-mono, \'Space Mono\', monospace) !important;',
+          '  font-size: 0.72rem !important;',
+          '  color: #888888 !important;',
+          '  letter-spacing: 0.05em !important;',
+          '}',
+          '.sonarline-audio-controls {',
+          '  display: flex !important;',
+          '  align-items: center !important;',
+          '  justify-content: space-between !important;',
+          '  gap: 16px !important;',
+          '  width: 100% !important;',
+          '}',
+          '.sonarline-audio-play-btn {',
+          '  display: inline-flex !important;',
+          '  align-items: center !important;',
+          '  gap: 8px !important;',
+          '  background: #FF3B30 !important;',
+          '  color: #080808 !important;',
+          '  border: none !important;',
+          '  border-radius: 4px !important;',
+          '  padding: 6px 14px !important;',
+          '  font-family: var(--font-mono, \'Space Mono\', monospace) !important;',
+          '  font-size: 0.72rem !important;',
+          '  font-weight: 700 !important;',
+          '  letter-spacing: 0.08em !important;',
+          '  cursor: pointer !important;',
+          '  transition: background 0.15s ease, transform 0.1s ease !important;',
+          '}',
+          '.sonarline-audio-play-btn:hover {',
+          '  background: #ff5247 !important;',
+          '  transform: translateY(-1px) !important;',
+          '}',
+          '.sonarline-audio-play-btn.is-playing {',
+          '  background: #ffffff !important;',
+          '  color: #080808 !important;',
+          '}',
+          '.sonarline-audio-vol-wrap {',
+          '  display: flex !important;',
+          '  align-items: center !important;',
+          '  gap: 8px !important;',
+          '}',
+          '.sonarline-vol-icon {',
+          '  font-size: 0.85rem !important;',
+          '  color: #777777 !important;',
+          '}',
+          '.sonarline-audio-volume {',
+          '  width: 70px !important;',
+          '  accent-color: #FF3B30 !important;',
+          '  cursor: pointer !important;',
+          '}',
+          '.sonarline-audio-track-wrap {',
+          '  position: relative !important;',
+          '  width: 100% !important;',
+          '  height: 6px !important;',
+          '  cursor: pointer !important;',
+          '}',
+          '.sonarline-audio-track-bg {',
+          '  position: absolute !important;',
+          '  top: 0 !important;',
+          '  left: 0 !important;',
+          '  width: 100% !important;',
+          '  height: 100% !important;',
+          '  background: rgba(255, 255, 255, 0.1) !important;',
+          '  border-radius: 3px !important;',
+          '  overflow: hidden !important;',
+          '}',
+          '.sonarline-audio-track-progress {',
+          '  height: 100% !important;',
+          '  width: 0% !important;',
+          '  background: #FF3B30 !important;',
+          '  transition: width 0.1s linear !important;',
+          '}',
+          '.sonarline-audio-scrubber {',
+          '  position: absolute !important;',
+          '  top: -5px !important;',
+          '  left: 0 !important;',
+          '  width: 100% !important;',
+          '  height: 16px !important;',
+          '  opacity: 0 !important;',
+          '  cursor: pointer !important;',
+          '  margin: 0 !important;',
+          '}',
+          '.sonarline-modal-action-row {',
+          '  margin-top: 8px !important;',
+          '}',
+          '.sonarline-modal-cta {',
+          '  display: inline-flex !important;',
+          '  align-items: center !important;',
+          '  justify-content: center !important;',
+          '  width: 100% !important;',
+          '  padding: 12px 20px !important;',
+          '  background: transparent !important;',
+          '  border: 1px solid rgba(255, 255, 255, 0.3) !important;',
+          '  color: #ffffff !important;',
+          '  border-radius: 6px !important;',
+          '  font-family: var(--font-mono, \'Space Mono\', monospace) !important;',
+          '  font-size: 0.82rem !important;',
+          '  font-weight: 700 !important;',
+          '  letter-spacing: 0.12em !important;',
+          '  text-transform: uppercase !important;',
+          '  text-decoration: none !important;',
+          '  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease !important;',
+          '  box-sizing: border-box !important;',
+          '}',
+          '.sonarline-modal-cta:hover {',
+          '  background: #ffffff !important;',
+          '  color: #080808 !important;',
+          '  border-color: #ffffff !important;',
           '}',
           '.sonarline-card-price-wrap, .card-wrapper .price, .card-wrapper [class*="price"], .product-price, .price {',
           '  font-family: var(--font-mono, \'Space Mono\', monospace) !important;',
@@ -1851,18 +2503,26 @@
 
     function buildTerminalHtml(commandText) {
       try {
-        var raw = (commandText || '').replace(/\u00a0|&nbsp;/gi, ' ').trim();
+        var raw = (commandText || '').replace(/\u00a0|&nbsp;/gi, ' ');
+        // Strip any HTML tags that may have been injected by rich text editors
+        raw = raw.replace(/<[^>]+>/g, ' ');
+        // Normalize unicode dashes and HTML entities for dashes
+        raw = raw.replace(/&ndash;|&#8211;|\u2013/gi, '--').replace(/&mdash;|&#8212;|\u2014/gi, '--');
+        raw = raw.replace(/\s[–—]+(\w)/g, ' --$1').replace(/^[–—]+(\w)/g, '--$1');
+        // Unescape HTML entities
         raw = raw.replace(/&amp;/gi, '&').replace(/&lt;/gi, '<').replace(/&gt;/gi, '>').replace(/&quot;/gi, '"');
-        raw = raw.replace(/\s[–—](\w)/g, ' --$1').replace(/^[–—](\w)/g, '--$1');
+        raw = raw.replace(/\s+/g, ' ').trim();
 
         var prompt = 'root@sonarline:~$';
         var cmd = raw;
 
-        var promptMatch = raw.match(/^([a-zA-Z0-9_.-]+@[a-zA-Z0-9_.-]+:\s*~?\$?\s*)/i);
+        var promptMatch = raw.match(/^([a-zA-Z0-9_.-]+@[a-zA-Z0-9_.-]+(?::[^\s]*)?)\s*/i);
         if (promptMatch) {
           prompt = promptMatch[1].trim();
-          if (!prompt.endsWith('$') && !prompt.endsWith('#')) {
-            prompt += '$';
+          if (prompt.indexOf(':') === -1) {
+            prompt += ':~$';
+          } else if (!prompt.endsWith('$') && !prompt.endsWith('#')) {
+            prompt += (prompt.endsWith('~') ? '$' : '~$');
           }
           cmd = raw.substring(promptMatch[0].length).trim();
         } else if (/^root@sonarline[:\s~#$]*/i.test(raw)) {
@@ -1881,9 +2541,9 @@
         for (var r = 0; r < restTokens.length; r++) {
           var t = restTokens[r];
           if (t.indexOf('-') === 0 || t.indexOf('–') === 0 || t.indexOf('—') === 0) {
-            restHtml += ' <span class="terminal-prompt-flag" style="color: #4E9A06 !important; font-weight: 500 !important;">' + escapeHtml(t) + '</span>';
+            restHtml += ' <span class="terminal-prompt-flag" style="color: #4E9A06 !important; font-weight: 500 !important; margin-right: 6px !important;">' + escapeHtml(t) + '</span>';
           } else {
-            restHtml += ' <span class="terminal-prompt-args" style="color: #888888 !important;">' + escapeHtml(t) + '</span>';
+            restHtml += ' <span class="terminal-prompt-args" style="color: #888888 !important; margin-right: 6px !important;">' + escapeHtml(t) + '</span>';
           }
         }
 
@@ -1944,7 +2604,7 @@
     function sweepUnparsedShortcodes(root) {
       try {
         if (!root) return;
-        var els = root.querySelectorAll('p, h1, h2, h3, span, div, .heading-text, .hero-title, .richtext, .richtext p');
+        var els = root.querySelectorAll('p, h1, h2, h3, h4, span, div, .heading-text, .hero-title, .richtext, .richtext p, [class*="text"], [class*="banner"]');
         for (var i = 0; i < els.length; i++) {
           var el = els[i];
           if (el.querySelector && el.querySelector('[data-shortcode-parsed]')) continue;
@@ -1953,6 +2613,16 @@
 
           var text = el.textContent || '';
           if (/(?:\[\[\s*badge\s*:|\{\{\s*terminal\s*:)/i.test(text)) {
+            // Let deepest matching child handle it to avoid clobbering siblings
+            var hasChildMatch = false;
+            for (var c = 0; c < el.children.length; c++) {
+              if (/(?:\[\[\s*badge\s*:|\{\{\s*terminal\s*:)/i.test(el.children[c].textContent || '')) {
+                hasChildMatch = true;
+                break;
+              }
+            }
+            if (hasChildMatch) continue;
+
             var normalized = el.innerHTML.replace(/\u00a0|&nbsp;/gi, ' ');
             if (/(?:\[\[\s*badge\s*:|\{\{\s*terminal\s*:)/i.test(normalized)) {
               var newHtml = normalized.replace(/\[\[\s*badge\s*:\s*([\s\S]*?)\]\]/gi, function(match, content) {
@@ -1962,6 +2632,15 @@
               });
               if (newHtml !== el.innerHTML) {
                 el.innerHTML = newHtml;
+              }
+            } else {
+              var cleanText = text.replace(/\u00a0|&nbsp;/gi, ' ');
+              var termMatch = cleanText.match(/\{\{\s*terminal\s*:\s*([\s\S]*?)\}\}/i);
+              var badgeMatch = cleanText.match(/\[\[\s*badge\s*:\s*([\s\S]*?)\]\]/i);
+              if (termMatch) {
+                el.innerHTML = buildTerminalHtml(termMatch[1]);
+              } else if (badgeMatch) {
+                el.innerHTML = buildBadgeHtml(badgeMatch[1]);
               }
             }
           }
