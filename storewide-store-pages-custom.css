@@ -1743,6 +1743,13 @@ html body .card-wrapper .card__inner .media img {
 }
 
 @media (max-width: 480px) {
+  #page-section-collection .section-contents-wrapper,
+  [data-section-key="collection"] .section-contents-wrapper,
+  .product-list-block {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
   #page-section-collection .grid-list,
   [data-section-key="collection"] .grid-list,
   .collection-products,
@@ -1770,4 +1777,5 @@ html body .card-wrapper .card__inner .media img {
     box-sizing: border-box !important;
   }
 }
+
 
