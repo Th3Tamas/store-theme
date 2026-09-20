@@ -253,7 +253,8 @@ img[src*="mountain"],
   align-items: center !important;
   justify-content: center !important;
   position: relative !important;
-  overflow: hidden !important;
+  z-index: 1 !important;
+  overflow: visible !important;
   margin-top: 0 !important;
   margin-bottom: 32px !important;
   padding: 4rem 2rem 3rem !important;
@@ -399,11 +400,16 @@ img[src*="mountain"],
   box-sizing: border-box;
 }
 
-/* Force strict 0px sharp corners across all Payhip store elements */
-*, 
+/* Force strict 0px sharp corners across Payhip store elements (excluding native navbar controls) */
 .product-card, .product-item, .product-wrap, .payhip-product-item,
 .collection-card, .collection-item, .theme-card, .theme-product,
-input, textarea, select, button, .btn, .payhip-btn, [class*="card"] {
+input:not(header *):not(.header *):not(nav *),
+textarea,
+select,
+button:not(header *):not(.header *):not(nav *),
+.btn:not(header *):not(.header *):not(nav *),
+.payhip-btn,
+[class*="card"] {
   border-radius: 0px !important;
 }
 
@@ -424,11 +430,7 @@ body,
   box-sizing: border-box !important;
 }
 
-/* Header and section overflow guards */
-header,
-#header,
-.header-outer,
-.header-inner,
+/* Section overflow guards */
 .section-wrapper,
 [data-section-key="ticker"] {
   max-width: 100vw !important;
@@ -507,45 +509,6 @@ body {
 }
 
 /* --------------------------------------------------------------------------
-   3. Native Store Header & Navigation
-   -------------------------------------------------------------------------- */
-.header,
-.site-header,
-.header-container,
-.payhip-header,
-.store-header,
-nav.navbar,
-header,
-[class*="site-header"],
-[class*="store-header"] {
-  background-color: rgba(8, 8, 8, 0.95) !important;
-  backdrop-filter: blur(12px) !important;
-  border-bottom: 1px solid var(--sl-border) !important;
-  padding: 1rem 2.5rem !important;
-  position: sticky !important;
-  top: 0 !important;
-  z-index: 999 !important;
-  box-shadow: none !important;
-}
-
-/* Revert "SHOP" and header nav links back to clean native Payhip styling */
-.header nav a,
-.site-header nav a,
-.nav-link,
-.header-nav a,
-.navbar-nav a,
-header a,
-nav a {
-  border-bottom: none !important;
-  text-decoration: none !important;
-}
-.header nav a.active,
-.nav-link.active,
-header a.active {
-  border-bottom: none !important;
-}
-
-/* --------------------------------------------------------------------------
    Native Payhip Announcement Bar & Ticker Styling (Chrome + Firefox Cross-Browser)
    -------------------------------------------------------------------------- */
 /* Completely hide announcement-bar-dropzone and native announcement bars to eliminate the top red box artifact */
@@ -577,23 +540,20 @@ div[id*="section-QW9Kn45mB6"],
   margin: 0 !important;
   margin-top: 0 !important;
   margin-bottom: 0 !important;
-  min-height: 0 !important;
-  height: auto !important;
+  min-height: 36px !important;
+  height: 36px !important;
+  max-height: 36px !important;
   overflow-x: hidden !important;
   overflow-y: visible !important;
   border-top: 1px solid #FF2A2A !important;
   border-bottom: 1px solid #FF2A2A !important;
+  box-shadow: none !important;
   background-color: #080808 !important;
   box-sizing: border-box !important;
   max-width: 100vw !important;
-}
-
-header,
-#header,
-.header,
-.site-header,
-.header-outer {
-  margin-bottom: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
 [data-section-key="ticker"] .section-contents-wrapper,
@@ -618,12 +578,12 @@ header,
   max-width: 100vw !important;
   margin: 0 !important;
   padding: 0 !important;
-  line-height: 1.5 !important;
+  line-height: 1 !important;
   overflow: visible !important;
   box-sizing: border-box !important;
 }
 
-/* Red Glow (Chrome + Firefox Cross-Browser) with multiple text-shadow layers */
+/* Ticker text thin Space Grotesk (300) without glow */
 [data-section-key="ticker"] text,
 [data-section-key="ticker"] tspan,
 [data-section-key="ticker"] textPath,
@@ -645,11 +605,12 @@ header,
   fill: #FF2A2A !important;
   text-shadow: none !important;
   filter: none !important;
-  font-family: 'Space Mono', monospace !important;
-  font-weight: 700 !important;
+  font-family: 'Space Grotesk', sans-serif !important;
+  font-weight: 300 !important;
+  font-size: 0.8rem !important;
+  letter-spacing: 0.22em !important;
   text-transform: uppercase !important;
-  letter-spacing: 0.18em !important;
-  line-height: 1.5 !important;
+  line-height: 1 !important;
 }
 
 [data-section-key="ticker"] svg,
@@ -659,36 +620,8 @@ header,
 svg.ticker-measure,
 [data-section-type="announcement"] svg {
   filter: none !important;
-}
-
-/* Header Icons & Nav Controls - Reverted to Clean Native Styling */
-header button,
-.header-actions button,
-.header-actions-action,
-.header-cart-icon-button,
-.live-search-button-search,
-.live-search-form-button-search,
-.header-login-icon-link {
-  border: none !important;
-  background: transparent !important;
-  box-shadow: none !important;
-  outline: none !important;
-  color: #ffffff !important;
-  opacity: 1 !important;
-  visibility: visible !important;
-  cursor: pointer !important;
-  transition: opacity 0.2s ease !important;
-}
-
-.header-cart-icon-button:hover,
-.header-login-icon-link:hover,
-.live-search-button-search:hover {
-  opacity: 0.75 !important;
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-}
-  display: none !important;
+  overflow: visible !important;
+  transform: translateY(-4.5px) !important;
 }
 
 /* Hide newsletter form if present anywhere in DOM */
@@ -696,55 +629,6 @@ header button,
 .sonarline-newsletter-form,
 .sonarline-newsletter-box {
   display: none !important;
-}
-
-.header-actions svg,
-.header-icons svg,
-.cart-icon svg,
-.payhip-cart-icon svg,
-.header-login-icon-link svg,
-.live-search-button-search svg,
-.header-cart-icon-button svg,
-header svg {
-  fill: currentColor !important;
-  stroke: none !important;
-  color: #ffffff !important;
-  width: 18px !important;
-  height: 18px !important;
-  display: inline-block !important;
-  vertical-align: middle !important;
-}
-
-.header-actions svg path,
-.header-icons svg path,
-header svg path {
-  fill: currentColor !important;
-}
-
-/* Ensure nav action buttons remain visible and properly aligned */
-.header-cart-icon-button,
-.header-login-icon-link,
-.live-search-button-search {
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  color: #ffffff !important;
-  opacity: 1 !important;
-  visibility: visible !important;
-  cursor: pointer !important;
-}
-
-.cart-count,
-.payhip-cart-count,
-[class*="cart-count"] {
-  background-color: var(--sl-red) !important;
-  color: #ffffff !important;
-  font-family: var(--font-mono) !important;
-  font-size: 0.65rem !important;
-  font-weight: 700 !important;
-  padding: 1px 6px !important;
-  border: none !important;
-  margin-left: 4px !important;
 }
 
 /* --------------------------------------------------------------------------
@@ -810,8 +694,14 @@ h3.title {
 #page-section-collection,
 [data-section-key="collection"],
 .collection-main-wrapper,
+.products-wrapper,
+#all-products,
 .grid-block,
 .grid-list {
+  position: relative !important;
+  z-index: 10 !important;
+  background-color: #080808 !important;
+  box-shadow: 0 -24px 48px rgba(8, 8, 8, 0.95) !important;
   width: 100% !important;
   box-sizing: border-box !important;
 }
@@ -1174,16 +1064,16 @@ div[data-section-key="footer"] {
 /* --------------------------------------------------------------------------
    6. Native Buttons & Controls
    -------------------------------------------------------------------------- */
-button:not(header button):not(.live-search-button-search):not(.header-cart-icon-button):not(.header-actions button),
-.btn,
-.payhip-btn,
+button:not(header *):not(.header *):not(.site-header *):not(nav *),
+.btn:not(header *):not(.header *):not(.site-header *):not(nav *),
+.payhip-btn:not(header *):not(.header *):not(.site-header *):not(nav *),
 .payhip-buy-btn,
-.btn-primary,
-.btn-secondary,
+.btn-primary:not(header *):not(.header *):not(.site-header *):not(nav *),
+.btn-secondary:not(header *):not(.header *):not(.site-header *):not(nav *),
 .product-buy-button,
-a.button,
+a.button:not(header *):not(.header *):not(.site-header *):not(nav *),
 [class*="buy-btn"],
-[class*="payhip-btn"] {
+[class*="payhip-btn"]:not(header *):not(.header *) {
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
@@ -1204,29 +1094,29 @@ a.button,
   outline: none !important;
 }
 
-button:hover,
-.btn:hover,
-.payhip-btn:hover,
+button:not(header *):not(.header *):not(.site-header *):not(nav *):hover,
+.btn:not(header *):not(.header *):not(.site-header *):not(nav *):hover,
+.payhip-btn:not(header *):not(.header *):not(.site-header *):not(nav *):hover,
 .payhip-buy-btn:hover,
-.btn-secondary:hover,
-a.button:hover {
+.btn-secondary:not(header *):not(.header *):not(.site-header *):not(nav *):hover,
+a.button:not(header *):not(.header *):not(.site-header *):not(nav *):hover {
   background: #ffffff !important;
   color: #080808 !important;
   border-color: #ffffff !important;
   box-shadow: 0 0 16px rgba(255, 255, 255, 0.2) !important;
 }
 
-.btn-solid,
-.btn-primary,
-.btn-black {
+.btn-solid:not(header *):not(.header *):not(nav *),
+.btn-primary:not(header *):not(.header *):not(nav *),
+.btn-black:not(header *):not(.header *):not(nav *) {
   background: #ffffff !important;
   color: #080808 !important;
   border: 1px solid #ffffff !important;
 }
 
-.btn-solid:hover,
-.btn-primary:hover,
-.btn-black:hover {
+.btn-solid:not(header *):not(.header *):not(nav *):hover,
+.btn-primary:not(header *):not(.header *):not(nav *):hover,
+.btn-black:not(header *):not(.header *):not(nav *):hover {
   background: transparent !important;
   color: #ffffff !important;
 }
@@ -1282,40 +1172,46 @@ select:focus {
    -------------------------------------------------------------------------- */
 .sonarline-ticker-bar {
   background: #080808 !important;
-  border-top: 1px solid rgba(255, 42, 42, 0.25) !important;
-  border-bottom: 1px solid rgba(255, 42, 42, 0.25) !important;
+  border-top: 1px solid #FF2A2A !important;
+  border-bottom: 1px solid #FF2A2A !important;
+  box-shadow: none !important;
   overflow: hidden !important;
   white-space: nowrap !important;
-  padding: 10px 0 !important;
-  line-height: 1.6 !important;
+  padding: 0 !important;
+  height: 36px !important;
+  min-height: 36px !important;
+  max-height: 36px !important;
+  line-height: 36px !important;
   display: flex !important;
+  align-items: center !important;
   user-select: none !important;
 }
 
 .sonarline-ticker-track {
   display: flex !important;
+  align-items: center !important;
   gap: 2.5rem !important;
   animation: ticker-slide 35s linear infinite !important;
 }
 
 .sonarline-ticker-item {
-  font-family: var(--font-mono) !important;
-  font-size: 0.75rem !important;
-  font-weight: 600 !important;
-  letter-spacing: 0.18em !important;
+  font-family: 'Space Grotesk', sans-serif !important;
+  font-size: 0.8rem !important;
+  font-weight: 300 !important;
+  letter-spacing: 0.22em !important;
   text-transform: uppercase !important;
   color: #FF2A2A !important;
-  text-shadow: 0 0 10px rgba(255, 42, 42, 0.4) !important;
+  text-shadow: none !important;
   display: inline-flex !important;
   align-items: center !important;
   gap: 1.25rem !important;
-  line-height: 1.6 !important;
+  line-height: 1 !important;
 }
 
 .sonarline-ticker-bullet {
   color: #FF2A2A !important;
-  font-size: 0.8rem !important;
-  text-shadow: 0 0 10px rgba(255, 42, 42, 0.4) !important;
+  font-size: 0.75rem !important;
+  text-shadow: none !important;
 }
 
 @keyframes ticker-slide {
@@ -1357,56 +1253,6 @@ select:focus {
 /* ==========================================================================
    9. ZERO-TOLERANCE ATOMIC QA & PRODUCTION FIX OVERRIDES (CASCADE WINNER)
    ========================================================================== */
-
-/* 1. Header Action Buttons: Zero artificial outline boxes, zero padding, clean unbordered look */
-header button,
-header .header-actions button,
-header .header-actions a,
-header .live-search-button-search,
-header .header-cart-icon-button,
-.header-actions-action button,
-.header-actions-action a,
-.header-login-icon-link,
-.live-search-button-search,
-.header-cart-icon-button {
-  border: 0px none transparent !important;
-  border-width: 0px !important;
-  border-style: none !important;
-  background: transparent !important;
-  padding: 0px !important;
-  margin: 0px !important;
-  box-shadow: none !important;
-  outline: none !important;
-  border-radius: 0 !important;
-  color: #ffffff !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  height: 32px !important;
-  width: 32px !important;
-}
-
-.header-login-icon-link,
-.header-login-icon-link svg,
-.header-login-icon-link svg path {
-  color: #ffffff !important;
-  fill: currentColor !important;
-}
-
-/* 2. Revert "SHOP" nav link to native unbordered styling */
-.js-header-nav-item-link-level0,
-.js-header-nav-item-link-level0.active,
-a.js-header-nav-item-link-level0,
-a.js-header-nav-item-link-level0.active,
-.header nav a,
-.header nav a.active,
-header a.active,
-.nav-link.active {
-  border-bottom: 0px none transparent !important;
-  border: 0px none transparent !important;
-  box-shadow: none !important;
-  text-decoration: none !important;
-}
 
 /* 3. Product Titles: Uppercase Space Grotesk Bold */
 .card__heading,
@@ -1591,19 +1437,19 @@ html body .card-wrapper .card__inner .media img {
   border: none !important;
 }
 
-/* 7. Native Marquee Ticker Glow & Hairline Divider Accents (Cascade Winner) */
+/* 7. Native Marquee Ticker Hairline Divider Accents (Cascade Winner) */
 [data-section-key="ticker"],
 #content-section-QW9Kn45mB6 {
   background-color: #080808 !important;
-  /* Single hairline borders with red glow on both edges */
+  /* Single hairline borders without glow */
   border-top: 1px solid #FF2A2A !important;
   border-bottom: 1px solid #FF2A2A !important;
-  box-shadow: 0 -2px 8px rgba(255, 42, 42, 0.4), 0 2px 8px rgba(255, 42, 42, 0.4) !important;
+  box-shadow: none !important;
   /* Sleek, compact height with zero excess padding */
   padding: 0 !important;
-  height: 52px !important;
-  min-height: 52px !important;
-  max-height: 52px !important;
+  height: 36px !important;
+  min-height: 36px !important;
+  max-height: 36px !important;
   /* Flex centering for vertical alignment */
   display: flex !important;
   align-items: center !important;
@@ -1645,7 +1491,7 @@ html body .card-wrapper .card__inner .media img {
 .ticker-measure,
 .theme-tusk .marquee svg {
   overflow: visible !important;
-  transform: translateY(2px) !important;
+  transform: translateY(-4.5px) !important;
   filter: none !important;
 }
 
@@ -1667,11 +1513,12 @@ html body .card-wrapper .card__inner .media img {
   fill: #FF2A2A !important;
   text-shadow: none !important;
   filter: none !important;
-  font-family: 'Space Mono', monospace !important;
-  font-weight: 700 !important;
+  font-family: 'Space Grotesk', sans-serif !important;
+  font-weight: 300 !important;
+  font-size: 0.8rem !important;
   text-transform: uppercase !important;
-  letter-spacing: 0.18em !important;
-  line-height: 1.5 !important;
+  letter-spacing: 0.22em !important;
+  line-height: 1 !important;
 }
 
 /* --------------------------------------------------------------------------

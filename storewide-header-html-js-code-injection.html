@@ -10,7 +10,7 @@
 <!-- Typography: Space Grotesk, Space Mono, Syne -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;800&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@700;800&display=swap" rel="stylesheet">
 
 <style>
   /* Terminal / HUD Preloader Overlay - Reference Image 4 */
@@ -489,17 +489,17 @@
           '  visibility: hidden !important;',
           '  pointer-events: none !important;',
           '}',
-          '/* 2. Sleek, compact ticker container with single glowing hairline border & vertical centering */',
+          '/* 2. Sleek, compact ticker container with single hairline border & vertical centering */',
           '[data-section-key="ticker"],',
           '#content-section-QW9Kn45mB6 {',
           '  background-color: #080808 !important;',
           '  border-top: 1px solid #FF2A2A !important;',
           '  border-bottom: 1px solid #FF2A2A !important;',
-          '  box-shadow: 0 -2px 8px rgba(255, 42, 42, 0.4), 0 2px 8px rgba(255, 42, 42, 0.4) !important;',
+          '  box-shadow: none !important;',
           '  padding: 0 !important;',
-          '  height: 52px !important;',
-          '  min-height: 52px !important;',
-          '  max-height: 52px !important;',
+          '  height: 36px !important;',
+          '  min-height: 36px !important;',
+          '  max-height: 36px !important;',
           '  margin-top: 0 !important;',
           '  margin-bottom: 0 !important;',
           '  overflow-x: hidden !important;',
@@ -548,10 +548,10 @@
           '.js-ticker-svg-wrapper,',
           '.ticker-measure {',
           '  overflow: visible !important;',
-          '  transform: translateY(2px) !important;',
+          '  transform: translateY(-4.5px) !important;',
           '  filter: none !important;',
           '}',
-          '/* 4. Ticker text sharp and raw without ambient light halos */',
+          '/* 4. Ticker text thin Space Grotesk without ambient light halos */',
           '[data-section-key="ticker"] text,',
           '[data-section-key="ticker"] tspan,',
           '[data-section-key="ticker"] textPath,',
@@ -559,6 +559,12 @@
           '.ticker tspan {',
           '  fill: #FF2A2A !important;',
           '  color: #FF2A2A !important;',
+          '  font-family: \'Space Grotesk\', sans-serif !important;',
+          '  font-weight: 300 !important;',
+          '  font-size: 0.8rem !important;',
+          '  letter-spacing: 0.22em !important;',
+          '  text-transform: uppercase !important;',
+          '  line-height: 1 !important;',
           '  text-shadow: none !important;',
           '  filter: none !important;',
           '}',
@@ -583,6 +589,25 @@
           '  padding-top: 8px !important;',
           '  border: none !important;',
           '  border-top: 1px solid rgba(255, 255, 255, 0.08) !important;',
+          '}',
+          '/* 6. Collection catalog slides over receding headline like a curtain */',
+          '#page-section-collection,',
+          '[data-section-key="collection"],',
+          '.collection-main-wrapper,',
+          '.products-wrapper,',
+          '#all-products {',
+          '  position: relative !important;',
+          '  z-index: 10 !important;',
+          '  background-color: #080808 !important;',
+          '  box-shadow: 0 -24px 48px rgba(8, 8, 8, 0.95) !important;',
+          '}',
+          '[data-section-key="headline"],',
+          '#content-section-LBNmnP42zK,',
+          '.section-hero,',
+          '.hero {',
+          '  position: relative !important;',
+          '  z-index: 1 !important;',
+          '  overflow: visible !important;',
           '}'
         ].join('\n');
         (document.head || document.documentElement).appendChild(styleTag);
@@ -610,7 +635,7 @@
         em.style.setProperty('pointer-events', 'none', 'important');
       }
 
-      // Outer ticker wrapper: sleek 52px height + single border + flex centering
+      // Outer ticker wrapper: sleek 36px height + single border + flex centering (no glow)
       var outerTickers = document.querySelectorAll(
         '[data-section-key="ticker"], #content-section-QW9Kn45mB6'
       );
@@ -619,14 +644,14 @@
         tw.style.setProperty('margin-top', '0px', 'important');
         tw.style.setProperty('margin-bottom', '0px', 'important');
         tw.style.setProperty('padding', '0px', 'important');
-        tw.style.setProperty('height', '52px', 'important');
-        tw.style.setProperty('min-height', '52px', 'important');
-        tw.style.setProperty('max-height', '52px', 'important');
+        tw.style.setProperty('height', '36px', 'important');
+        tw.style.setProperty('min-height', '36px', 'important');
+        tw.style.setProperty('max-height', '36px', 'important');
         tw.style.setProperty('overflow-x', 'hidden', 'important');
         tw.style.setProperty('overflow-y', 'visible', 'important');
         tw.style.setProperty('border-top', '1px solid #FF2A2A', 'important');
         tw.style.setProperty('border-bottom', '1px solid #FF2A2A', 'important');
-        tw.style.setProperty('box-shadow', '0 -2px 8px rgba(255, 42, 42, 0.4), 0 2px 8px rgba(255, 42, 42, 0.4)', 'important');
+        tw.style.setProperty('box-shadow', 'none', 'important');
         tw.style.setProperty('background-color', '#080808', 'important');
         tw.style.setProperty('display', 'flex', 'important');
         tw.style.setProperty('align-items', 'center', 'important');
@@ -651,7 +676,7 @@
       );
       for (var s = 0; s < svgs.length; s++) {
         svgs[s].style.setProperty('overflow', 'visible', 'important');
-        svgs[s].style.setProperty('transform', 'translateY(2px)', 'important');
+        svgs[s].style.setProperty('transform', 'translateY(-4.5px)', 'important');
         svgs[s].style.setProperty('filter', 'none', 'important');
       }
 
@@ -661,8 +686,33 @@
       for (var x = 0; x < texts.length; x++) {
         texts[x].style.setProperty('fill', '#FF2A2A', 'important');
         texts[x].style.setProperty('color', '#FF2A2A', 'important');
+        texts[x].style.setProperty('font-family', "'Space Grotesk', sans-serif", 'important');
+        texts[x].style.setProperty('font-weight', '300', 'important');
+        texts[x].style.setProperty('font-size', '0.8rem', 'important');
+        texts[x].style.setProperty('letter-spacing', '0.22em', 'important');
+        texts[x].style.setProperty('line-height', '1', 'important');
         texts[x].style.setProperty('text-shadow', 'none', 'important');
         texts[x].style.setProperty('filter', 'none', 'important');
+      }
+
+      // Ensure collection catalog curtain styling in DOM
+      var collectionSections = document.querySelectorAll(
+        '#page-section-collection, [data-section-key="collection"], .collection-main-wrapper, .products-wrapper, #all-products'
+      );
+      for (var cs = 0; cs < collectionSections.length; cs++) {
+        collectionSections[cs].style.setProperty('position', 'relative', 'important');
+        collectionSections[cs].style.setProperty('z-index', '10', 'important');
+        collectionSections[cs].style.setProperty('background-color', '#080808', 'important');
+        collectionSections[cs].style.setProperty('box-shadow', '0 -24px 48px rgba(8, 8, 8, 0.95)', 'important');
+      }
+
+      var heroSections = document.querySelectorAll(
+        '[data-section-key="headline"], #content-section-LBNmnP42zK, .section-hero, .hero'
+      );
+      for (var hs = 0; hs < heroSections.length; hs++) {
+        heroSections[hs].style.setProperty('position', 'relative', 'important');
+        heroSections[hs].style.setProperty('z-index', '1', 'important');
+        heroSections[hs].style.setProperty('overflow', 'visible', 'important');
       }
 
       // Strip ghost lines from all card price inner elements
@@ -785,7 +835,7 @@
     }
     window.requestAnimationFrame(lerpCursor);
 
-    var interactiveSelector = 'a, button, input, textarea, select, [role="button"], .card-wrapper, .product-card, .header-cart-icon-button, .header-login-icon-link, .live-search-button-search, .payhip-btn, .btn';
+    var interactiveSelector = 'a, button, input, textarea, select, [role="button"], .card-wrapper, .product-card, .payhip-btn, .btn';
     document.addEventListener('mouseover', function(e) {
       if (e.target.closest && e.target.closest(interactiveSelector)) {
         isHovered = true;
@@ -935,9 +985,10 @@
         if (scrollY < 0) scrollY = 0;
 
         var fadeProgress = Math.min(scrollY / 450, 1);
-        var blurPx = (fadeProgress * 6).toFixed(1);
-        var opacityVal = Math.max(1 - fadeProgress * 0.85, 0.15).toFixed(2);
-        var translateY = (scrollY * 0.14).toFixed(1);
+        var blurPx = (fadeProgress * 12).toFixed(1);
+        var opacityVal = Math.max(1 - fadeProgress * 0.95, 0.05).toFixed(2);
+        var translateY = (scrollY * 0.45).toFixed(1);
+        var scaleVal = Math.max(1 - fadeProgress * 0.18, 0.82).toFixed(3);
 
         // Coordinate ALL hero components together in lockstep
         var heroElements = heroEl.querySelectorAll('.sonarline-status-pill, h1, .heading-text, #sonarline-glitch-title, p, .richtext p, .sonarline-terminal-prompt');
@@ -945,8 +996,9 @@
           var el = heroElements[i];
           el.style.filter = 'blur(' + blurPx + 'px)';
           el.style.opacity = opacityVal;
-          el.style.transform = 'translateY(' + translateY + 'px)';
-          el.style.pointerEvents = fadeProgress >= 0.9 ? 'none' : 'auto';
+          el.style.transform = 'translateY(' + translateY + 'px) scale(' + scaleVal + ')';
+          el.style.transformOrigin = 'center center';
+          el.style.pointerEvents = fadeProgress >= 0.85 ? 'none' : 'auto';
         }
       }
       ticking = false;
@@ -964,26 +1016,6 @@
         ticking = true;
       }
     }, { passive: true });
-  })();
-
-  // ==========================================================================
-  // Subtask 5: Navbar Reset & Clean Fallback
-  // ==========================================================================
-  (function() {
-    function cleanNavbar() {
-      var newsletterForm = document.getElementById('sonarline-newsletter-form');
-      if (newsletterForm) {
-        var parentBox = newsletterForm.parentElement;
-        if (parentBox && parentBox.classList.contains('sonarline-newsletter-box')) parentBox.remove();
-        else { parentBox.style.setProperty('display', 'none', 'important'); newsletterForm.remove(); }
-      }
-    }
-
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', cleanNavbar);
-    } else {
-      cleanNavbar();
-    }
   })();
 
   // Unconditionally Nuke Mountain Images Across All Browsers
