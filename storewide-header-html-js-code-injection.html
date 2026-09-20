@@ -561,6 +561,28 @@
           '  color: #FF2A2A !important;',
           '  text-shadow: none !important;',
           '  filter: none !important;',
+          '}',
+          '/* 5. Product Card Price Area: Clean Single-Line Price with Zero Ghost Lines */',
+          '.card-wrapper .price-block *,',
+          '.card-wrapper .price,',
+          '.card-wrapper .price__container,',
+          '.card-wrapper .price__regular,',
+          '.card-wrapper .price-item,',
+          '.card-wrapper [class*="price"],',
+          '.card-wrapper .card-information,',
+          '.card-wrapper .card-information * {',
+          '  border: none !important;',
+          '  border-top: none !important;',
+          '  border-bottom: none !important;',
+          '  box-shadow: none !important;',
+          '  background-image: none !important;',
+          '  outline: none !important;',
+          '}',
+          '.card-wrapper .price-block {',
+          '  margin-top: auto !important;',
+          '  padding-top: 8px !important;',
+          '  border: none !important;',
+          '  border-top: 1px solid rgba(255, 255, 255, 0.08) !important;',
           '}'
         ].join('\n');
         (document.head || document.documentElement).appendChild(styleTag);
@@ -642,6 +664,17 @@
         texts[x].style.setProperty('text-shadow', 'none', 'important');
         texts[x].style.setProperty('filter', 'none', 'important');
       }
+
+      // Strip ghost lines from all card price inner elements
+      var priceChildren = document.querySelectorAll(
+        '.card-wrapper .price, .card-wrapper .price__container, .card-wrapper .price__regular, .card-wrapper .price-item, .card-wrapper [class*="price"]:not(.price-block)'
+      );
+      for (var pc = 0; pc < priceChildren.length; pc++) {
+        priceChildren[pc].style.setProperty('border', 'none', 'important');
+        priceChildren[pc].style.setProperty('border-top', 'none', 'important');
+        priceChildren[pc].style.setProperty('padding-top', '0px', 'important');
+        priceChildren[pc].style.setProperty('margin-top', '0px', 'important');
+      }
     }
 
     injectImmediateStyles();
@@ -662,8 +695,10 @@
 
   // ==========================================================================
   // Subtask 1: Custom Kinetic Cursor
-  // Lead: Yellow dot (instant), Trailing: White wireframe circle (lerp lag)
-  // Hover scale on interactive elements, auto-disabled on touch/mobile
+  // Lead: High-visibility Orange dot (#FF5500, instant)
+  // Trailing: Thin White wireframe circle (lerp lag)
+  // Difference blend mode for dynamic inversion over white/light backgrounds
+  // OS native cursor suppressed across entire page
   // ==========================================================================
   (function() {
     if (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) {
@@ -673,16 +708,20 @@
     var style = document.createElement('style');
     style.id = 'sl-cursor-styles';
     style.textContent = [
+      'html, body, a, button, input, select, textarea, [role="button"], * {',
+      '  cursor: none !important;',
+      '}',
       '#sl-cursor-dot {',
       '  position: fixed !important;',
       '  top: 0 !important;',
       '  left: 0 !important;',
       '  width: 5px !important;',
       '  height: 5px !important;',
-      '  background: #FFE600 !important;',
+      '  background: #FF5500 !important;',
       '  border-radius: 50% !important;',
       '  pointer-events: none !important;',
       '  z-index: 2147483646 !important;',
+      '  mix-blend-mode: difference !important;',
       '  transform: translate3d(-100px, -100px, 0);',
       '  will-change: transform;',
       '}',
@@ -692,10 +731,11 @@
       '  left: 0 !important;',
       '  width: 28px !important;',
       '  height: 28px !important;',
-      '  border: 1px solid rgba(255, 255, 255, 0.7) !important;',
+      '  border: 1px solid rgba(255, 255, 255, 0.85) !important;',
       '  border-radius: 50% !important;',
       '  pointer-events: none !important;',
       '  z-index: 2147483645 !important;',
+      '  mix-blend-mode: difference !important;',
       '  transform: translate3d(-100px, -100px, 0);',
       '  transition: width 0.2s cubic-bezier(0.16, 1, 0.3, 1), height 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease, transform 0.04s linear !important;',
       '  will-change: transform;',
@@ -703,10 +743,11 @@
       '#sl-cursor-circle.hovered {',
       '  width: 44px !important;',
       '  height: 44px !important;',
-      '  border-color: rgba(255, 59, 48, 0.9) !important;',
+      '  border-color: rgba(255, 85, 0, 0.9) !important;',
       '}',
       '@media (pointer: coarse) {',
       '  #sl-cursor-dot, #sl-cursor-circle { display: none !important; }',
+      '  html, body, a, button, input, select, textarea, [role="button"], * { cursor: auto !important; }',
       '}'
     ].join('\n');
     (document.head || document.documentElement).appendChild(style);
@@ -763,7 +804,8 @@
   // ==========================================================================
   // Subtask 2: Dynamic Native Shortcode Parser Engine
   // Tokens: [[badge: TEXT]] & {{terminal: COMMAND}}
-  // Prevents FOUS with immediate parsing & MutationObserver
+  // Strictly conditional: renders IF AND ONLY IF shortcode exists in page text!
+  // No hardcoded fallbacks or placeholders.
   // ==========================================================================
   (function() {
     function buildBadgeHtml(text) {
@@ -780,7 +822,7 @@
           innerHtml += '<span>' + part + '</span>';
         }
       }
-      return '<div class="sonarline-status-pill">' + innerHtml + '</div>';
+      return '<div class="sonarline-status-pill" data-shortcode-parsed="true">' + innerHtml + '</div>';
     }
 
     function buildTerminalHtml(commandText) {
@@ -793,7 +835,7 @@
       var tokens = cmd.split(' ');
       var mainCmd = tokens[0] || '';
       var rest = tokens.slice(1).join(' ');
-      return '<div class="sonarline-terminal-prompt">' +
+      return '<div class="sonarline-terminal-prompt" data-shortcode-parsed="true">' +
         '<span style="color: #ff3b30;">' + prompt + '</span> ' +
         '<span style="color: #ffffff;">' + mainCmd + '</span> ' +
         '<span style="color: #888888;">' + rest + '</span>' +
@@ -865,7 +907,7 @@
       });
     }
 
-    // Live clock ticker for any status pill clocks
+    // Live clock ticker for any parsed status pill clocks
     function updateClocks() {
       var clocks = document.querySelectorAll('.sonarline-status-clock, #sonarline-native-clock');
       if (clocks.length > 0) {
@@ -926,11 +968,9 @@
 
   // ==========================================================================
   // Subtask 5: Navbar Reset & Clean Fallback
-  // Purges artificial size/padding overrides, restores native navbar
   // ==========================================================================
   (function() {
     function cleanNavbar() {
-      // Remove newsletter if present
       var newsletterForm = document.getElementById('sonarline-newsletter-form');
       if (newsletterForm) {
         var parentBox = newsletterForm.parentElement;
@@ -967,7 +1007,7 @@
     setTimeout(nukeMountainImages, 1000);
   })();
 
-  // Native Hero Enhancement (Fallback when shortcodes not present)
+  // Native Hero Title Glitch & Subtitle Formatting (Strictly NO hardcoded badge or terminal)
   (function() {
     function enhanceNativeHero() {
       var embeds = document.querySelectorAll(
@@ -992,19 +1032,12 @@
       var h1 = heroContents.querySelector('h1, .heading-text');
       if (!h1) return;
 
-      // Status pill fallback if not injected via shortcode
-      var statusPill = heroContents.querySelector('.sonarline-status-pill');
-      if (!statusPill) {
-        statusPill = document.createElement('div');
-        statusPill.className = 'sonarline-status-pill';
-        statusPill.innerHTML = '<span class="sonarline-status-dot"></span>' +
-          '<span>ARCHIVE ONLINE</span>' +
-          '<span class="sonarline-status-sep">|</span>' +
-          '<span class="sonarline-status-clock" id="sonarline-native-clock">00:00:00</span>' +
-          '<span class="sonarline-status-sep">|</span>' +
-          '<span>48kHz / 24-BIT</span>';
-        heroContents.insertBefore(statusPill, h1);
-      }
+      // Purge any unparsed/hardcoded fallback status pills or terminal prompts
+      var unparsedPills = heroContents.querySelectorAll('.sonarline-status-pill:not([data-shortcode-parsed])');
+      for (var up = 0; up < unparsedPills.length; up++) unparsedPills[up].remove();
+
+      var unparsedTerminals = heroContents.querySelectorAll('.sonarline-terminal-prompt:not([data-shortcode-parsed])');
+      for (var ut = 0; ut < unparsedTerminals.length; ut++) unparsedTerminals[ut].remove();
 
       // Glitch / Scramble Effect on Native H1
       if (!h1.getAttribute('data-scramble-bound')) {
@@ -1043,15 +1076,6 @@
         var rawHtml = subtitleP.innerHTML;
         var formattedHtml = rawHtml.replace(/[•·]/g, '<span style="color: #ff3b30; font-size: 0.9rem; margin: 0 4px;">&bull;</span>');
         subtitleP.innerHTML = formattedHtml;
-      }
-
-      // Terminal Prompt fallback if not injected via shortcode
-      var terminalPrompt = heroContents.querySelector('.sonarline-terminal-prompt');
-      if (!terminalPrompt) {
-        terminalPrompt = document.createElement('div');
-        terminalPrompt.className = 'sonarline-terminal-prompt';
-        terminalPrompt.innerHTML = '<span style="color: #ff3b30;">root@sonarline:~$</span> <span style="color: #ffffff;">archive</span> <span style="color: #888888;">--status active</span><span class="sonarline-cursor-blink">&#9646;</span>';
-        heroContents.appendChild(terminalPrompt);
       }
     }
 

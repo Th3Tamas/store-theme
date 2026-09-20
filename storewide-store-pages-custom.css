@@ -1095,7 +1095,32 @@ html body .card-wrapper .card__inner .media img {
   text-decoration: none !important;
 }
 
-/* Native Product Prices - Clean Monospace */
+/* Native Product Prices - Clean Single-Line Monospace without Ghost Lines */
+.card-wrapper .price-block {
+  margin-top: auto !important;
+  padding-top: 8px !important;
+  border: none !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Strip all duplicate borders, box-shadows, and extra padding from nested price children */
+.card-wrapper .price-block *,
+.card-wrapper .price,
+.card-wrapper .price__container,
+.card-wrapper .price__regular,
+.card-wrapper .price-item,
+.card-wrapper [class*="price"]:not(.price-block),
+.card-wrapper .card-information,
+.card-wrapper .card-information * {
+  border: none !important;
+  border-top: none !important;
+  border-bottom: none !important;
+  box-shadow: none !important;
+  background-image: none !important;
+  outline: none !important;
+}
+
+.card-wrapper .price-item,
 .card-wrapper .price,
 .card-wrapper [class*="price"],
 .product-price,
@@ -1105,17 +1130,14 @@ html body .card-wrapper .card__inner .media img {
 .product-card .price,
 .product-item .price,
 [data-product-id] .price,
-[class*="product-price"],
-[class*="price"] {
+[class*="product-price"] {
   font-family: var(--font-mono, 'Space Mono', monospace) !important;
   font-size: 0.9rem !important;
   font-weight: 700 !important;
   color: #ff3b30 !important;
   letter-spacing: 0.08em !important;
   text-transform: uppercase !important;
-  margin-top: auto !important;
-  padding-top: 12px !important;
-  border-top: 1px solid rgba(255, 255, 255, 0.06) !important;
+  line-height: 1.3 !important;
 }
 
 /* Collapse Native Footer Completely */
@@ -1655,16 +1677,21 @@ html body .card-wrapper .card__inner .media img {
 /* --------------------------------------------------------------------------
    8. Custom Kinetic Cursor & Terminal Blink Cursor Styles
    -------------------------------------------------------------------------- */
+html, body, a, button, input, select, textarea, [role="button"], * {
+  cursor: none !important;
+}
+
 #sl-cursor-dot {
   position: fixed !important;
   top: 0 !important;
   left: 0 !important;
   width: 5px !important;
   height: 5px !important;
-  background: #FFE600 !important;
+  background: #FF5500 !important;
   border-radius: 50% !important;
   pointer-events: none !important;
   z-index: 2147483646 !important;
+  mix-blend-mode: difference !important;
   transform: translate3d(-100px, -100px, 0);
   will-change: transform;
 }
@@ -1675,10 +1702,11 @@ html body .card-wrapper .card__inner .media img {
   left: 0 !important;
   width: 28px !important;
   height: 28px !important;
-  border: 1px solid rgba(255, 255, 255, 0.7) !important;
+  border: 1px solid rgba(255, 255, 255, 0.85) !important;
   border-radius: 50% !important;
   pointer-events: none !important;
   z-index: 2147483645 !important;
+  mix-blend-mode: difference !important;
   transform: translate3d(-100px, -100px, 0);
   transition: width 0.2s cubic-bezier(0.16, 1, 0.3, 1), height 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease, transform 0.04s linear !important;
   will-change: transform;
@@ -1687,13 +1715,16 @@ html body .card-wrapper .card__inner .media img {
 #sl-cursor-circle.hovered {
   width: 44px !important;
   height: 44px !important;
-  border-color: rgba(255, 59, 48, 0.9) !important;
+  border-color: rgba(255, 85, 0, 0.9) !important;
 }
 
 @media (pointer: coarse) {
   #sl-cursor-dot,
   #sl-cursor-circle {
     display: none !important;
+  }
+  html, body, a, button, input, select, textarea, [role="button"], * {
+    cursor: auto !important;
   }
 }
 
