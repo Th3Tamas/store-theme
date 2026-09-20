@@ -59,22 +59,28 @@
     text-transform: uppercase;
     line-height: 1.1;
   }
+  .hud-brand-title .hud-title-first {
+    color: #ffffff;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
   .hud-brand-title .hud-slash {
     color: #ff3b30;
     margin: 0 4px;
   }
-  .hud-brand-title .hud-lab {
+  .hud-brand-title .hud-lab,
+  .hud-brand-title .hud-title-second {
     color: #ff3b30;
     font-weight: 400;
-    text-transform: lowercase;
   }
   .hud-brand-sub {
     font-family: 'Space Mono', monospace;
     font-size: 0.68rem;
-    letter-spacing: 0.28em;
-    color: #666666;
+    letter-spacing: 0.25em;
+    color: #888888;
     text-transform: uppercase;
     margin-top: 8px;
+    text-align: center;
   }
   .hud-terminal-readout {
     width: 100%;
@@ -204,8 +210,8 @@
       preloader.id = 'sonarline-hud-preloader';
       preloader.innerHTML = '<div class="hud-center-container">' +
         '<div class="hud-brand-header">' +
-          '<div class="hud-brand-title">SONARLINE <span class="hud-slash">/</span> <span class="hud-lab">lab</span></div>' +
-          '<div class="hud-brand-sub">SOUND DESIGN LAB</div>' +
+          '<div class="hud-brand-title" id="hud-brand-title"><span class="hud-title-first">SONARLINE</span> <span class="hud-slash">/</span> <span class="hud-title-second">lab</span></div>' +
+          '<div class="hud-brand-sub" id="hud-brand-sub">SOUND DESIGN LAB</div>' +
         '</div>' +
         '<div class="hud-terminal-readout" id="hud-terminal-readout">' +
           '<div class="hud-line" id="hud-line-0"><span class="hud-prompt">&gt;</span> <span class="hud-cmd">initializing system...</span><span class="hud-dots"></span><span class="hud-status"></span></div>' +
@@ -246,7 +252,29 @@
     ];
 
     function escapeHtml(str) {
-      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+      return (str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function renderBrandHeader(titleStr, secondaryStr) {
+      var titleEl = document.getElementById('hud-brand-title');
+      var subEl = document.getElementById('hud-brand-sub');
+
+      var rawTitle = (titleStr || 'SONARLINE / lab').trim();
+      if (titleEl) {
+        if (rawTitle.indexOf('/') !== -1) {
+          var parts = rawTitle.split('/');
+          var first = parts[0].trim();
+          var second = parts.slice(1).join('/').trim();
+          titleEl.innerHTML = '<span class="hud-title-first">' + escapeHtml(first) + '</span> <span class="hud-slash">/</span> <span class="hud-title-second">' + escapeHtml(second) + '</span>';
+        } else {
+          titleEl.innerHTML = '<span class="hud-title-first">' + escapeHtml(rawTitle) + '</span>';
+        }
+      }
+
+      var rawSub = (secondaryStr || 'SOUND DESIGN LAB').trim();
+      if (subEl) {
+        subEl.textContent = rawSub;
+      }
     }
 
     function formatCustomLine(rawText, isLast) {
@@ -255,7 +283,7 @@
       var okMatch = s.match(/(.*?)\s*\[\s*ok\s*\]/i);
       if (okMatch) {
         var cmd = okMatch[1].replace(/\.+$/, '').trim();
-        return '<span class="hud-prompt">&gt;</span> <span class="hud-cmd">' + escapeHtml(cmd) + '</span><span class="hud-dots">............</span> <span class="hud-status">[<span class="hud-ok">OK</span>]</span>';
+        return '<span class="hud-prompt">&gt;</span> <span class="hud-cmd">' + escapeHtml(cmd) + '</span><span class="hud-dots">..................</span> <span class="hud-status">[<span class="hud-ok">OK</span>]</span>';
       }
       if (isLast || /ready/i.test(s)) {
         var readyMatch = s.match(/^(.*?(?:ready\.?|welcome\.?))\s*(.*)$/i);
@@ -267,15 +295,41 @@
       return '<span class="hud-prompt">&gt;</span> <span class="hud-cmd">' + escapeHtml(s) + '</span><span class="hud-dots"></span><span class="hud-status"></span>';
     }
 
-    function scanForShortcode() {
+    function scanForPreloaderConfig() {
       var root = document.body || document.documentElement;
-      if (!root) return null;
+      var config = {
+        title: null,
+        secondary: null,
+        lines: null
+      };
+      if (!root) return config;
 
-      var re = /\[\[preloader:\s*([\s\S]*?)\]\](?=[^\]]|$)/i;
+      var titleRe = /\[\[loader-title:\s*([\s\S]*?)\]\](?=[^\]]|$)/i;
+      var secondaryRe = /\[\[loader-secondary:\s*([\s\S]*?)\]\](?=[^\]]|$)/i;
+      var linesRe = /\[\[preloader:\s*([\s\S]*?)\]\](?=[^\]]|$)/i;
+      var allTokensRe = /\[\[(?:loader-title|loader-secondary|preloader):\s*[\s\S]*?\]\]/gi;
 
-      // 1. Search for elements containing the shortcode
+      function sanitizeElement(el) {
+        if (!el) return;
+        el.style.setProperty('display', 'none', 'important');
+        el.style.setProperty('visibility', 'hidden', 'important');
+        el.style.setProperty('height', '0px', 'important');
+        el.setAttribute('data-preloader-hidden', 'true');
+        var sWrap = el.parentElement ? el.parentElement.closest('.section-wrapper, [data-section-key], .section, section, .rich-text-section') : null;
+        if (sWrap) {
+          var rem = (sWrap.textContent || '').replace(allTokensRe, '').trim();
+          if (rem.length < 5) {
+            sWrap.style.setProperty('display', 'none', 'important');
+            sWrap.style.setProperty('visibility', 'hidden', 'important');
+            sWrap.style.setProperty('height', '0px', 'important');
+            sWrap.style.setProperty('margin', '0px', 'important');
+            sWrap.style.setProperty('padding', '0px', 'important');
+            sWrap.setAttribute('data-preloader-hidden', 'true');
+          }
+        }
+      }
+
       var all = root.querySelectorAll('p, div, section, span, [data-section-key], article, main');
-      var matches = [];
       for (var i = 0; i < all.length; i++) {
         var el = all[i];
         if (el.id === 'sonarline-hud-preloader' || el.closest('#sonarline-hud-preloader')) continue;
@@ -287,108 +341,82 @@
                              .replace(/<[^>]+>/g, ' ')
                              .replace(/&nbsp;/gi, ' ')
                              .replace(/&#160;/g, ' ');
-
         var textContent = (el.textContent || '').replace(/&nbsp;/gi, ' ').replace(/&#160;/g, ' ');
+        var textToCheck = (normalized && normalized.length > textContent.length) ? normalized : textContent;
 
-        if (re.test(normalized) || re.test(textContent)) {
-          var rawM = normalized.match(re) || textContent.match(re);
-          matches.push({ el: el, rawMatch: rawM });
+        var matched = false;
+        if (titleRe.test(textToCheck)) {
+          var tm = textToCheck.match(titleRe);
+          if (tm && tm[1] && !config.title) {
+            config.title = tm[1].trim();
+            matched = true;
+          }
+        }
+        if (secondaryRe.test(textToCheck)) {
+          var sm = textToCheck.match(secondaryRe);
+          if (sm && sm[1] && !config.secondary) {
+            config.secondary = sm[1].trim();
+            matched = true;
+          }
+        }
+        if (linesRe.test(textToCheck)) {
+          var lm = textToCheck.match(linesRe);
+          if (lm && lm[1] && !config.lines) {
+            var rawLines = lm[1].split(/\r?\n|\|/);
+            var parsed = [];
+            for (var r = 0; r < rawLines.length; r++) {
+              var line = rawLines[r].trim();
+              if (line.length > 0) parsed.push(line);
+            }
+            if (parsed.length > 0) config.lines = parsed;
+            matched = true;
+          }
+        }
+        if (matched) {
+          sanitizeElement(el);
         }
       }
 
-      // 2. Find the innermost matching element (an element with no matching descendants)
-      var innermost = null;
-      for (var m = 0; m < matches.length; m++) {
-        var cand = matches[m];
-        var hasMatchingDescendant = false;
-        for (var n = 0; n < matches.length; n++) {
-          if (m !== n && cand.el.contains(matches[n].el)) {
-            hasMatchingDescendant = true;
-            break;
-          }
-        }
-        if (!hasMatchingDescendant) {
-          innermost = cand;
-          break;
-        }
-      }
-
-      // 3. If found via elements
-      if (innermost && innermost.rawMatch) {
-        var targetEl = innermost.el;
-        
-        // Hide the target element
-        targetEl.style.setProperty('display', 'none', 'important');
-        targetEl.style.setProperty('visibility', 'hidden', 'important');
-        targetEl.style.setProperty('height', '0px', 'important');
-        targetEl.setAttribute('data-preloader-hidden', 'true');
-
-        // Check if the containing section wrapper only has this shortcode
-        var sectionWrap = targetEl.parentElement ? targetEl.parentElement.closest('.section-wrapper, [data-section-key], .section, section, .rich-text-section') : null;
-        if (sectionWrap) {
-          var remaining = (sectionWrap.textContent || '').replace(re, '').trim();
-          if (remaining.length < 5) {
-            sectionWrap.style.setProperty('display', 'none', 'important');
-            sectionWrap.style.setProperty('visibility', 'hidden', 'important');
-            sectionWrap.style.setProperty('height', '0px', 'important');
-            sectionWrap.style.setProperty('margin', '0px', 'important');
-            sectionWrap.style.setProperty('padding', '0px', 'important');
-            sectionWrap.setAttribute('data-preloader-hidden', 'true');
-          }
-        }
-
-        var rawLines = innermost.rawMatch[1].split(/\r?\n|\|/);
-        var parsed = [];
-        for (var r = 0; r < rawLines.length; r++) {
-          var line = rawLines[r].trim();
-          if (line.length > 0) {
-            parsed.push(line);
-          }
-        }
-        if (parsed.length > 0) {
-          return parsed;
-        }
-      }
-
-      // 4. Fallback TreeWalker for text nodes
+      // Fallback TreeWalker for text nodes to catch any uncaptured tokens and sanitize
       var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null, false);
       var textNode;
       while ((textNode = walker.nextNode())) {
         var val = (textNode.nodeValue || '').replace(/&nbsp;/gi, ' ').replace(/&#160;/g, ' ');
-        if (val && re.test(val)) {
-          var m = val.match(re);
-          var parentEl = textNode.parentElement;
-          if (parentEl && parentEl.id !== 'sonarline-hud-preloader' && !parentEl.closest('#sonarline-hud-preloader')) {
-            parentEl.style.setProperty('display', 'none', 'important');
-            parentEl.style.setProperty('visibility', 'hidden', 'important');
-            parentEl.style.setProperty('height', '0px', 'important');
-            parentEl.setAttribute('data-preloader-hidden', 'true');
-            var sWrap = parentEl.parentElement ? parentEl.parentElement.closest('.section-wrapper, [data-section-key], .section, section, .rich-text-section') : null;
-            if (sWrap) {
-              var rem = (sWrap.textContent || '').replace(re, '').trim();
-              if (rem.length < 5) {
-                sWrap.style.setProperty('display', 'none', 'important');
-                sWrap.style.setProperty('visibility', 'hidden', 'important');
-                sWrap.style.setProperty('height', '0px', 'important');
-                sWrap.style.setProperty('margin', '0px', 'important');
-                sWrap.style.setProperty('padding', '0px', 'important');
-                sWrap.setAttribute('data-preloader-hidden', 'true');
+        if (val && (titleRe.test(val) || secondaryRe.test(val) || linesRe.test(val))) {
+          if (titleRe.test(val) && !config.title) {
+            var tm2 = val.match(titleRe);
+            if (tm2 && tm2[1]) config.title = tm2[1].trim();
+          }
+          if (secondaryRe.test(val) && !config.secondary) {
+            var sm2 = val.match(secondaryRe);
+            if (sm2 && sm2[1]) config.secondary = sm2[1].trim();
+          }
+          if (linesRe.test(val) && !config.lines) {
+            var lm2 = val.match(linesRe);
+            if (lm2 && lm2[1]) {
+              var linesArr = lm2[1].split(/\r?\n|\|/);
+              var res = [];
+              for (var x = 0; x < linesArr.length; x++) {
+                var item = linesArr[x].trim();
+                if (item.length > 0) res.push(item);
               }
+              if (res.length > 0) config.lines = res;
             }
           }
-          var linesArr = m[1].split(/\r?\n|\|/);
-          var result = [];
-          for (var x = 0; x < linesArr.length; x++) {
-            var item = linesArr[x].trim();
-            if (item.length > 0) result.push(item);
+          if (textNode.parentElement && textNode.parentElement.id !== 'sonarline-hud-preloader' && !textNode.parentElement.closest('#sonarline-hud-preloader')) {
+            sanitizeElement(textNode.parentElement);
+            textNode.nodeValue = val.replace(allTokensRe, '');
           }
-          if (result.length > 0) return result;
         }
       }
-      return null;
+
+      return config;
     }
 
-    function startSequence(customLines) {
+    function startSequence(config) {
+      config = config || {};
+      renderBrandHeader(config.title, config.secondary);
+
       var readoutEl = document.querySelector('#sonarline-hud-preloader .hud-terminal-readout');
       var pctEl = document.getElementById('hud-progress-pct');
       var fillEl = document.getElementById('hud-progress-fill');
@@ -403,6 +431,7 @@
         }
       }
 
+      var customLines = config.lines;
       var htmlLines = [];
       if (customLines && customLines.length > 0) {
         for (var c = 0; c < customLines.length; c++) {
@@ -426,52 +455,69 @@
         domLines.push(document.getElementById('hud-line-' + d));
       }
 
+      // Precalculate ascending random incremental percentages
+      var currentProgress = 0;
+      var stepPcts = [];
+      for (var s = 0; s < total; s++) {
+        if (s === total - 1) {
+          stepPcts.push(100);
+        } else {
+          currentProgress += Math.floor(Math.random() * 20) + 10;
+          if (currentProgress > 95) currentProgress = 95;
+          if (s > 0 && currentProgress <= stepPcts[s - 1]) {
+            currentProgress = Math.min(stepPcts[s - 1] + Math.floor(Math.random() * 5) + 1, 95);
+          }
+          stepPcts.push(currentProgress);
+        }
+      }
+
       var totalDuration = 2400;
       for (var idx = 0; idx < total; idx++) {
         (function(stepIdx) {
           var delay = (total <= 1) ? 150 : Math.round(150 + stepIdx * (totalDuration / (total - 1)));
-          var pct = (stepIdx === total - 1) ? 100 : Math.round(((stepIdx + 0.8) / total) * 100);
+          var pct = stepPcts[stepIdx];
           setTimeout(function() {
             if (domLines[stepIdx]) domLines[stepIdx].classList.add('active');
             if (pctEl) pctEl.textContent = pct + '%';
             if (fillEl) fillEl.style.width = pct + '%';
+
+            // When final sequence completes at 100%, hold for 200ms, then smoothly fade out and unmount
+            if (stepIdx === total - 1) {
+              setTimeout(function() {
+                preloader.style.opacity = '0';
+                preloader.style.pointerEvents = 'none';
+                setTimeout(function() {
+                  if (preloader.parentNode) preloader.parentNode.removeChild(preloader);
+                }, 450);
+              }, 200);
+            }
           }, delay);
         })(idx);
       }
-
-      setTimeout(function() {
-        if (pctEl) pctEl.textContent = '100%';
-        if (fillEl) fillEl.style.width = '100%';
-        preloader.style.opacity = '0';
-        preloader.style.pointerEvents = 'none';
-        setTimeout(function() {
-          if (preloader.parentNode) preloader.parentNode.removeChild(preloader);
-        }, 450);
-      }, 3000);
     }
 
-    var customLines = scanForShortcode();
-    if (customLines) {
-      startSequence(customLines);
+    var config = scanForPreloaderConfig();
+    if (config.lines || config.title || config.secondary) {
+      startSequence(config);
     } else if (document.readyState === 'loading') {
       var started = false;
       var onReady = function() {
         if (started) return;
         started = true;
         document.removeEventListener('DOMContentLoaded', onReady);
-        var found = scanForShortcode();
+        var found = scanForPreloaderConfig();
         startSequence(found);
       };
       document.addEventListener('DOMContentLoaded', onReady);
       setTimeout(function() {
         if (!started) {
           started = true;
-          var found = scanForShortcode();
+          var found = scanForPreloaderConfig();
           startSequence(found);
         }
       }, 1500);
     } else {
-      startSequence(null);
+      startSequence({});
     }
   })();
 </script>
@@ -1099,7 +1145,17 @@
           '  visibility: hidden !important;',
           '  pointer-events: none !important;',
           '}',
-          '/* 2. Sleek, compact ticker container with single hairline border & vertical centering */',
+          '/* 2. Header Offset Calibration & sleek, compact ticker container with single hairline border */',
+          ':root {',
+          '  --sonarline-header-height: 132px;',
+          '}',
+          '#header[data-section-setting-fixed-position="yes"] ~ .content-main-wrapper,',
+          'body:has(#header[data-section-setting-fixed-position="yes"]) .content-main-wrapper,',
+          '.content-main-wrapper,',
+          '#page-wrap,',
+          'main.main-content {',
+          '  padding-top: var(--sonarline-header-height, 132px) !important;',
+          '}',
           'header, .header, .site-header, [data-section-key="header"], [data-section-type="header"], .header-wrapper, .site-header-wrapper {',
           '  margin-bottom: 0 !important;',
           '}',
@@ -1109,7 +1165,7 @@
           '  border-top: 1px solid #FF2A2A !important;',
           '  border-bottom: 1px solid #FF2A2A !important;',
           '  box-shadow: none !important;',
-          '  padding: 0 0 2px 0 !important;',
+          '  padding: 0 !important;',
           '  height: 36px !important;',
           '  min-height: 36px !important;',
           '  max-height: 36px !important;',
@@ -1161,7 +1217,7 @@
           'svg.ticker-measure,',
           '.theme-tusk .marquee svg {',
           '  overflow: visible !important;',
-          '  transform: translateY(-3.5px) !important;',
+          '  transform: translateY(-0.5px) !important;',
           '  filter: none !important;',
           '}',
           '/* Ensure continuous ticker animation running state across all browsers */',
@@ -1177,7 +1233,7 @@
           '.ticker-block {',
           '  animation-play-state: running !important;',
           '}',
-          '/* 4. Ticker text thin Space Grotesk without ambient light halos */',
+          '/* 4. Ticker text crisp Space Mono without ambient light halos */',
           '[data-section-key="ticker"] text,',
           '[data-section-key="ticker"] tspan,',
           '[data-section-key="ticker"] textPath,',
@@ -1191,10 +1247,10 @@
           '.ticker a {',
           '  fill: #FF2A2A !important;',
           '  color: #FF2A2A !important;',
-          '  font-family: \'Space Grotesk\', sans-serif !important;',
-          '  font-weight: 300 !important;',
-          '  font-size: 0.8rem !important;',
-          '  letter-spacing: 0.22em !important;',
+          '  font-family: \'Space Mono\', \'JetBrains Mono\', monospace !important;',
+          '  font-weight: 400 !important;',
+          '  font-size: 0.78rem !important;',
+          '  letter-spacing: 0.18em !important;',
           '  text-transform: uppercase !important;',
           '  line-height: 1 !important;',
           '  text-shadow: none !important;',
@@ -2092,9 +2148,9 @@
           el.setAttribute('data-ticker-formatted', 'true');
           el.style.setProperty('color', '#FF2A2A', 'important');
           el.style.setProperty('fill', '#FF2A2A', 'important');
-          el.style.setProperty('font-family', "'Space Grotesk', sans-serif", 'important');
-          el.style.setProperty('font-weight', '300', 'important');
-          el.style.setProperty('letter-spacing', '0.22em', 'important');
+          el.style.setProperty('font-family', "'Space Mono', 'JetBrains Mono', monospace", 'important');
+          el.style.setProperty('font-weight', '400', 'important');
+          el.style.setProperty('letter-spacing', '0.18em', 'important');
         }
       }
     }
@@ -2134,7 +2190,31 @@
       }
     }
 
+    function syncHeaderOffset() {
+      var header = document.querySelector('header#header, header, [data-section-key="header"], .site-header');
+      if (!header) return;
+      var isFixed = window.getComputedStyle(header).position === 'fixed' ||
+                    header.getAttribute('data-section-setting-fixed-position') === 'yes';
+      var h = Math.round(header.getBoundingClientRect().height || header.offsetHeight || 0);
+      if (isFixed && h > 0) {
+        document.documentElement.style.setProperty('--sonarline-header-height', h + 'px');
+        var content = document.querySelector('.content-main-wrapper, #page-wrap, main');
+        if (content) {
+          content.style.setProperty('padding-top', h + 'px', 'important');
+        }
+      } else if (!isFixed) {
+        document.documentElement.style.setProperty('--sonarline-header-height', '0px');
+        var content = document.querySelector('.content-main-wrapper, #page-wrap, main');
+        if (content) {
+          content.style.removeProperty('padding-top');
+        }
+      }
+    }
+
     function applyDOMFixes() {
+      // Calibrate header offset to prevent ticker and content from being buried under fixed navbar
+      syncHeaderOffset();
+
       // Hide embed code section and rogue announcement bar dropzones at top of header
       var rogueElements = document.querySelectorAll(
         '[data-section-key="embed-code"], #content-section-yBbkPa6OGD, #remote-custom-embed, .sonarline-hero-section, .sonarline-homepage-experience, .announcement-bar-dropzone, .announcement-bar, [data-section-type="announcement"]'
@@ -2245,7 +2325,7 @@
         var tw = outerTickers[t];
         tw.style.setProperty('margin-top', '0px', 'important');
         tw.style.setProperty('margin-bottom', '0px', 'important');
-        tw.style.setProperty('padding', '0px 0px 2px 0px', 'important');
+        tw.style.setProperty('padding', '0px', 'important');
         tw.style.setProperty('height', '36px', 'important');
         tw.style.setProperty('min-height', '36px', 'important');
         tw.style.setProperty('max-height', '36px', 'important');
@@ -2279,7 +2359,7 @@
       );
       for (var s = 0; s < svgs.length; s++) {
         svgs[s].style.setProperty('overflow', 'visible', 'important');
-        svgs[s].style.setProperty('transform', 'translateY(-3.5px)', 'important');
+        svgs[s].style.setProperty('transform', 'translateY(-0.5px)', 'important');
         svgs[s].style.setProperty('filter', 'none', 'important');
         svgs[s].setAttribute('xml:space', 'preserve');
       }
@@ -2297,10 +2377,10 @@
       for (var x = 0; x < texts.length; x++) {
         texts[x].style.setProperty('fill', '#FF2A2A', 'important');
         texts[x].style.setProperty('color', '#FF2A2A', 'important');
-        texts[x].style.setProperty('font-family', "'Space Grotesk', sans-serif", 'important');
-        texts[x].style.setProperty('font-weight', '300', 'important');
-        texts[x].style.setProperty('font-size', '0.8rem', 'important');
-        texts[x].style.setProperty('letter-spacing', '0.22em', 'important');
+        texts[x].style.setProperty('font-family', "'Space Mono', 'JetBrains Mono', monospace", 'important');
+        texts[x].style.setProperty('font-weight', '400', 'important');
+        texts[x].style.setProperty('font-size', '0.78rem', 'important');
+        texts[x].style.setProperty('letter-spacing', '0.18em', 'important');
         texts[x].style.setProperty('line-height', '1', 'important');
         texts[x].style.setProperty('text-shadow', 'none', 'important');
         texts[x].style.setProperty('filter', 'none', 'important');
@@ -2352,6 +2432,9 @@
       applyDOMFixes();
     }
     setTimeout(function() { injectImmediateStyles(); applyDOMFixes(); }, 50);
+    window.addEventListener('resize', syncHeaderOffset, { passive: true });
+    window.addEventListener('scroll', syncHeaderOffset, { passive: true });
+    window.addEventListener('load', syncHeaderOffset);
     setTimeout(function() { injectImmediateStyles(); applyDOMFixes(); }, 200);
     setTimeout(function() { injectImmediateStyles(); applyDOMFixes(); }, 600);
     setTimeout(function() { injectImmediateStyles(); applyDOMFixes(); }, 1500);

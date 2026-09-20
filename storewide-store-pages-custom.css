@@ -7,6 +7,7 @@
    1. Design Tokens & Root Variables
    -------------------------------------------------------------------------- */
 :root {
+  --sonarline-header-height: 132px;
   --sl-bg: #080808;
   --sl-bg-card: #0F0F0F;
   --sl-bg-card-hover: #151515;
@@ -94,22 +95,28 @@
   text-transform: uppercase !important;
   line-height: 1.1 !important;
 }
+.hud-brand-title .hud-title-first {
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+}
 .hud-brand-title .hud-slash {
   color: #ff3b30 !important;
   margin: 0 4px !important;
 }
-.hud-brand-title .hud-lab {
+.hud-brand-title .hud-lab,
+.hud-brand-title .hud-title-second {
   color: #ff3b30 !important;
   font-weight: 400 !important;
-  text-transform: lowercase !important;
 }
 .hud-brand-sub {
   font-family: 'Space Mono', monospace !important;
   font-size: 0.68rem !important;
-  letter-spacing: 0.28em !important;
-  color: #666666 !important;
+  letter-spacing: 0.25em !important;
+  color: #888888 !important;
   text-transform: uppercase !important;
   margin-top: 8px !important;
+  text-align: center !important;
 }
 .hud-terminal-readout {
   width: 100% !important;
@@ -586,6 +593,15 @@ body,
   box-sizing: border-box !important;
 }
 
+/* Header Offset Calibration: Ensure content and ticker are not buried under fixed navbar */
+#header[data-section-setting-fixed-position="yes"] ~ .content-main-wrapper,
+body:has(#header[data-section-setting-fixed-position="yes"]) .content-main-wrapper,
+.content-main-wrapper,
+#page-wrap,
+main.main-content {
+  padding-top: var(--sonarline-header-height, 132px) !important;
+}
+
 /* Section overflow guards */
 .section-wrapper,
 [data-section-key="ticker"] {
@@ -760,7 +776,7 @@ div[id*="section-QW9Kn45mB6"],
   animation-play-state: running !important;
 }
 
-/* Ticker text thin Space Grotesk (300) without glow */
+/* Ticker text crisp Space Mono without glow */
 [data-section-key="ticker"] text,
 [data-section-key="ticker"] tspan,
 [data-section-key="ticker"] textPath,
@@ -782,10 +798,10 @@ div[id*="section-QW9Kn45mB6"],
   fill: #FF2A2A !important;
   text-shadow: none !important;
   filter: none !important;
-  font-family: 'Space Grotesk', sans-serif !important;
-  font-weight: 300 !important;
-  font-size: 0.8rem !important;
-  letter-spacing: 0.22em !important;
+  font-family: 'Space Mono', 'JetBrains Mono', monospace !important;
+  font-weight: 400 !important;
+  font-size: 0.78rem !important;
+  letter-spacing: 0.18em !important;
   text-transform: uppercase !important;
   line-height: 1 !important;
 }
@@ -798,7 +814,7 @@ svg.ticker-measure,
 [data-section-type="announcement"] svg {
   filter: none !important;
   overflow: visible !important;
-  transform: translateY(-3.5px) !important;
+  transform: translateY(-0.5px) !important;
 }
 
 /* Hide newsletter form if present anywhere in DOM */

@@ -55,16 +55,23 @@
 
 ## 2. Preloader & HUD Terminal Sequence
 
-- `[x]` **Fullscreen HUD Boot Overlay (`#sonarline-preloader`):**
+- `[x]` **Fullscreen HUD Boot Overlay (`#sonarline-hud-preloader`):**
   - Dark scanline CRT effect and blinking green/white cursor.
   - Real-time sequential terminal output line rendering with typing delays.
 - `[x]` **CMS Shortcode Integration (`[[preloader: ...]]`):**
   - Admins can customize boot text directly in Payhip rich text sections.
   - Source container is automatically hidden from page layout to prevent content flash.
   - Robust fallback sequence when shortcode is omitted.
-- `[x]` **Dynamic Progress Bar:**
-  - 0% to 100% animated progress bar track matching Sonarline wireframe aesthetic.
-  - Real-time percentage counter synchronized with terminal line output.
+  - Prepends red prompt arrows (`>`) and formats `[OK]` status markers to the right edge with dot leaders (`......... [OK]`).
+- `[x]` **Brand Header Shortcodes (`[[loader-title: ...]]` & `[[loader-secondary: ...]]`):**
+  - `[[loader-title: FIRST / SECOND]]`: Primary title split by `/` with first part in bold uppercase white `Space Grotesk` and second part in crimson red. Defaults to `SONARLINE / lab`.
+  - `[[loader-secondary: TEXT]]`: Centered subtext under the title in muted, tracked-out `Space Mono` (`letter-spacing: 0.25em`). Defaults to `SOUND DESIGN LAB`.
+  - DOM sanitization strips all tokens from normal page flow.
+- `[x]` **Dynamic Incrementing Progress Bar & Percentage Engine:**
+  - Pinned horizontal hairline wireframe track (`rgba(255, 255, 255, 0.12)`) spanning the terminal container.
+  - Active fill bar in `#FF2A2A` / `#FF3B30` positioned directly above the status footer row (`READY` on left, percentage counter on right).
+  - Ascending pseudo-random incremental engine (`current += Math.floor(Math.random() * 20) + 10`).
+  - Holds for 200ms at `100%`, then smoothly fades out and unmounts the overlay.
 - `[x]` **Homepage Scoping:**
   - Preloader runs strictly on the homepage (`/`) and is suppressed on individual product pages (`/b/...`, `/p/...`) to prevent navigation friction.
 
@@ -88,13 +95,15 @@
 - `[x]` **Slim Wireframe Ticker:**
   - Compact ~36px height container with a single outer wireframe border.
   - Removed double borders and unwanted glow/drop-shadow effects.
-- `[x]` **Strict Dot Separators:**
-  - Enforced bullet separators (`•`) between all marquee announcements:
-    `ANALOG WARMTH • PURE GRIT • NO FILLER SOUNDS • INSTANT INSPIRATION`.
+- `[x]` **Strict Dot Separators & Space Mono Typography:**
+  - Rendered in crisp, solid `#FF2A2A` Space Mono without glow or halos.
+  - Enforced bullet separators (`•`) with balanced horizontal spacing between each phrase:
+    `ANALOG WARMTH • PURE GRIT • NO FILLER SOUNDS • PREMIUM SOUNDS • ...`.
+  - Calibrated vertical centering with equal top/bottom clearance.
 - `[x]` **Continuous Marquee Loop:**
   - Seamless CSS/JS animation with pause-on-hover interaction.
-- `[!]` **Header Offset / Navbar Overlap Defect:**
-  - *Status:* In progress (see Section 8).
+- `[x]` **Header Offset Calibration:**
+  - Dynamic navbar measurement (`syncHeaderOffset`) and `--sonarline-header-height: 132px` padding on `.content-main-wrapper` ensuring the ticker is never buried beneath the fixed header.
 
 ---
 
@@ -156,12 +165,12 @@
 ## 8. Known Issues & Immediate Fixes
 
 ### Issue 1: Ticker Buried Under Fixed Navbar
-- **Severity:** High (Visual Defect)
-- **Description:** Payhip's fixed navbar (`header#header`, ~132px high) sits at `y = 0px`. Because `.content-main-wrapper` lacks top padding, the 36px marquee ticker starts at `y = 0px` and is rendered directly underneath the navbar.
-- **Fix in Progress:**
-  1. Define `:root { --sonarline-header-height: 132px; }`.
-  2. Dynamically measure header height on DOM load, resize, and scroll, updating `--sonarline-header-height`.
-  3. Apply `padding-top: var(--sonarline-header-height, 132px) !important;` to `.content-main-wrapper`.
+- **Status:** `[x]` **Resolved**
+- **Description:** Payhip's fixed navbar (`header#header`, ~132px high) sits at `y = 0px`. Because `.content-main-wrapper` lacked top padding, the 36px marquee ticker was obscured beneath the navbar.
+- **Resolution:**
+  1. Defined `:root { --sonarline-header-height: 132px; }`.
+  2. Implemented `syncHeaderOffset()` to measure navbar height on load, resize, and scroll.
+  3. Applied `padding-top: var(--sonarline-header-height, 132px) !important;` to `.content-main-wrapper`.
 
 ### Issue 2: Homepage Cards Do Not Inherit Product Page Shortcodes
 - **Severity:** High (Functional Gap)
@@ -194,12 +203,30 @@
   - Save user volume preferences in `localStorage` across page visits.
 - `[ ]` **Keyboard Accessibility for Audio Player:**
   - Add spacebar (play/pause), arrow keys (seek), and escape (close modal) shortcut listeners.
+- `[ ]` **Global Sticky Bottom Audio Deck:** Persistent playback when modal is closed or during page navigation.
+- `[ ]` **Card Quick-Listen Trigger:** Instant play/pause overlay on card media hover.
+- `[ ]` **Audio Stem / Layer Selector in Preview Modal:** Multi-track demo auditioning via `[[audio:stem:url]]`.
+- `[ ]` **Multi-Sample Directory Tree:** `[[contents: ...]]` formatted into an ASCII tree breakdown inside modals.
+- `[ ]` **Instant In-Page Search & Live Card Filter HUD:** Real-time counter readouts and instant filtering.
+- `[ ]` **3D Hardware-Accelerated Perspective Tilt on Card Hover:** Subtle perspective mouse tracking.
+- `[ ]` **Monospace Text Scramble / Character Decryption Effect on Hover:** Cyberpunk text reveal animation.
+- `[ ]` **Dynamic Web Audio API Oscilloscope / Reactive Scanline Pulse:** Real-time visualizer canvas.
+- `[ ]` **Brutalist Terms of Service & Sample Clearance Drawer:** Dedicated slide-over modal for licensing.
+- `[ ]` **Floating HUD Cart Counter & Order Total Pill:** Minimalist sticky indicator for cart status.
 
 ---
 
 ## 10. Changelog & Revision History
 
-### [2026-09-20]
+### [2026-09-20 - Release 2]
+- **Fixed:** Ticker navbar overlap via dynamic header offset calibration (`syncHeaderOffset` + `--sonarline-header-height: 132px`).
+- **Refined:** Converted ticker typography to crisp solid Space Mono with balanced dot separators and calibrated vertical centering.
+- **Added:** New preloader shortcode `[[loader-title: FIRST / SECOND]]` with uppercase white `Space Grotesk` and crimson red accent.
+- **Added:** New preloader shortcode `[[loader-secondary: TEXT]]` with tracked-out muted `Space Mono`.
+- **Added:** Dynamic ascending random incremental progress bar engine (`Math.floor(Math.random() * 20) + 10`) with 200ms hold at 100% and smooth unmount.
+- **Updated:** Appended 10 planned items to Section 9 (Future Roadmap & Enhancements).
+
+### [2026-09-20 - Release 1]
 - **Fixed:** Repaired terminal syntax highlighter regex leak and HTML entity encoding.
 - **Added:** HTML5 Backblaze Audio Player engine with progress scrubber, volume control, and time readout.
 - **Added:** Circular `!` info badge on product cards with trigger binding to `#sonarline-product-modal`.
