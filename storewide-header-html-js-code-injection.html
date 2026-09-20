@@ -1487,9 +1487,8 @@
       header.setAttribute('aria-hidden', 'false');
       header.innerHTML = '<span class="sl-rail-label"><span class="sl-rail-dot"></span>MOST POPULAR</span>' +
         '<span class="sl-rail-count">' + originals.length + ' products</span>';
-      var block = grid.closest('.grid-block') || grid.parentNode;
-      if (block && block.parentNode === section) section.insertBefore(header, block);
-      else section.insertBefore(header, grid);
+      var anchor = grid.closest('.grid-block, .product-list-block') || grid;
+      anchor.parentNode.insertBefore(header, anchor);
 
       var viewport = document.createElement('div');
       viewport.className = 'sl-rail-viewport';
@@ -1579,8 +1578,13 @@
 
     function initRail() {
       try {
-        var grids = document.querySelectorAll('#page-section-collection .grid-list, [data-section-key="collection"] .grid-list, .product-list-block .grid-list');
-        for (var i = 0; i < grids.length; i++) buildRail(grids[i]);
+        var grids = document.querySelectorAll('.grid-list');
+        for (var i = 0; i < grids.length; i++) {
+          try {
+            if (!grids[i].querySelector('.card-wrapper, .product-card')) continue;
+            buildRail(grids[i]);
+          } catch (e) {}
+        }
         for (var r = 0; r < rails.length; r++) {
           try { rails[r].measure(); mirrorClones(rails[r]); } catch (e) {}
         }
@@ -1615,8 +1619,12 @@
     }
 
     window.slRailInit = initRail;
-    // Late grids: Payhip lazy-renders collection grids after load.
+    // Late grids/cards: Payhip lazy-renders grids and streams cards in after load.
     var railObsT = null;
+    function railObsKick() {
+      if (railObsT) clearTimeout(railObsT);
+      railObsT = setTimeout(initRail, 300);
+    }
     if (typeof MutationObserver !== 'undefined') {
       var railObs = new MutationObserver(function(muts) {
         for (var i = 0; i < muts.length; i++) {
@@ -1624,17 +1632,20 @@
           for (var j = 0; added && j < added.length; j++) {
             var n = added[j];
             if (n.nodeType !== 1) continue;
-            if ((n.classList && n.classList.contains('grid-list')) ||
-                (n.querySelector && n.querySelector('.grid-list'))) {
-              if (railObsT) clearTimeout(railObsT);
-              railObsT = setTimeout(initRail, 300);
+            var isGrid = n.classList && (n.classList.contains('grid-list') || n.classList.contains('card-wrapper') || n.classList.contains('product-card'));
+            var hasGrid = n.querySelector && (n.querySelector('.grid-list') || n.querySelector('.card-wrapper'));
+            if (isGrid || hasGrid) {
+              // Ignore our own clones/rail chrome to avoid loops.
+              if (n.hasAttribute && (n.hasAttribute('data-sl-clone') || n.hasAttribute('data-sl-rail-track'))) continue;
+              railObsKick();
               break;
             }
           }
         }
       });
       try { railObs.observe(document.documentElement, { childList: true, subtree: true }); } catch (e) {}
-    }    if (document.readyState === 'loading') {
+    }
+    if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', function() {
         ensureRailCss();
         initRail();
@@ -1659,6 +1670,7 @@
     setTimeout(initRail, 500);
     setTimeout(initRail, 1500);
     setTimeout(initRail, 3000);
+    setTimeout(initRail, 6000);
   })();
 
   // ==========================================================================
