@@ -280,7 +280,7 @@
     background: #FF2A2A !important;
     z-index: 2147483647 !important;
     transform-origin: 0 0 !important;
-    transform: scaleX(0) !important;
+    transform: scaleX(0);
     will-change: transform !important;
     pointer-events: none !important;
     transition: transform 0.08s cubic-bezier(0.25, 1, 0.5, 1) !important;
@@ -314,7 +314,7 @@
       var maxScroll = Math.max(scrollEl.scrollHeight, document.body.scrollHeight, document.documentElement.scrollHeight) - window.innerHeight;
       var ratio = maxScroll > 0 ? Math.min(Math.max(winScroll / maxScroll, 0), 1) : 0;
       if (progressBar) {
-        progressBar.style.transform = 'scaleX(' + ratio + ')';
+        progressBar.style.setProperty('transform', 'scaleX(' + ratio + ')', 'important');
       }
       ticking = false;
     }
@@ -467,12 +467,15 @@
         var styleTag = document.createElement('style');
         styleTag.id = styleId;
         styleTag.textContent = [
-          '/* 1. Eliminate gap between navbar and ticker */',
+          '/* 1. Eliminate gap and rogue announcement bar dropzone at top of header */',
           '[data-section-key="embed-code"],',
           '#content-section-yBbkPa6OGD,',
           '#remote-custom-embed,',
           '.sonarline-hero-section,',
-          '.sonarline-homepage-experience {',
+          '.sonarline-homepage-experience,',
+          '.announcement-bar-dropzone,',
+          '.announcement-bar,',
+          '[data-section-type="announcement"] {',
           '  display: none !important;',
           '  height: 0 !important;',
           '  min-height: 0 !important;',
@@ -480,19 +483,23 @@
           '  padding: 0 !important;',
           '  margin: 0 !important;',
           '  border: none !important;',
+          '  outline: none !important;',
+          '  box-shadow: none !important;',
           '  overflow: hidden !important;',
           '  visibility: hidden !important;',
           '  pointer-events: none !important;',
           '}',
-          '/* 2. Ticker container with single glowing hairline border (outermost only) */',
+          '/* 2. Sleek, compact ticker container with single glowing hairline border & vertical centering */',
           '[data-section-key="ticker"],',
           '#content-section-QW9Kn45mB6 {',
           '  background-color: #080808 !important;',
           '  border-top: 1px solid #FF2A2A !important;',
           '  border-bottom: 1px solid #FF2A2A !important;',
           '  box-shadow: 0 -2px 8px rgba(255, 42, 42, 0.4), 0 2px 8px rgba(255, 42, 42, 0.4) !important;',
-          '  padding-top: 4px !important;',
-          '  padding-bottom: 4px !important;',
+          '  padding: 0 !important;',
+          '  height: 52px !important;',
+          '  min-height: 52px !important;',
+          '  max-height: 52px !important;',
           '  margin-top: 0 !important;',
           '  margin-bottom: 0 !important;',
           '  overflow-x: hidden !important;',
@@ -512,8 +519,28 @@
           '  border-top: none !important;',
           '  border-bottom: none !important;',
           '  box-shadow: none !important;',
+          '  padding: 0 !important;',
+          '  margin: 0 !important;',
           '}',
-          '/* 3. Allow SVG to overflow vertically so text is never cut in half */',
+          '/* Strip all internal padding from nested ticker containers */',
+          '[data-section-key="ticker"] .section-contents-wrapper,',
+          '[data-section-key="ticker"] .section-contents,',
+          '[data-section-key="ticker"] .section-wrapper-inner,',
+          '[data-section-key="ticker"] .ticker,',
+          '[data-section-key="ticker"] .ticker-display,',
+          '[data-section-key="ticker"] .js-ticker-svg-wrapper,',
+          '#content-section-QW9Kn45mB6 .section-contents-wrapper,',
+          '#content-section-QW9Kn45mB6 .section-contents {',
+          '  padding: 0 !important;',
+          '  margin: 0 !important;',
+          '  min-height: 0 !important;',
+          '  height: auto !important;',
+          '  display: flex !important;',
+          '  align-items: center !important;',
+          '  justify-content: center !important;',
+          '  width: 100% !important;',
+          '}',
+          '/* 3. Vertically center the ticker SVG and allow overflow */',
           '[data-section-key="ticker"] svg,',
           '.ticker svg,',
           '.js-ticker-svg,',
@@ -521,6 +548,7 @@
           '.js-ticker-svg-wrapper,',
           '.ticker-measure {',
           '  overflow: visible !important;',
+          '  transform: translateY(2px) !important;',
           '  filter: drop-shadow(0 0 4px rgba(255, 42, 42, 0.35)) !important;',
           '}',
           '/* 4. Ticker text with subtle refined glow */',
@@ -540,12 +568,12 @@
     }
 
     function applyDOMFixes() {
-      // Hide embed code section (the 297px gap)
-      var embeds = document.querySelectorAll(
-        '[data-section-key="embed-code"], #content-section-yBbkPa6OGD, #remote-custom-embed, .sonarline-hero-section, .sonarline-homepage-experience'
+      // Hide embed code section and rogue announcement bar dropzones at top of header
+      var rogueElements = document.querySelectorAll(
+        '[data-section-key="embed-code"], #content-section-yBbkPa6OGD, #remote-custom-embed, .sonarline-hero-section, .sonarline-homepage-experience, .announcement-bar-dropzone, .announcement-bar, [data-section-type="announcement"]'
       );
-      for (var i = 0; i < embeds.length; i++) {
-        var em = embeds[i];
+      for (var i = 0; i < rogueElements.length; i++) {
+        var em = rogueElements[i];
         em.style.setProperty('display', 'none', 'important');
         em.style.setProperty('height', '0px', 'important');
         em.style.setProperty('min-height', '0px', 'important');
@@ -553,12 +581,14 @@
         em.style.setProperty('padding', '0px', 'important');
         em.style.setProperty('margin', '0px', 'important');
         em.style.setProperty('border', 'none', 'important');
+        em.style.setProperty('outline', 'none', 'important');
+        em.style.setProperty('box-shadow', 'none', 'important');
         em.style.setProperty('overflow', 'hidden', 'important');
         em.style.setProperty('visibility', 'hidden', 'important');
         em.style.setProperty('pointer-events', 'none', 'important');
       }
 
-      // Outer ticker wrapper ONLY receives the single border
+      // Outer ticker wrapper: sleek 52px height + single border + flex centering
       var outerTickers = document.querySelectorAll(
         '[data-section-key="ticker"], #content-section-QW9Kn45mB6'
       );
@@ -566,8 +596,10 @@
         var tw = outerTickers[t];
         tw.style.setProperty('margin-top', '0px', 'important');
         tw.style.setProperty('margin-bottom', '0px', 'important');
-        tw.style.setProperty('padding-top', '4px', 'important');
-        tw.style.setProperty('padding-bottom', '4px', 'important');
+        tw.style.setProperty('padding', '0px', 'important');
+        tw.style.setProperty('height', '52px', 'important');
+        tw.style.setProperty('min-height', '52px', 'important');
+        tw.style.setProperty('max-height', '52px', 'important');
         tw.style.setProperty('overflow-x', 'hidden', 'important');
         tw.style.setProperty('overflow-y', 'visible', 'important');
         tw.style.setProperty('border-top', '1px solid #FF2A2A', 'important');
@@ -579,15 +611,17 @@
         tw.style.setProperty('justify-content', 'center', 'important');
       }
 
-      // Inner ticker elements: strip all borders to eliminate double-border
+      // Inner ticker elements: strip all borders and paddings
       var innerTickers = document.querySelectorAll(
-        '[data-section-key="ticker"] .ticker, [data-section-key="ticker"] .marquee, [data-section-key="ticker"] .ticker-display, [data-section-key="ticker"] .js-ticker-svg-wrapper, .ticker, .marquee'
+        '[data-section-key="ticker"] .ticker, [data-section-key="ticker"] .marquee, [data-section-key="ticker"] .ticker-display, [data-section-key="ticker"] .js-ticker-svg-wrapper, .ticker, .marquee, [data-section-key="ticker"] .section-contents-wrapper, [data-section-key="ticker"] .section-contents'
       );
       for (var it = 0; it < innerTickers.length; it++) {
         innerTickers[it].style.setProperty('border', 'none', 'important');
         innerTickers[it].style.setProperty('border-top', 'none', 'important');
         innerTickers[it].style.setProperty('border-bottom', 'none', 'important');
         innerTickers[it].style.setProperty('box-shadow', 'none', 'important');
+        innerTickers[it].style.setProperty('padding', '0px', 'important');
+        innerTickers[it].style.setProperty('margin', '0px', 'important');
       }
 
       var svgs = document.querySelectorAll(
@@ -595,6 +629,7 @@
       );
       for (var s = 0; s < svgs.length; s++) {
         svgs[s].style.setProperty('overflow', 'visible', 'important');
+        svgs[s].style.setProperty('transform', 'translateY(2px)', 'important');
         svgs[s].style.setProperty('filter', 'drop-shadow(0 0 4px rgba(255, 42, 42, 0.35))', 'important');
       }
 
