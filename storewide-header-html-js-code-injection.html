@@ -3326,34 +3326,77 @@
       document.addEventListener('DOMContentLoaded', runParser);
     }
 
+    // Lag/freeze fix: NEVER sweep synchronously inside the observer callback.
+    // Our own parse writes (innerHTML) used to retrigger the observer, and
+    // every unrelated mutation (lazy-loader, clock tick, card fixes) caused a
+    // full-body sweep. Now: ignore our own live regions, debounce 300ms,
+    // disconnect while writing (breaks ping-pong), cap total sweeps.
+    var observerSweepCount = 0;
+    var observerTimer = null;
+    var pendingShortcodeNodes = [];
+    var OBSERVER_SWEEP_CAP = 25;
+
+    function attachShortcodeObserver() {
+      try {
+        if (observerSweepCount >= OBSERVER_SWEEP_CAP) return;
+        var body = document.body;
+        if (body) observer.observe(body, { childList: true, subtree: true, characterData: true });
+      } catch (e) {}
+    }
+
     var observer = new MutationObserver(function(mutations) {
       try {
-        var needsSweep = false;
+        var relevant = false;
         for (var m = 0; m < mutations.length; m++) {
           var mutation = mutations[m];
           if (mutation.type === 'childList') {
             for (var a = 0; a < mutation.addedNodes.length; a++) {
-              parseShortcodesInNode(mutation.addedNodes[a]);
-              needsSweep = true;
+              var n = mutation.addedNodes[a];
+              if (n && n.closest) {
+                try {
+                  if (n.closest('[data-shortcode-parsed], .sonarline-terminal-prompt, .sonarline-status-pill, .sonarline-status-clock, #sonarline-product-modal, #sonarline-preloader, #sonarline-hud-preloader')) continue;
+                } catch (e) {}
+              }
+              pendingShortcodeNodes.push(n);
+              relevant = true;
             }
           } else if (mutation.type === 'characterData') {
-            parseShortcodesInNode(mutation.target);
-            needsSweep = true;
+            var t = mutation.target;
+            if (t && t.parentNode && t.parentNode.closest) {
+              try {
+                if (t.parentNode.closest('[data-shortcode-parsed], .sonarline-terminal-prompt, .sonarline-status-pill, .sonarline-status-clock')) continue;
+              } catch (e) {}
+            }
+            pendingShortcodeNodes.push(t);
+            relevant = true;
           }
         }
-        if (needsSweep && (document.body || document.documentElement)) {
-          sweepUnparsedShortcodes(document.body || document.documentElement);
-        }
+        if (!relevant) return;
+        if (observerSweepCount >= OBSERVER_SWEEP_CAP) { observer.disconnect(); return; }
+        if (observerTimer) return;
+        observerTimer = setTimeout(function() {
+          observerTimer = null;
+          observer.disconnect();
+          try {
+            for (var p = 0; p < pendingShortcodeNodes.length; p++) {
+              parseShortcodesInNode(pendingShortcodeNodes[p]);
+            }
+            pendingShortcodeNodes = [];
+            sweepUnparsedShortcodes(document.body || document.documentElement);
+            observerSweepCount++;
+          } catch (e) {}
+          attachShortcodeObserver();
+        }, 300);
       } catch (e) {
         console.error('Shortcode observer error:', e);
       }
     });
 
     if (document.body) {
-      observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+      attachShortcodeObserver();
     } else {
       document.addEventListener('DOMContentLoaded', function() {
-        observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+        attachShortcodeObserver();
       });
     }
 
