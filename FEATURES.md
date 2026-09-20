@@ -105,8 +105,9 @@
 - `[x]` **Continuous Marquee Loop:**
   - Seamless CSS/JS animation with pause-on-hover interaction.
 - `[x]` **Header Offset Calibration & Static Flow (sticky reverted per user request):**
-  - Ticker sits in normal document flow using `position: relative !important; top: auto !important; left: auto !important; transform: none !important; width: 100% !important; z-index: 10 !important;` — scrolls away naturally, never pinned.
-  - Header engine (`syncHeaderOffset` / `initHeaderOffsetEngine`) now only maintains `--sonarline-header-height` + `.content-main-wrapper padding-top`; JS no longer sets `sticky`/`fixed` on tickers.
+  - Ticker sits in normal document flow using `position: relative !important; top: auto !important; left: auto !important; transform: none !important; width: 100% !important; z-index: 1 !important;` — scrolls away naturally, never pinned.
+  - Navbar is pinned above it (`header#header z-index: 50`), so the ticker can never paint over the navbar.
+  - Header engine (`syncHeaderOffset` / `initHeaderOffsetEngine`) maintains `--sonarline-header-height` + `padding-top` on ALL `.content-main-wrapper, #page-wrap` nodes (first-match single-node bug fixed); JS never sets `sticky`/`fixed` on tickers, and ticker writes were removed from the scroll path (one-time `enforceTickerStatic()` with `data-sl-ticker-static` markers).
   - Parent containers keep `overflow-x: clip !important; overflow-y: visible !important;` as horizontal-bounce guards (safe for static flow).
 
 ---
@@ -223,6 +224,10 @@
 ---
 
 ## 10. Changelog & Revision History
+
+### [2026-09-20 - Release 6]
+- **Fixed:** Ticker-over-navbar stacking — padding is now applied to every `.content-main-wrapper, #page-wrap` node (was first-match only, could hit a wrong node and leave the ticker unpadded over the navbar); ticker `z-index` lowered to `1` with navbar forced to `50`; ticker enforcement moved out of the scroll path into one-time `enforceTickerStatic()`.
+- **Fixed:** Scroll jank — removed unthrottled `scroll/resize → syncHeaderOffset` listeners (rAF-gated now); card observer no longer watches `style` mutations (was a self-triggering feedback loop) and is 250ms-debounced, ignoring our own decorator nodes; cursor lerp skips hidden tabs.
 
 ### [2026-09-20 - Release 5]
 - **Fixed:** Reverted ticker to static document flow per user request (`position: relative !important; top: auto !important; left: auto !important; transform: none !important; width: 100% !important; z-index: 10 !important;`). Removed all JS `sticky`/`fixed` assignments in `injectImmediateStyles()`, `syncHeaderOffset()`, and `applyDOMFixes()`. Header engine retains `padding-top` calibration only.

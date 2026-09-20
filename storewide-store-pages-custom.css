@@ -762,6 +762,13 @@ header,
   margin-bottom: 0 !important;
 }
 
+/* Navbar must always paint above the in-flow ticker */
+header#header,
+header,
+.site-header {
+  z-index: 50 !important;
+}
+
 [data-section-key="ticker"],
 .section-wrapper[data-section-key="ticker"],
 div.section-wrapper[data-section-key="ticker"],
@@ -774,7 +781,7 @@ div[id*="section-QW9Kn45mB6"],
   top: auto !important;
   left: auto !important;
   transform: none !important;
-  z-index: 10 !important;
+  z-index: 1 !important;
   width: 100% !important;
   padding: 0 0 2px 0 !important;
   margin: 0 !important;
@@ -1879,7 +1886,7 @@ html body .card-wrapper .card__inner .media img {
   top: auto !important;
   left: auto !important;
   transform: none !important;
-  z-index: 10 !important;
+  z-index: 1 !important;
   width: 100% !important;
   background-color: #080808 !important;
   /* Single hairline borders without glow */
