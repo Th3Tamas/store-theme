@@ -1668,9 +1668,13 @@ html body .card-wrapper .card__inner .media img {
   border-top: 1px solid #FF2A2A !important;
   border-bottom: 1px solid #FF2A2A !important;
   box-shadow: 0 -2px 8px rgba(255, 42, 42, 0.4), 0 2px 8px rgba(255, 42, 42, 0.4) !important;
-  /* Padding ON THE WRAPPER gives breathing room so SVG text is not clipped */
-  padding-top: 10px !important;
-  padding-bottom: 14px !important;
+  /* Tight padding for text to sit close to borders */
+  padding-top: 4px !important;
+  padding-bottom: 4px !important;
+  /* Flex centering for vertical alignment */
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
   /* overflow-x clips the horizontal scroll; overflow-y allows descenders to breathe */
   overflow-x: hidden !important;
   overflow-y: visible !important;

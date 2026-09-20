@@ -197,15 +197,7 @@
     // Dynamic Preloader Construction (Guarantees mounting even when injected via script-only loaders)
     var preloader = document.getElementById('sonarline-hud-preloader');
     
-    // Check if session has already booted
-    if (sessionStorage.getItem('sonarline_booted') === '1') {
-      if (preloader) {
-        preloader.style.display = 'none';
-        if (preloader.parentNode) preloader.parentNode.removeChild(preloader);
-      }
-      return;
-    }
-
+    // Always show preloader on every page load (no session gating)
     if (!preloader) {
       preloader = document.createElement('div');
       preloader.id = 'sonarline-hud-preloader';
@@ -246,17 +238,17 @@
     }
     var pctEl = document.getElementById('hud-progress-pct');
 
-    // Sequence timing across 1.1s
+    // Sequence timing spread across ~2.6s (3s total with final fade)
     var steps = [
-      { t: 60, idx: 0, pct: '12%' },
-      { t: 160, idx: 1, pct: '28%' },
-      { t: 280, idx: 2, pct: '44%' },
-      { t: 400, idx: 3, pct: '59%' },
-      { t: 520, idx: 4, pct: '73%' },
-      { t: 640, idx: 5, pct: '84%' },
-      { t: 760, idx: 6, pct: '92%' },
-      { t: 880, idx: 7, pct: '98%' },
-      { t: 980, idx: 8, pct: '100%' }
+      { t: 150,  idx: 0, pct: '8%' },
+      { t: 450,  idx: 1, pct: '18%' },
+      { t: 750,  idx: 2, pct: '30%' },
+      { t: 1050, idx: 3, pct: '42%' },
+      { t: 1350, idx: 4, pct: '55%' },
+      { t: 1650, idx: 5, pct: '68%' },
+      { t: 1950, idx: 6, pct: '80%' },
+      { t: 2250, idx: 7, pct: '92%' },
+      { t: 2550, idx: 8, pct: '100%' }
     ];
 
     steps.forEach(function(step) {
@@ -266,14 +258,14 @@
       }, step.t);
     });
 
+    // Fade out after 3 seconds total
     setTimeout(function() {
       preloader.style.opacity = '0';
       preloader.style.pointerEvents = 'none';
-      sessionStorage.setItem('sonarline_booted', '1');
       setTimeout(function() {
         if (preloader.parentNode) preloader.parentNode.removeChild(preloader);
       }, 450);
-    }, 1200);
+    }, 3000);
   })();
 </script>
 
@@ -499,12 +491,15 @@
           '  border-top: 1px solid #FF2A2A !important;',
           '  border-bottom: 1px solid #FF2A2A !important;',
           '  box-shadow: 0 -2px 8px rgba(255, 42, 42, 0.4), 0 2px 8px rgba(255, 42, 42, 0.4) !important;',
-          '  padding-top: 10px !important;',
-          '  padding-bottom: 14px !important;',
+          '  padding-top: 4px !important;',
+          '  padding-bottom: 4px !important;',
           '  margin-top: 0 !important;',
           '  margin-bottom: 0 !important;',
           '  overflow-x: hidden !important;',
           '  overflow-y: visible !important;',
+          '  display: flex !important;',
+          '  align-items: center !important;',
+          '  justify-content: center !important;',
           '}',
           '/* Remove borders from inner ticker elements to prevent double border */',
           '[data-section-key="ticker"] .ticker,',
@@ -571,14 +566,17 @@
         var tw = outerTickers[t];
         tw.style.setProperty('margin-top', '0px', 'important');
         tw.style.setProperty('margin-bottom', '0px', 'important');
-        tw.style.setProperty('padding-top', '10px', 'important');
-        tw.style.setProperty('padding-bottom', '14px', 'important');
+        tw.style.setProperty('padding-top', '4px', 'important');
+        tw.style.setProperty('padding-bottom', '4px', 'important');
         tw.style.setProperty('overflow-x', 'hidden', 'important');
         tw.style.setProperty('overflow-y', 'visible', 'important');
         tw.style.setProperty('border-top', '1px solid #FF2A2A', 'important');
         tw.style.setProperty('border-bottom', '1px solid #FF2A2A', 'important');
         tw.style.setProperty('box-shadow', '0 -2px 8px rgba(255, 42, 42, 0.4), 0 2px 8px rgba(255, 42, 42, 0.4)', 'important');
         tw.style.setProperty('background-color', '#080808', 'important');
+        tw.style.setProperty('display', 'flex', 'important');
+        tw.style.setProperty('align-items', 'center', 'important');
+        tw.style.setProperty('justify-content', 'center', 'important');
       }
 
       // Inner ticker elements: strip all borders to eliminate double-border
