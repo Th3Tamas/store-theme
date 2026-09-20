@@ -289,64 +289,109 @@
       var root = document.body || document.documentElement;
       if (!root) return null;
 
-      var candidates = root.querySelectorAll('p, div, section, span, [data-section-key]');
-      for (var i = 0; i < candidates.length; i++) {
-        var el = candidates[i];
+      var re = /\[\[preloader:\s*([\s\S]*?)\]\](?=[^\]]|$)/i;
+
+      // 1. Search for elements containing the shortcode
+      var all = root.querySelectorAll('p, div, section, span, [data-section-key], article, main');
+      var matches = [];
+      for (var i = 0; i < all.length; i++) {
+        var el = all[i];
         if (el.id === 'sonarline-hud-preloader' || el.closest('#sonarline-hud-preloader')) continue;
-        if (el.children && el.children.length > 3) continue;
-        var txt = el.textContent || el.innerText || '';
-        if (el.innerHTML && (/<br\s*\/?>/i.test(el.innerHTML) || /<\/p>/i.test(el.innerHTML))) {
-          txt = el.innerHTML.replace(/<br\s*\/?>/gi, '\n').replace(/<\/p>\s*<p[^>]*>/gi, '\n').replace(/<[^>]+>/g, ' ');
+        if (el.tagName === 'SCRIPT' || el.tagName === 'STYLE') continue;
+
+        var html = el.innerHTML || '';
+        var normalized = html.replace(/<br\s*\/?>/gi, '\n')
+                             .replace(/<\/(?:p|div)>\s*<(?:p|div)[^>]*>/gi, '\n')
+                             .replace(/<[^>]+>/g, ' ')
+                             .replace(/&nbsp;/gi, ' ')
+                             .replace(/&#160;/g, ' ');
+
+        var textContent = (el.textContent || '').replace(/&nbsp;/gi, ' ').replace(/&#160;/g, ' ');
+
+        if (re.test(normalized) || re.test(textContent)) {
+          var rawM = normalized.match(re) || textContent.match(re);
+          matches.push({ el: el, rawMatch: rawM });
         }
-        var match = txt.match(/\[\[preloader:\s*([\s\S]*?)\]\]/i);
-        if (match) {
-          el.style.setProperty('display', 'none', 'important');
-          el.style.setProperty('visibility', 'hidden', 'important');
-          el.style.setProperty('height', '0px', 'important');
-          el.setAttribute('data-preloader-hidden', 'true');
-          
-          var sectionWrap = el.closest('.section-wrapper, [data-section-key], .section, section, .rich-text-section, .rich-text');
-          if (sectionWrap && (!sectionWrap.textContent || sectionWrap.textContent.replace(/\[\[preloader:\s*[\s\S]*?\]\]/i, '').trim().length < 5)) {
+      }
+
+      // 2. Find the innermost matching element (an element with no matching descendants)
+      var innermost = null;
+      for (var m = 0; m < matches.length; m++) {
+        var cand = matches[m];
+        var hasMatchingDescendant = false;
+        for (var n = 0; n < matches.length; n++) {
+          if (m !== n && cand.el.contains(matches[n].el)) {
+            hasMatchingDescendant = true;
+            break;
+          }
+        }
+        if (!hasMatchingDescendant) {
+          innermost = cand;
+          break;
+        }
+      }
+
+      // 3. If found via elements
+      if (innermost && innermost.rawMatch) {
+        var targetEl = innermost.el;
+        
+        // Hide the target element
+        targetEl.style.setProperty('display', 'none', 'important');
+        targetEl.style.setProperty('visibility', 'hidden', 'important');
+        targetEl.style.setProperty('height', '0px', 'important');
+        targetEl.setAttribute('data-preloader-hidden', 'true');
+
+        // Check if the containing section wrapper only has this shortcode
+        var sectionWrap = targetEl.parentElement ? targetEl.parentElement.closest('.section-wrapper, [data-section-key], .section, section, .rich-text-section') : null;
+        if (sectionWrap) {
+          var remaining = (sectionWrap.textContent || '').replace(re, '').trim();
+          if (remaining.length < 5) {
             sectionWrap.style.setProperty('display', 'none', 'important');
+            sectionWrap.style.setProperty('visibility', 'hidden', 'important');
             sectionWrap.style.setProperty('height', '0px', 'important');
             sectionWrap.style.setProperty('margin', '0px', 'important');
             sectionWrap.style.setProperty('padding', '0px', 'important');
             sectionWrap.setAttribute('data-preloader-hidden', 'true');
           }
+        }
 
-          var rawLines = match[1].split(/\r?\n|\|/);
-          var parsed = [];
-          for (var r = 0; r < rawLines.length; r++) {
-            var line = rawLines[r].trim();
-            if (line.length > 0) {
-              parsed.push(line);
-            }
+        var rawLines = innermost.rawMatch[1].split(/\r?\n|\|/);
+        var parsed = [];
+        for (var r = 0; r < rawLines.length; r++) {
+          var line = rawLines[r].trim();
+          if (line.length > 0) {
+            parsed.push(line);
           }
-          if (parsed.length > 0) {
-            return parsed;
-          }
+        }
+        if (parsed.length > 0) {
+          return parsed;
         }
       }
 
+      // 4. Fallback TreeWalker for text nodes
       var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null, false);
       var textNode;
       while ((textNode = walker.nextNode())) {
-        var val = textNode.nodeValue;
-        if (val && /\[\[preloader:\s*([\s\S]*?)\]\]/i.test(val)) {
-          var m = val.match(/\[\[preloader:\s*([\s\S]*?)\]\]/i);
+        var val = (textNode.nodeValue || '').replace(/&nbsp;/gi, ' ').replace(/&#160;/g, ' ');
+        if (val && re.test(val)) {
+          var m = val.match(re);
           var parentEl = textNode.parentElement;
           if (parentEl && parentEl.id !== 'sonarline-hud-preloader' && !parentEl.closest('#sonarline-hud-preloader')) {
             parentEl.style.setProperty('display', 'none', 'important');
             parentEl.style.setProperty('visibility', 'hidden', 'important');
             parentEl.style.setProperty('height', '0px', 'important');
             parentEl.setAttribute('data-preloader-hidden', 'true');
-            var sWrap = parentEl.closest('.section-wrapper, [data-section-key], .section, section, .rich-text-section, .rich-text');
-            if (sWrap && (!sWrap.textContent || sWrap.textContent.replace(/\[\[preloader:\s*[\s\S]*?\]\]/i, '').trim().length < 5)) {
-              sWrap.style.setProperty('display', 'none', 'important');
-              sWrap.style.setProperty('height', '0px', 'important');
-              sWrap.style.setProperty('margin', '0px', 'important');
-              sWrap.style.setProperty('padding', '0px', 'important');
-              sWrap.setAttribute('data-preloader-hidden', 'true');
+            var sWrap = parentEl.parentElement ? parentEl.parentElement.closest('.section-wrapper, [data-section-key], .section, section, .rich-text-section') : null;
+            if (sWrap) {
+              var rem = (sWrap.textContent || '').replace(re, '').trim();
+              if (rem.length < 5) {
+                sWrap.style.setProperty('display', 'none', 'important');
+                sWrap.style.setProperty('visibility', 'hidden', 'important');
+                sWrap.style.setProperty('height', '0px', 'important');
+                sWrap.style.setProperty('margin', '0px', 'important');
+                sWrap.style.setProperty('padding', '0px', 'important');
+                sWrap.setAttribute('data-preloader-hidden', 'true');
+              }
             }
           }
           var linesArr = m[1].split(/\r?\n|\|/);
@@ -442,7 +487,7 @@
           var found = scanForShortcode();
           startSequence(found);
         }
-      }, 200);
+      }, 1500);
     } else {
       startSequence(null);
     }
@@ -915,7 +960,6 @@
           '  margin-bottom: 0 !important;',
           '  width: 100% !important;',
           '  max-width: 100% !important;',
-          '  gap: 14px !important;',
           '}',
           '[data-section-key="headline"] .category-list a,',
           '[data-section-key="headline"] .categories a,',
@@ -1014,39 +1058,32 @@
       var s = str.trim();
       if (!s) return str;
 
-      var delim = /\s*(?:[•·●■*|◦✦★]|&bull;|&#8226;|\s*[-–—]\s*|\s*\/\s*|\s{2,})\s*/;
+      // Delimiters: bullets, symbols, HTML entities, slashes, or dashes WITH spaces (not hyphens inside words like MULTI-KITS)
+      var delim = /\s*(?:[•·●■*|◦✦★]|&bull;|&#8226;|\s+[-–—]\s+|\s*\/\s*|\s{2,})\s*/;
       var rawPhrases = s.split(delim);
-
-      var phraseBank = knownTickerPhrases.slice();
-      for (var k = 0; k < rawPhrases.length; k++) {
-        var item = rawPhrases[k].trim();
-        if (item.length > 2 && !/^[•·●■*|◦✦★/–—\-]+$/.test(item)) {
-          if (phraseBank.indexOf(item.toUpperCase()) === -1) {
-            phraseBank.push(item.toUpperCase());
-          }
-        }
-      }
-      phraseBank.sort(function(a, b) { return b.length - a.length; });
 
       var phrases = [];
       for (var i = 0; i < rawPhrases.length; i++) {
         var p = rawPhrases[i].trim();
         if (p.length > 0 && !/^[•·●■*|◦✦★/–—\-]+$/.test(p)) {
+          // Check if p is an exact known phrase
+          var pUpper = p.toUpperCase();
+          var isExactKnown = false;
+          for (var k = 0; k < knownTickerPhrases.length; k++) {
+            if (pUpper === knownTickerPhrases[k]) {
+              phrases.push(knownTickerPhrases[k]);
+              isExactKnown = true;
+              break;
+            }
+          }
+          if (isExactKnown) continue;
+
+          // If p concatenated multiple known phrases (e.g. "ANALOG WARMTHPURE GRIT")
           var handled = false;
-          for (var j = 0; j < phraseBank.length; j++) {
-            var kp = phraseBank[j];
-            var pUpper = p.toUpperCase();
+          for (var j = 0; j < knownTickerPhrases.length; j++) {
+            var kp = knownTickerPhrases[j];
             if (pUpper.indexOf(kp) !== -1 && pUpper !== kp) {
-              if (pUpper.endsWith(kp)) {
-                var prefix = p.substring(0, p.length - kp.length).trim();
-                if (prefix.length > 0 && !/^[•·●■*|◦✦★/–—\-]+$/.test(prefix)) {
-                  phrases.push(prefix);
-                }
-                phrases.push(kp);
-                handled = true;
-                break;
-              }
-              var escaped = phraseBank.map(function(w) { return w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); });
+              var escaped = knownTickerPhrases.map(function(w) { return w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); });
               var kpPattern = new RegExp('(' + escaped.join('|') + ')', 'gi');
               var matches = p.match(kpPattern);
               if (matches && matches.length > 1) {
@@ -1146,19 +1183,23 @@
             continue;
           }
 
-          var next = el.nextElementSibling || el.nextSibling;
           var hasNextSep = false;
-          if (next) {
-            var nextText = next.textContent ? next.textContent.trim() : '';
-            if (/^[•·●■*|◦✦★/–—\-]+$/.test(nextText) ||
-                (next.classList && (
-                  next.classList.contains('sonarline-ticker-bullet') ||
-                  next.classList.contains('ticker-bullet') ||
-                  next.classList.contains('ticker-sep') ||
-                  next.classList.contains('ticker-separator')
-                ))) {
-              hasNextSep = true;
+          var sib = el.nextSibling;
+          while (sib) {
+            var sibText = sib.textContent ? sib.textContent.trim() : '';
+            if (sibText.length > 0) {
+              if (/^[•·●■*|◦✦★/–—\-]+$/.test(sibText) ||
+                  (sib.classList && (
+                    sib.classList.contains('sonarline-ticker-bullet') ||
+                    sib.classList.contains('ticker-bullet') ||
+                    sib.classList.contains('ticker-sep') ||
+                    sib.classList.contains('ticker-separator')
+                  ))) {
+                hasNextSep = true;
+              }
+              break;
             }
+            sib = sib.nextSibling;
           }
 
           var formatted = formatTickerString(original, hasNextSep);
@@ -1318,7 +1359,7 @@
 
       // Outer ticker wrapper: sleek 36px height + single border + flex centering (no glow)
       var outerTickers = document.querySelectorAll(
-        '[data-section-key="ticker"], #content-section-QW9Kn45mB6'
+        '[data-section-key="ticker"], #content-section-QW9Kn45mB6, .section-wrapper[data-section-key="ticker"], div.section-wrapper[data-section-key="ticker"], div[id*="section-QW9Kn45mB6"], .theme-tusk .marquee, .marquee, .marquee-wrapper, .sonarline-ticker-bar'
       );
       for (var t = 0; t < outerTickers.length; t++) {
         var tw = outerTickers[t];
@@ -1818,14 +1859,6 @@
       var subtitleElements = heroContents.querySelectorAll('p, .richtext p, .category-list, .categories, .category-links, .category-link-wrapper, .categories-wrapper, [class*="category"]');
       for (var se = 0; se < subtitleElements.length; se++) {
         var subtitleP = subtitleElements[se];
-        if (!subtitleP.getAttribute('data-bullets-styled')) {
-          subtitleP.setAttribute('data-bullets-styled', 'true');
-          var rawHtml = subtitleP.innerHTML;
-          if (rawHtml && /(?:&bull;|&#8226;|[•·●])/.test(rawHtml)) {
-            var formattedHtml = rawHtml.replace(/(?:&bull;|&#8226;|[•·●])/g, '<span style="color: #ff3b30; font-size: 0.9rem; margin: 0 6px; display: inline-flex; align-items: center; justify-content: center; vertical-align: middle;">&bull;</span>');
-            subtitleP.innerHTML = formattedHtml;
-          }
-        }
         subtitleP.style.setProperty('text-align', 'center', 'important');
         subtitleP.style.setProperty('justify-content', 'center', 'important');
         subtitleP.style.setProperty('align-items', 'center', 'important');
@@ -1836,6 +1869,41 @@
         subtitleP.style.setProperty('display', 'flex', 'important');
         subtitleP.style.setProperty('flex-wrap', 'wrap', 'important');
         subtitleP.style.setProperty('width', '100%', 'important');
+        subtitleP.style.setProperty('max-width', '100%', 'important');
+      }
+
+      // Format bullets safely on text nodes to prevent destroying descendant DOM elements or nesting spans
+      var walker = document.createTreeWalker(heroContents, NodeFilter.SHOW_TEXT, null, false);
+      var textNode;
+      var textNodesToFormat = [];
+      while ((textNode = walker.nextNode())) {
+        var parentNode = textNode.parentNode;
+        if (parentNode && (parentNode.nodeName === 'SCRIPT' || parentNode.nodeName === 'STYLE')) continue;
+        if (parentNode && parentNode.getAttribute && parentNode.getAttribute('data-bullet-span') === 'true') continue;
+        var val = textNode.nodeValue;
+        if (val && /(?:&bull;|&#8226;|[•·●])/.test(val)) {
+          textNodesToFormat.push(textNode);
+        }
+      }
+      for (var tn = 0; tn < textNodesToFormat.length; tn++) {
+        var node = textNodesToFormat[tn];
+        var parent = node.parentNode;
+        if (!parent) continue;
+        var parts = node.nodeValue.split(/(?:&bull;|&#8226;|[•·●])/);
+        var frag = document.createDocumentFragment();
+        for (var p = 0; p < parts.length; p++) {
+          if (parts[p].length > 0) {
+            frag.appendChild(document.createTextNode(parts[p]));
+          }
+          if (p < parts.length - 1) {
+            var span = document.createElement('span');
+            span.setAttribute('data-bullet-span', 'true');
+            span.style.cssText = 'color: #ff3b30 !important; font-size: 0.9rem !important; margin: 0 6px !important; display: inline-flex !important; align-items: center !important; justify-content: center !important; vertical-align: middle !important;';
+            span.textContent = '•';
+            frag.appendChild(span);
+          }
+        }
+        parent.replaceChild(frag, node);
       }
     }
 
