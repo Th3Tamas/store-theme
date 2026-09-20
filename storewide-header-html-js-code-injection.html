@@ -1305,7 +1305,7 @@
           '.content-main-wrapper,',
           '#page-wrap,',
           'main.main-content {',
-          '  padding-top: var(--sonarline-header-height, 132px) !important;',
+          '  padding-top: calc(var(--sonarline-header-height, 132px) + 36px) !important;',
           '}',
           '.content-main-wrapper .main-content,',
           '.content-main-wrapper main {',
@@ -1367,10 +1367,11 @@
           '}',
           '[data-section-key="ticker"],',
           '#content-section-QW9Kn45mB6 {',
-          '  position: sticky !important;',
-          '  top: var(--sonarline-header-current-offset, var(--sonarline-header-height, 132px)) !important;',
+          '  position: fixed !important;',
+          '  top: var(--sonarline-header-height, 132px) !important;',
+          '  left: 0 !important;',
+          '  width: 100vw !important;',
           '  z-index: 999 !important;',
-          '  transition: top 140ms ease-in-out !important;',
           '  background-color: #080808 !important;',
           '  border-top: 1px solid #FF2A2A !important;',
           '  border-bottom: 1px solid #FF2A2A !important;',
@@ -2413,32 +2414,32 @@
       if (h > cachedInitialHeaderHeight) {
         cachedInitialHeaderHeight = h;
       }
-      var visibleBottom = isFixed ? Math.max(0, Math.round(rect.bottom)) : 0;
 
       if (isFixed && h > 0) {
         document.documentElement.style.setProperty('--sonarline-header-height', cachedInitialHeaderHeight + 'px');
-        document.documentElement.style.setProperty('--sonarline-header-current-offset', visibleBottom + 'px');
         var content = document.querySelector('.content-main-wrapper, #page-wrap, main');
         if (content) {
-          content.style.setProperty('padding-top', cachedInitialHeaderHeight + 'px', 'important');
+          content.style.setProperty('padding-top', (cachedInitialHeaderHeight + 36) + 'px', 'important');
         }
       } else if (!isFixed) {
         document.documentElement.style.setProperty('--sonarline-header-height', '0px');
-        document.documentElement.style.setProperty('--sonarline-header-current-offset', '0px');
         var content = document.querySelector('.content-main-wrapper, #page-wrap, main');
         if (content) {
           content.style.removeProperty('padding-top');
         }
       }
 
+      // Ticker is position:fixed — set top once to cachedInitialHeaderHeight (never track scroll)
       var tickers = document.querySelectorAll(
-        '[data-section-key="ticker"], #content-section-QW9Kn45mB6, .section-wrapper[data-section-key="ticker"], div.section-wrapper[data-section-key="ticker"], div[id*="section-QW9Kn45mB6"], .theme-tusk .marquee, .marquee, .marquee-wrapper, .sonarline-ticker-bar'
+        '[data-section-key="ticker"], #content-section-QW9Kn45mB6, .section-wrapper[data-section-key="ticker"], div.section-wrapper[data-section-key="ticker"], div[id*="section-QW9Kn45mB6"], .sonarline-ticker-bar'
       );
       for (var t = 0; t < tickers.length; t++) {
-        tickers[t].style.setProperty('position', 'sticky', 'important');
-        tickers[t].style.setProperty('top', visibleBottom + 'px', 'important');
+        tickers[t].style.setProperty('position', 'fixed', 'important');
+        tickers[t].style.setProperty('top', cachedInitialHeaderHeight + 'px', 'important');
+        tickers[t].style.setProperty('left', '0', 'important');
+        tickers[t].style.setProperty('width', '100vw', 'important');
         tickers[t].style.setProperty('z-index', '999', 'important');
-        tickers[t].style.setProperty('transition', 'top 140ms ease-in-out', 'important');
+        tickers[t].style.removeProperty('transition');
       }
     }
 
@@ -2448,49 +2449,23 @@
       if (!header) return;
       headerOffsetEngineInitialized = true;
 
-      var ticking = false;
-      function requestSync() {
-        if (!ticking) {
-          ticking = true;
-          window.requestAnimationFrame(function() {
-            ticking = false;
-            syncHeaderOffset();
-          });
-        }
-      }
-
       syncHeaderOffset();
 
-      window.addEventListener('scroll', requestSync, { passive: true });
-      window.addEventListener('resize', requestSync, { passive: true });
+      // Only sync on resize/load — ticker is fixed and doesn't track scroll
+      window.addEventListener('resize', syncHeaderOffset, { passive: true });
       window.addEventListener('load', syncHeaderOffset);
 
       if (header) {
-        function handleTransitionStart() {
-          requestSync();
-          var startTime = Date.now();
-          function frameLoop() {
-            syncHeaderOffset();
-            if (Date.now() - startTime < 220) {
-              window.requestAnimationFrame(frameLoop);
-            }
-          }
-          window.requestAnimationFrame(frameLoop);
-        }
-        header.addEventListener('transitionstart', handleTransitionStart);
-        header.addEventListener('transitionrun', requestSync);
-        header.addEventListener('transitionend', syncHeaderOffset);
-
         if (window.ResizeObserver) {
           var ro = new ResizeObserver(function() {
-            requestSync();
+            syncHeaderOffset();
           });
           ro.observe(header);
         }
 
         if (window.MutationObserver) {
           var mo = new MutationObserver(function() {
-            requestSync();
+            syncHeaderOffset();
           });
           mo.observe(header, {
             attributes: true,
