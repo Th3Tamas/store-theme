@@ -247,7 +247,14 @@
 - **Refined Price Tag**: Reduced font size to `0.72rem` Space Mono, eliminated nested pill backgrounds/borders across `.price-block`, `.price`, `.price__container`, etc., enforced the zero-glow mandate (no drop-shadows, glow halos, or layered blur effects), and isolated right-aligned flexbox to the `.sonarline-card-price-wrap` container so nested price text/sale items retain natural layout.
 - **Removed `!` Buttons**: Completely removed product preview exclamation badges (`.sonarline-card-info-badge { display: none !important; }` and purged all instances from DOM).
 
-### [2026-09-21 - Release 8]
+### [2026-09-21 - Release 11]
+- **Added:** Full-Width Section Bleed (`100vw`, `left: 50%`, `margin-left: -50vw`) with Two-Tone Gray Background (Reference Image 5): `#0a0a0a` main carousel body and `#121212` distinct upper header strip.
+- **Added:** Dynamic Section Header with Single Glowing Red Dot: exactly 1 circular `#FF2A2A` dot (`box-shadow: 0 0 8px #FF2A2A`), crimson glowing title (`text-shadow: 0 0 8px rgba(255, 42, 42, 0.45)`), dynamically reading Payhip's native heading (`h2.heading-text, .js-builder-heading-text`) with fallback to "MOST POPULAR", while completely hiding native heading elements (`display: none !important`).
+- **Added:** 72px Track Gutter Clearance & Elevated Chevrons: track padding updated to `32px 72px !important; overflow-x: scroll !important; cursor: grab !important;` (`grabbing` when active); brutalist chevrons (`<` and `>`) elevated to `z-index: 30 !important; pointer-events: auto !important;` at `left: 16px` and `right: 16px`, guaranteeing product artwork never overlaps or sits underneath chevrons.
+- **Fixed:** Purged Text Scramble Glitch & Reset Firefox Nested Stairstep Shadows: completely removed title scramble hover listener; stripped `box-shadow`, `filter`, and background fills across `.sonarline-card-price-wrap`, `.price-block`, `.price`, `.price__container`, and `.price-item` elements.
+- **Added:** Cross-Browser Multi-Card `[[highlighted: true]]` Parser: independent card processing loop setting `data-sl-highlighted="true"` and `.sonarline-card--highlighted`, allowing multiple cards to simultaneously display the `#FF3B30` brutalist border and glow.
+
+### [2026-09-21 - Release 10]
 - **Added:** 3D Hardware-Accelerated Perspective Tilt on Card Hover (`init3DCardTilt`) with dynamic specular glare highlight effect, mouse tracking, and smooth transform resets.
 - **Added:** Global Sticky Bottom Audio Deck (`#sonarline-bottom-deck`) with continuous persistent playback when preview modal is closed, synchronized audio engine controls, timeline scrubber, volume slider, quick modal expand button, and close deck button.
 - **Added:** Payhip Cart Drawer & Checkout Styling Alignment — styled native Payhip slide-out cart drawer with matching dark brutalist wireframe borders (`rgba(255, 255, 255, 0.12)`), `#0d0d0d`/`#111111` surfaces, Space Grotesk/Space Mono typography, and styled checkout buttons.
