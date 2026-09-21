@@ -5980,99 +5980,121 @@
       var unparsedTerminals = heroContents.querySelectorAll('.sonarline-terminal-prompt:not([data-shortcode-parsed])');
       for (var ut = 0; ut < unparsedTerminals.length; ut++) unparsedTerminals[ut].remove();
 
-      // Ambient tail glitch on Native H1: no hover trigger, no full-title scramble.
-      // Every few seconds, 1-2 of the last letters briefly take ONE subtle hit
-      // (random glyph, red tint, mono font, or slight grow), then revert.
-      if (!h1.getAttribute('data-scramble-bound')) {
-        h1.setAttribute('data-scramble-bound', 'true');
-        var glitchChars = '!<>-_\\/[]{}=+*^?#_';
-        var TAIL_COUNT = 3;
+      // Ambient tail glitch + red "/ ..." suffix on Native H1.
+      // No hover trigger, no full-title scramble. Every few seconds, 1-2 of the last
+      // letters briefly take ONE subtle hit (random glyph, red tint, mono font, or slight
+      // grow), then revert. Anything from the first "/" onward renders red.
+      var TAIL_COUNT = 3;
+      var glitchChars = '!<>-_\\/[]{}=+*^?#_';
 
-        function splitTail() {
-          try {
-            var full = h1.textContent || '';
-            if (!full) return;
-            // Last few LETTERS/digits only — trailing symbols and spaces never glitch.
-            var idx = [];
-            for (var i = full.length - 1; i >= 0 && idx.length < TAIL_COUNT; i--) {
-              if (/[A-Za-z0-9]/.test(full[i])) idx.unshift(i);
-            }
-            if (idx.length === 0) return;
-            var first = idx[0];
-            var last = idx[idx.length - 1];
-            var sel = {};
-            for (var s = 0; s < idx.length; s++) sel[idx[s]] = true;
-            var frag = document.createDocumentFragment();
-            if (first > 0) frag.appendChild(document.createTextNode(full.slice(0, first)));
-            for (var k = first; k <= last; k++) {
+      function splitTailNode(node) {
+        try {
+          var full = node.textContent || '';
+          if (!full) return;
+          // Red suffix only for " / " style separators (e.g. Sonarline / Lab -> "/ Lab" red).
+          // A bare "/" (as in the legacy "// SONARLINE //") leaves colors untouched.
+          var sepAt = full.indexOf(' / ');
+          var redAt = sepAt === -1 ? -1 : sepAt + 1;
+          var slash = redAt;
+          var idx = [];
+          for (var i = full.length - 1; i >= 0 && idx.length < TAIL_COUNT; i--) {
+            if (/[A-Za-z0-9]/.test(full[i])) idx.unshift(i);
+          }
+          var sel = {};
+          for (var s = 0; s < idx.length; s++) sel[idx[s]] = true;
+          var frag = document.createDocumentFragment();
+          function emit(parent, a, b) {
+            for (var k = a; k <= b; k++) {
               if (sel[k]) {
                 var sp = document.createElement('span');
                 sp.setAttribute('data-sl-char', 'true');
                 sp.setAttribute('data-orig', full[k]);
                 sp.textContent = full[k];
-                frag.appendChild(sp);
+                parent.appendChild(sp);
               } else {
-                frag.appendChild(document.createTextNode(full[k]));
+                parent.appendChild(document.createTextNode(full[k]));
               }
             }
-            if (last + 1 < full.length) frag.appendChild(document.createTextNode(full.slice(last + 1)));
-            while (h1.firstChild) h1.removeChild(h1.firstChild);
-            h1.appendChild(frag);
-          } catch (e) {}
-        }
-        splitTail();
-
-        function revertSpans(targets) {
-          for (var r = 0; r < targets.length; r++) {
-            var sp = targets[r];
-            if (!sp || !sp.isConnected) continue;
-            var orig = sp.getAttribute('data-orig');
-            if (orig !== null) sp.textContent = orig;
-            sp.style.color = '';
-            sp.style.fontFamily = '';
-            sp.style.fontSize = '';
           }
-        }
+          if (slash === -1) {
+            if (full.length) emit(frag, 0, full.length - 1);
+          } else {
+            if (slash > 0) emit(frag, 0, slash - 1);
+            var redSpan = document.createElement('span');
+            redSpan.setAttribute('data-sl-red', 'true');
+            redSpan.style.setProperty('color', '#FF2A2A', 'important');
+            emit(redSpan, slash, full.length - 1);
+            frag.appendChild(redSpan);
+          }
+          while (node.firstChild) node.removeChild(node.firstChild);
+          node.appendChild(frag);
+          node.setAttribute('data-sl-split-for', full);
+        } catch (e) {}
+      }
 
-        function scheduleGlitch() {
-          setTimeout(glitchTick, 2600 + Math.random() * 3800);
+      function liveHeroH1() {
+        try {
+          var root = document.querySelector('[data-section-key="headline"] .section-contents, #content-section-LBNmnP42zK .section-contents, .section-hero .section-contents');
+          return root ? root.querySelector('h1, .heading-text') : null;
+        } catch (e) {
+          return null;
         }
+      }
 
-        function glitchTick() {
-          try {
-            if (!h1.isConnected) { scheduleGlitch(); return; }
-            var spans = h1.querySelectorAll('[data-sl-char]');
-            if (!spans || spans.length === 0) {
-              splitTail();
-              spans = h1.querySelectorAll('[data-sl-char]');
-              if (!spans || spans.length === 0) { scheduleGlitch(); return; }
-            }
-            var first = Math.floor(Math.random() * spans.length);
-            var targets = [spans[first]];
-            if (spans.length > 1 && Math.random() < 0.3) {
-              var second = (first + 1 + Math.floor(Math.random() * (spans.length - 1))) % spans.length;
-              targets.push(spans[second]);
-            }
-            var kind = Math.floor(Math.random() * 4);
-            for (var t = 0; t < targets.length; t++) {
-              var el = targets[t];
-              if (kind === 0) {
-                el.textContent = glitchChars[Math.floor(Math.random() * glitchChars.length)];
-              } else if (kind === 1) {
-                el.style.setProperty('color', '#FF2A2A', 'important');
-              } else if (kind === 2) {
-                el.style.setProperty('font-family', "'Space Mono', monospace", 'important');
-              } else {
-                el.style.setProperty('font-size', '1.15em', 'important');
+      function revertSpans(targets) {
+        for (var r = 0; r < targets.length; r++) {
+          var sp = targets[r];
+          if (!sp || !sp.isConnected) continue;
+          var orig = sp.getAttribute('data-orig');
+          if (orig !== null) sp.textContent = orig;
+          sp.style.color = '';
+          sp.style.fontFamily = '';
+          sp.style.fontSize = '';
+        }
+      }
+
+      function heroGlitchTick() {
+        try {
+          // Resolve the heading fresh every tick so re-rendered titles self-heal.
+          var node = liveHeroH1();
+          if (node) {
+            if (node.getAttribute('data-sl-split-for') !== (node.textContent || '')) splitTailNode(node);
+            var spans = node.querySelectorAll('[data-sl-char]');
+            if (spans && spans.length) {
+              var first = Math.floor(Math.random() * spans.length);
+              var targets = [spans[first]];
+              if (spans.length > 1 && Math.random() < 0.3) {
+                var second = (first + 1 + Math.floor(Math.random() * (spans.length - 1))) % spans.length;
+                targets.push(spans[second]);
               }
+              var kind = Math.floor(Math.random() * 4);
+              for (var t = 0; t < targets.length; t++) {
+                var el = targets[t];
+                if (kind === 0) {
+                  el.textContent = glitchChars[Math.floor(Math.random() * glitchChars.length)];
+                } else if (kind === 1) {
+                  el.style.setProperty('color', '#FF2A2A', 'important');
+                } else if (kind === 2) {
+                  el.style.setProperty('font-family', "'Space Mono', monospace", 'important');
+                } else {
+                  el.style.setProperty('font-size', '1.15em', 'important');
+                }
+              }
+              setTimeout(function() { revertSpans(targets); }, 260 + Math.random() * 320);
             }
-            setTimeout(function() { revertSpans(targets); }, 260 + Math.random() * 320);
-          } catch (e) {}
-          scheduleGlitch();
-        }
+          }
+        } catch (e) {}
+        setTimeout(heroGlitchTick, 2600 + Math.random() * 3800);
+      }
 
+      // Style the current node immediately (red suffix visible on first paint),
+      // then run one shared ambient loop that tracks the live heading.
+      if (h1.getAttribute('data-sl-split-for') !== (h1.textContent || '')) splitTailNode(h1);
+      h1.setAttribute('data-scramble-bound', 'true');
+      if (!enhanceNativeHero._slLoop) {
+        enhanceNativeHero._slLoop = true;
         var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        if (!reduceMotion) scheduleGlitch();
+        if (!reduceMotion) setTimeout(heroGlitchTick, 1800);
       }
 
       // Format Subtitle Bullets & Center Subtitle and Category List
