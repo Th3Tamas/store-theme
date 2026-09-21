@@ -2033,8 +2033,8 @@ html, body, a, button, input, select, textarea, [role="button"], * {
   pointer-events: none !important;
   z-index: 2147483640 !important;
   display: none;
-  border: 1px solid rgba(255, 255, 255, 0.5) !important;
-  background: rgba(255, 255, 255, 1) !important;
+  border: 1px solid rgba(255, 255, 255, 1) !important;
+  background: rgba(255, 255, 255, 0.5) !important;
   mix-blend-mode: difference !important;
   box-shadow: none !important;
   box-sizing: border-box !important;
@@ -2053,7 +2053,7 @@ body.sl-selecting * {
 body.sl-selecting ::selection {
   background: transparent !important;
 }
-@media (pointer: coarse) {
+@media (hover: none) and (pointer: coarse) {
   #sl-selection-box {
     display: none !important;
   }
