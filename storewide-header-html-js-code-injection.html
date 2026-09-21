@@ -963,7 +963,7 @@
             '</div>' +
             '<div class="sonarline-modal-info">' +
               '<div class="sonarline-modal-meta-row">' +
-                '<span class="sonarline-modal-tag-pill" style="display: none;"></span>' +
+                '<div class="sonarline-modal-tags-wrap" style="display: none;"></div>' +
                 '<span class="sonarline-modal-price"></span>' +
               '</div>' +
               '<h2 class="sonarline-modal-title"></h2>' +
@@ -1347,15 +1347,26 @@
       var titleEl = card.querySelector('.card__heading, .font-section-collection-productName, h3, h4, .product-title, .product-name');
       var title = '';
       if (titleEl) {
-        title = (titleEl.textContent || '').replace(/\[\[tag:\s*[\s\S]*?\]\]/gi, '').replace(/\[\[audio:\s*[\s\S]*?\]\]/gi, '').trim();
+        title = (titleEl.textContent || '').replace(/\[\[tags?:\s*[\s\S]*?\]\]/gi, '').replace(/\[\[audio:\s*[\s\S]*?\]\]/gi, '').replace(/\[\[highlighted:\s*(true|false)\s*\]\]/gi, '').trim();
       }
       var deckTitle = deck.querySelector('.sonarline-deck-title');
       if (deckTitle) deckTitle.textContent = title || 'UNTITLED';
 
-      var tagPill = card.querySelector('.sonarline-card-tag-pill');
       var deckTag = deck.querySelector('.sonarline-deck-tag');
       if (deckTag) {
-        var tag = (tagPill && tagPill.textContent.trim() && tagPill.style.display !== 'none') ? tagPill.textContent.trim() : 'AUDIO PREVIEW';
+        var cardTags = [];
+        var rawTags = card.getAttribute('data-tags');
+        if (rawTags) {
+          try { cardTags = JSON.parse(rawTags); } catch (e) {}
+        }
+        if (!cardTags || cardTags.length === 0) {
+          var pills = card.querySelectorAll('.sonarline-card-tag-pill');
+          for (var p = 0; p < pills.length; p++) {
+            var txt = pills[p].textContent.trim();
+            if (txt && pills[p].style.display !== 'none' && cardTags.indexOf(txt) === -1) cardTags.push(txt);
+          }
+        }
+        var tag = cardTags.length > 0 ? cardTags.join(' // ') : 'AUDIO PREVIEW';
         deckTag.textContent = tag;
       }
 
@@ -1656,20 +1667,48 @@
       var titleEl = card.querySelector('.card__heading, .font-section-collection-productName, h3, h4, .product-title, .product-name');
       var title = '';
       if (titleEl) {
-        title = (titleEl.textContent || '').replace(/\[\[tag:\s*[\s\S]*?\]\]/gi, '').replace(/\[\[audio:\s*[\s\S]*?\]\]/gi, '').trim();
+        title = (titleEl.textContent || '').replace(/\[\[tags?:\s*[\s\S]*?\]\]/gi, '').replace(/\[\[audio:\s*[\s\S]*?\]\]/gi, '').replace(/\[\[highlighted:\s*(true|false)\s*\]\]/gi, '').trim();
       }
       var modalTitle = modal.querySelector('.sonarline-modal-title');
       if (modalTitle) modalTitle.textContent = title;
 
-      // 3. Tag (strictly conditional)
-      var tagPill = card.querySelector('.sonarline-card-tag-pill');
-      var modalTag = modal.querySelector('.sonarline-modal-tag-pill');
-      if (modalTag) {
-        if (tagPill && tagPill.textContent.trim() && tagPill.style.display !== 'none') {
-          modalTag.textContent = tagPill.textContent.trim();
-          modalTag.style.setProperty('display', 'inline-flex', 'important');
+      // 3. Tags (strictly conditional, supports multiple)
+      var modalTagsWrap = modal.querySelector('.sonarline-modal-tags-wrap');
+      if (!modalTagsWrap) {
+        var oldModalTag = modal.querySelector('.sonarline-modal-tag-pill');
+        if (oldModalTag) {
+          modalTagsWrap = document.createElement('div');
+          modalTagsWrap.className = 'sonarline-modal-tags-wrap';
+          oldModalTag.parentNode.insertBefore(modalTagsWrap, oldModalTag);
+          oldModalTag.parentNode.removeChild(oldModalTag);
+        }
+      }
+      if (modalTagsWrap) {
+        modalTagsWrap.innerHTML = '';
+        var cardTags = [];
+        var rawTagsAttr = card.getAttribute('data-tags');
+        if (rawTagsAttr) {
+          try { cardTags = JSON.parse(rawTagsAttr); } catch (e) {}
+        }
+        if (!cardTags || cardTags.length === 0) {
+          var pillEls = card.querySelectorAll('.sonarline-card-tag-pill');
+          for (var pt = 0; pt < pillEls.length; pt++) {
+            var ptxt = pillEls[pt].textContent.trim();
+            if (ptxt && pillEls[pt].style.display !== 'none' && cardTags.indexOf(ptxt) === -1) {
+              cardTags.push(ptxt);
+            }
+          }
+        }
+        if (cardTags.length > 0) {
+          for (var ti = 0; ti < cardTags.length; ti++) {
+            var tp = document.createElement('span');
+            tp.className = 'sonarline-card-tag-pill sonarline-modal-tag-pill';
+            tp.textContent = cardTags[ti];
+            modalTagsWrap.appendChild(tp);
+          }
+          modalTagsWrap.style.setProperty('display', 'inline-flex', 'important');
         } else {
-          modalTag.style.setProperty('display', 'none', 'important');
+          modalTagsWrap.style.setProperty('display', 'none', 'important');
         }
       }
 
@@ -1682,7 +1721,7 @@
 
       // 5. Description
       var descEl = card.querySelector('.card__description, .product-description, .font-section-collection-productDesc, p:not(.price)');
-      var descText = descEl ? descEl.textContent.replace(/\[\[tag:\s*[\s\S]*?\]\]/gi, '').replace(/\[\[audio:\s*[\s\S]*?\]\]/gi, '').trim() : '';
+      var descText = descEl ? descEl.textContent.replace(/\[\[tags?:\s*[\s\S]*?\]\]/gi, '').replace(/\[\[audio:\s*[\s\S]*?\]\]/gi, '').replace(/\[\[highlighted:\s*(true|false)\s*\]\]/gi, '').trim() : '';
       var modalDesc = modal.querySelector('.sonarline-modal-desc');
       if (modalDesc) {
         if (descText) {
@@ -1762,12 +1801,36 @@
       }
     }
 
+    function sonarlineExtractTags(text) {
+      if (!text) return [];
+      var tags = [];
+      var cleaned = String(text)
+        .replace(/&nbsp;/gi, ' ')
+        .replace(/&#160;/gi, ' ')
+        .replace(/\u00a0/g, ' ')
+        .replace(/<[^>]*>/g, ' ');
+      var regex = /(?:\[\[|\[)\s*tags?:\s*([\s\S]*?)(?:\]\]|\])/gi;
+      var match;
+      while ((match = regex.exec(cleaned)) !== null) {
+        var raw = match[1] || '';
+        var parts = raw.split(/[,;|•\n\r]+|\s*\/\/\s*/);
+        for (var i = 0; i < parts.length; i++) {
+          var t = parts[i].replace(/\s+/g, ' ').trim();
+          if (t && tags.indexOf(t) === -1) {
+            tags.push(t);
+          }
+        }
+      }
+      return tags;
+    }
+
     function sonarlineParseShortcodes(htmlText) {
-      var out = { tag: '', audio: '', highlighted: null };
+      var out = { tags: [], tag: '', audio: '', highlighted: null };
       if (!htmlText) return out;
       try {
-        var t = htmlText.match(/\[\[tag:\s*([\s\S]*?)\]\]/i);
-        if (t) out.tag = (t[1] || '').trim();
+        var tags = sonarlineExtractTags(htmlText);
+        out.tags = tags;
+        out.tag = tags.join(', ');
         var a = htmlText.match(/\[\[audio:\s*([\s\S]*?)\]\]/i);
         if (a) out.audio = (a[1] || '').trim();
         var h = htmlText.match(/\[\[highlighted:\s*(true|false)\s*\]\]/i);
@@ -1778,44 +1841,88 @@
 
     function sonarlineApplySyncedShortcodes(card, data) {
       try {
-        if (!card || !card.isConnected) return;
-        if (data.audio && !card.getAttribute('data-audio-src')) {
-          card.setAttribute('data-audio-src', data.audio);
-        }
-        if (data.tag) {
-          var pill = card.querySelector('.sonarline-card-tag-pill');
-          if (pill && !pill.textContent.trim()) {
-            pill.textContent = data.tag;
-            pill.style.setProperty('display', 'inline-flex', 'important');
+        if (!data) return;
+        var cardLink = card ? card.querySelector('a[href*="/b/"], a[href*="/p/"], a[href*="/product"]') : null;
+        var cardHref = cardLink ? cardLink.getAttribute('href') : null;
+
+        function getNormalizedPath(u) {
+          if (!u) return '';
+          try {
+            return new URL(u, window.location.origin).pathname.replace(/\/+$/, '');
+          } catch (e) {
+            return String(u).split(/[?#]/)[0].replace(/\/+$/, '');
           }
         }
-        if (typeof data.highlighted === 'boolean') {
-          card.setAttribute('data-highlighted', data.highlighted ? 'true' : 'false');
-          card.setAttribute('data-sl-highlighted', data.highlighted ? 'true' : 'false');
-          if (data.highlighted) {
-            card.classList.add('sonarline-card--highlighted');
-          } else {
-            card.classList.remove('sonarline-card--highlighted');
-          }
-          if (card.parentElement && card.parentElement.classList.contains('sl-carousel-track')) {
-            var cardLink = card.querySelector('a[href*="/b/"], a[href*="/p/"], a[href*="/product"]');
-            var cardHref = cardLink ? cardLink.getAttribute('href') : null;
-            if (cardHref) {
-              var matchingClones = card.parentElement.querySelectorAll('[data-sl-clone]');
-              matchingClones.forEach(function(clone) {
-                var cloneLink = clone.querySelector('a[href*="/b/"], a[href*="/p/"], a[href*="/product"]');
-                if (cloneLink && cloneLink.getAttribute('href') === cardHref) {
-                  clone.setAttribute('data-highlighted', data.highlighted ? 'true' : 'false');
-                  clone.setAttribute('data-sl-highlighted', data.highlighted ? 'true' : 'false');
-                  if (data.highlighted) {
-                    clone.classList.add('sonarline-card--highlighted');
-                  } else {
-                    clone.classList.remove('sonarline-card--highlighted');
-                  }
-                }
-              });
+
+        var targetCards = [];
+        var targetPath = cardHref ? getNormalizedPath(cardHref) : '';
+        if (targetPath) {
+          var allCards = document.querySelectorAll('.card-wrapper, .product-card');
+          for (var ac = 0; ac < allCards.length; ac++) {
+            var l = allCards[ac].querySelector('a[href*="/b/"], a[href*="/p/"], a[href*="/product"]');
+            if (l && getNormalizedPath(l.getAttribute('href') || l.href) === targetPath) {
+              targetCards.push(allCards[ac]);
             }
           }
+        }
+        if (card && targetCards.indexOf(card) === -1) {
+          targetCards.push(card);
+        }
+
+        var tags = (data.tags && data.tags.length) ? data.tags : (data.tag ? [data.tag] : []);
+
+        for (var tc = 0; tc < targetCards.length; tc++) {
+          var targetCard = targetCards[tc];
+          if (!targetCard || !targetCard.isConnected) continue;
+          if (data.audio && !targetCard.getAttribute('data-audio-src')) {
+            targetCard.setAttribute('data-audio-src', data.audio);
+          }
+          if (tags.length > 0) {
+            targetCard.setAttribute('data-tags', JSON.stringify(tags));
+            targetCard.setAttribute('data-tag-text', tags.join(', '));
+            var tagsWrap = targetCard.querySelector('.sonarline-card-tags-wrap');
+            if (!tagsWrap) {
+              var oldPill = targetCard.querySelector('.sonarline-card-tag-pill');
+              tagsWrap = document.createElement('div');
+              tagsWrap.className = 'sonarline-card-tags-wrap';
+              if (oldPill && oldPill.parentNode) {
+                oldPill.parentNode.insertBefore(tagsWrap, oldPill);
+                oldPill.parentNode.removeChild(oldPill);
+              } else {
+                var rowBottom = targetCard.querySelector('.sonarline-card-row-bottom');
+                if (rowBottom) {
+                  rowBottom.insertBefore(tagsWrap, rowBottom.firstChild);
+                } else {
+                  var meta = targetCard.querySelector('.sonarline-card-metadata, .card__content, .card-information');
+                  if (meta) meta.appendChild(tagsWrap);
+                  else targetCard.appendChild(tagsWrap);
+                }
+              }
+            }
+            if (tagsWrap) {
+              tagsWrap.innerHTML = '';
+              for (var ti = 0; ti < tags.length; ti++) {
+                var tp = document.createElement('span');
+                tp.className = 'sonarline-card-tag-pill';
+                tp.textContent = tags[ti];
+                tagsWrap.appendChild(tp);
+              }
+              tagsWrap.style.setProperty('display', 'inline-flex', 'important');
+            }
+          }
+          if (typeof data.highlighted === 'boolean') {
+            targetCard.setAttribute('data-highlighted', data.highlighted ? 'true' : 'false');
+            targetCard.setAttribute('data-sl-highlighted', data.highlighted ? 'true' : 'false');
+            if (data.highlighted) {
+              targetCard.classList.add('sonarline-card--highlighted');
+            } else {
+              targetCard.classList.remove('sonarline-card--highlighted');
+            }
+          }
+        }
+
+        if (tags.length > 0) {
+          try { initCategoryFilter(); } catch (e) {}
         }
       } catch (e) {}
     }
@@ -1846,7 +1953,7 @@
         if (!link || !link.href) return;
         var u = new URL(link.href, window.location.origin);
         if (u.origin !== window.location.origin) return;
-        if (u.pathname.indexOf('/b/') === -1 && u.pathname.indexOf('/p/') === -1) return;
+        if (u.pathname.indexOf('/b/') === -1 && u.pathname.indexOf('/p/') === -1 && u.pathname.indexOf('/product') === -1 && u.pathname.indexOf('/item') === -1) return;
         var key = sonarlineCacheKey(u.href);
         var cached = null;
         try {
@@ -1865,24 +1972,110 @@
       } catch (e) {}
     }
 
-    // Product pages (Issue 3): strip raw [[tag:]] / [[audio:]] / [[highlighted:]] tokens from
-    // .product-description so CMS shortcodes never render as plain text.
+    // Product pages (Issue 3): strip raw [[tag:]] / [[tags:]] / [[audio:]] / [[highlighted:]] tokens from
+    // product description containers so CMS shortcodes never render as plain text.
     function sonarlineScrubProductDescriptions() {
       try {
-        var descs = document.querySelectorAll('.product-description');
+        var descs = document.querySelectorAll('.product-description, .product-details, [data-section-type="product"] .description, .product-info .description, .product__description, .product-single__description, .product-details__description, [class*="product-description"]');
         for (var d = 0; d < descs.length; d++) {
           var walker = document.createTreeWalker(descs[d], NodeFilter.SHOW_TEXT, null, false);
           var node;
           while ((node = walker.nextNode())) {
-            if (node.nodeValue && /\[\[(tag|audio|highlighted):/i.test(node.nodeValue)) {
+            if (node.nodeValue && /(?:\[\[|\[)\s*(tags?|audio|highlighted):/i.test(node.nodeValue)) {
               node.nodeValue = node.nodeValue
-                .replace(/\[\[tag:\s*[\s\S]*?\]\]/gi, '')
-                .replace(/\[\[audio:\s*[\s\S]*?\]\]/gi, '')
-                .replace(/\[\[highlighted:\s*(true|false)\s*\]\]/gi, '')
+                .replace(/(?:\[\[|\[)\s*tags?:\s*[\s\S]*?(?:\]\]|\])/gi, '')
+                .replace(/(?:\[\[|\[)\s*audio:\s*[\s\S]*?(?:\]\]|\])/gi, '')
+                .replace(/(?:\[\[|\[)\s*highlighted:\s*(true|false)\s*(?:\]\]|\])/gi, '')
                 .trim();
             }
           }
         }
+      } catch (e) {}
+    }
+
+    // Sitewide Product Detail Page Tag Engine
+    var sonarlinePageTagsCache = null;
+
+    function initProductPageTags() {
+      try {
+        var isProductPage = (
+          window.location.pathname.indexOf('/b/') !== -1 ||
+          window.location.pathname.indexOf('/p/') !== -1 ||
+          window.location.pathname.indexOf('/product') !== -1 ||
+          document.querySelector('.product-description, [data-section-type="product"], .product-detail, .payhip-product-detail, .product-single, .product-info, [class*="product-details"], [class*="product-info"], [data-product-id]') !== null
+        );
+        if (!isProductPage) return;
+
+        var titleEl = document.querySelector('h1.heading-text, h1.product-title, h1.product-name, [class*="product-title"], .product-title, .product-name, h1, .product-detail h1, .product-single__title, .product__title');
+        var descEl = document.querySelector('.product-description, .product-details, [data-section-type="product"] .description, .product-info .description, .product__description, .product-single__description, .product-details__description, [class*="product-description"]');
+
+        var tags = [];
+        if (sonarlinePageTagsCache && sonarlinePageTagsCache.length > 0) {
+          tags = sonarlinePageTagsCache;
+        } else {
+          var rawText = (titleEl ? titleEl.textContent : '') + ' ' + (descEl ? descEl.textContent : '');
+          tags = sonarlineExtractTags(rawText);
+          if (tags.length === 0 && document.body) {
+            tags = sonarlineExtractTags(document.body.innerText || '');
+          }
+          if (tags.length === 0) {
+            try {
+              var key = sonarlineCacheKey(window.location.href);
+              var cached = sessionStorage.getItem(key);
+              if (cached) {
+                var parsed = JSON.parse(cached);
+                if (parsed.tags && parsed.tags.length) tags = parsed.tags;
+                else if (parsed.tag) tags = [parsed.tag];
+              }
+            } catch (e) {}
+          }
+          if (tags.length > 0) {
+            sonarlinePageTagsCache = tags;
+            try {
+              var curKey = sonarlineCacheKey(window.location.href);
+              sessionStorage.setItem(curKey, JSON.stringify({ tags: tags, tag: tags.join(', ') }));
+            } catch (e) {}
+          }
+        }
+
+        // Scrub tokens cleanly from title
+        if (titleEl) {
+          titleEl.textContent = (titleEl.textContent || '')
+            .replace(/(?:\[\[|\[)\s*tags?:\s*[\s\S]*?(?:\]\]|\])/gi, '')
+            .replace(/(?:\[\[|\[)\s*audio:\s*[\s\S]*?(?:\]\]|\])/gi, '')
+            .replace(/(?:\[\[|\[)\s*highlighted:\s*(true|false)\s*(?:\]\]|\])/gi, '')
+            .trim();
+        }
+
+        if (tags.length === 0) return;
+
+        var targetContainer = titleEl ? titleEl.parentElement : (descEl ? descEl.parentElement : null);
+        if (!targetContainer) return;
+
+        var existingWrap = targetContainer.querySelector('.sonarline-product-tags-wrap');
+        if (!existingWrap) {
+          existingWrap = document.createElement('div');
+          existingWrap.className = 'sonarline-product-tags-wrap';
+          if (titleEl) {
+            titleEl.parentNode.insertBefore(existingWrap, titleEl);
+          } else {
+            targetContainer.insertBefore(existingWrap, targetContainer.firstChild);
+          }
+        }
+
+        existingWrap.innerHTML = '';
+        for (var i = 0; i < tags.length; i++) {
+          var pill = document.createElement('span');
+          pill.className = 'sonarline-card-tag-pill sonarline-product-tag-pill';
+          pill.textContent = tags[i];
+          existingWrap.appendChild(pill);
+        }
+        existingWrap.style.setProperty('display', 'flex', 'important');
+        existingWrap.style.setProperty('flex-wrap', 'wrap', 'important');
+        existingWrap.style.setProperty('width', '100%', 'important');
+        existingWrap.style.setProperty('flex-basis', '100%', 'important');
+        existingWrap.style.setProperty('gap', '6px', 'important');
+        existingWrap.style.setProperty('margin-bottom', '12px', 'important');
       } catch (e) {}
     }
 
@@ -1962,14 +2155,16 @@
           }
         });
 
-        // 6. Two-Row Metadata Layout, [[tag: ...]] & [[audio: ...]] Shortcode Engine
-        var content = card.querySelector('.card > .card__content, .card__content:not(.card__inner *)');
+        // 6. Two-Row Metadata Layout, [[tag: ...]] / [[tags: ...]] & [[audio: ...]] Shortcode Engine
+        var content = card.querySelector('.card > .card__content, .card__content:not(.card__inner *), .card__information:not(.card__inner *), .card-information:not(.card__inner *), .product-card-details, .product-card__content, .product-card-body') ||
+                      card.querySelector('.card__content, .card__information, .card-information') ||
+                      card.querySelector('.card') || card;
         if (content) {
           var titleEl = content.querySelector('.card__heading, .font-section-collection-productName, h3, h4, .product-title, .product-name');
-          var tagText = card.getAttribute('data-tag-text') || '';
-          var existingPill = content.querySelector('.sonarline-card-tag-pill');
-          if (!tagText && existingPill && existingPill.textContent.trim()) {
-            tagText = existingPill.textContent.trim();
+          var tags = [];
+          var rawTagsAttr = card.getAttribute('data-tags');
+          if (rawTagsAttr) {
+            try { tags = JSON.parse(rawTagsAttr); } catch (e) {}
           }
 
           // Parse [[audio: URL_HERE]] shortcode from card
@@ -1988,40 +2183,43 @@
             }
           }
 
-          // Check title for [[tag: ...]]
+          // Check title for [[tag: ...]] / [[tags: ...]]
           if (titleEl) {
             var rawTitle = titleEl.textContent || titleEl.innerText || '';
-            var tagMatch = rawTitle.match(/\[\[tag:\s*([\s\S]*?)\]\]/i);
-            if (tagMatch) {
-              tagText = tagMatch[1].trim();
-              card.setAttribute('data-tag-text', tagText);
-              // Strip [[tag: ...]] completely from title text and links
-              var links = titleEl.querySelectorAll('a');
-              if (links.length > 0) {
-                for (var l = 0; l < links.length; l++) {
-                  links[l].textContent = (links[l].textContent || '').replace(/\[\[tag:\s*([\s\S]*?)\]\]/gi, '').trim();
-                }
-              } else {
-                titleEl.textContent = (titleEl.textContent || '').replace(/\[\[tag:\s*([\s\S]*?)\]\]/gi, '').trim();
+            var titleTags = sonarlineExtractTags(rawTitle);
+            for (var tt = 0; tt < titleTags.length; tt++) {
+              if (tags.indexOf(titleTags[tt]) === -1) tags.push(titleTags[tt]);
+            }
+            // Strip [[tags?: ...]] and [tags?: ...] completely from title text and links
+            var links = titleEl.querySelectorAll('a');
+            if (links.length > 0) {
+              for (var l = 0; l < links.length; l++) {
+                links[l].textContent = (links[l].textContent || '').replace(/(?:\[\[|\[)\s*tags?:\s*[\s\S]*?(?:\]\]|\])/gi, '').trim();
+              }
+            } else {
+              titleEl.textContent = (titleEl.textContent || '').replace(/(?:\[\[|\[)\s*tags?:\s*[\s\S]*?(?:\]\]|\])/gi, '').trim();
+            }
+          }
+
+          // Check card for [[tag: ...]] / [[tags: ...]] / [tag: ...]
+          var cardRaw = (card.textContent || '') + ' ' + (card.innerHTML || '');
+          if (/(?:\[\[|\[)\s*tags?:/i.test(cardRaw)) {
+            var cardTags = sonarlineExtractTags(cardRaw);
+            for (var ct = 0; ct < cardTags.length; ct++) {
+              if (tags.indexOf(cardTags[ct]) === -1) tags.push(cardTags[ct]);
+            }
+            var walker = document.createTreeWalker(card, NodeFilter.SHOW_TEXT, null, false);
+            var tn;
+            while ((tn = walker.nextNode())) {
+              if (tn.nodeValue && /(?:\[\[|\[)\s*tags?:/i.test(tn.nodeValue)) {
+                tn.nodeValue = tn.nodeValue.replace(/(?:\[\[|\[)\s*tags?:\s*[\s\S]*?(?:\]\]|\])/gi, '').trim();
               }
             }
           }
 
-          // Check card for [[tag: ...]] if not in title
-          if (!tagText) {
-            var cardRaw = card.textContent || '';
-            var tagMatch2 = cardRaw.match(/\[\[tag:\s*([\s\S]*?)\]\]/i);
-            if (tagMatch2) {
-              tagText = tagMatch2[1].trim();
-              card.setAttribute('data-tag-text', tagText);
-              var walker = document.createTreeWalker(card, NodeFilter.SHOW_TEXT, null, false);
-              var tn;
-              while ((tn = walker.nextNode())) {
-                if (tn.nodeValue && tn.nodeValue.includes('[[tag:')) {
-                  tn.nodeValue = tn.nodeValue.replace(/\[\[tag:\s*([\s\S]*?)\]\]/gi, '').trim();
-                }
-              }
-            }
+          if (tags.length > 0) {
+            card.setAttribute('data-tags', JSON.stringify(tags));
+            card.setAttribute('data-tag-text', tags.join(', '));
           }
 
           // Build or update two-row metadata container
@@ -2034,7 +2232,7 @@
                 '<div class="sonarline-card-title-wrap"></div>' +
               '</div>' +
               '<div class="sonarline-card-row-bottom">' +
-                '<div class="sonarline-card-tag-pill"></div>' +
+                '<div class="sonarline-card-tags-wrap"></div>' +
                 '<div class="sonarline-card-price-wrap"></div>' +
               '</div>';
             content.appendChild(metaWrap);
@@ -2052,32 +2250,55 @@
             titleWrap.appendChild(titleEl);
           }
 
-          // Update pill in row 2 (Strictly conditional, ZERO fallback/inferred tags)
-          var pillEl = metaWrap.querySelector('.sonarline-card-tag-pill');
-          if (pillEl) {
-            if (tagText && tagText.trim()) {
-              pillEl.textContent = tagText.trim();
-              pillEl.style.setProperty('display', 'inline-flex', 'important');
-              pillEl.style.setProperty('white-space', 'nowrap', 'important');
-              pillEl.style.setProperty('font-size', '0.7rem', 'important');
-              pillEl.style.setProperty('font-weight', '700', 'important');
-              pillEl.style.setProperty('color', '#ffffff', 'important');
-              pillEl.style.setProperty('letter-spacing', '0.08em', 'important');
-              pillEl.style.setProperty('padding', '3px 8px', 'important');
-              pillEl.style.setProperty('flex-shrink', '0', 'important');
-              pillEl.style.setProperty('max-width', 'none', 'important');
-              pillEl.style.setProperty('line-height', '1.2', 'important');
+          // Update tags in row 2 (Strictly conditional, multiple tag support)
+          var tagsWrap = metaWrap.querySelector('.sonarline-card-tags-wrap');
+          if (!tagsWrap) {
+            var oldPill = metaWrap.querySelector('.sonarline-card-tag-pill');
+            tagsWrap = document.createElement('div');
+            tagsWrap.className = 'sonarline-card-tags-wrap';
+            if (oldPill && oldPill.parentNode) {
+              oldPill.parentNode.insertBefore(tagsWrap, oldPill);
+              oldPill.parentNode.removeChild(oldPill);
             } else {
-              pillEl.textContent = '';
-              pillEl.style.setProperty('display', 'none', 'important');
+              var rowBottom = metaWrap.querySelector('.sonarline-card-row-bottom');
+              if (rowBottom) rowBottom.insertBefore(tagsWrap, rowBottom.firstChild);
             }
           }
 
-          // Place price in row 2
-          var priceEl = content.querySelector('.price-block, .price, [class*="price"]:not(.sonarline-card-price-wrap):not(.sonarline-card-row-bottom)');
+          if (tagsWrap) {
+            tagsWrap.innerHTML = '';
+            if (tags.length > 0) {
+              for (var tgIdx = 0; tgIdx < tags.length; tgIdx++) {
+                var pill = document.createElement('span');
+                pill.className = 'sonarline-card-tag-pill';
+                pill.textContent = tags[tgIdx];
+                tagsWrap.appendChild(pill);
+              }
+              tagsWrap.style.setProperty('display', 'inline-flex', 'important');
+            } else {
+              tagsWrap.style.setProperty('display', 'none', 'important');
+            }
+          }
+
+          // Place price in row 2 (Target card-level or content-level price, anchor to bottom-right)
+          var priceEl = card.querySelector('.price-block, .price, [class*="price"]:not(.sonarline-card-price-wrap):not(.sonarline-card-row-bottom):not(.card__inner *):not(.sonarline-card-metadata *)') ||
+                        content.querySelector('.price-block, .price, [class*="price"]:not(.sonarline-card-price-wrap):not(.sonarline-card-row-bottom)');
           var priceWrap = metaWrap.querySelector('.sonarline-card-price-wrap');
           if (priceEl && priceEl.parentElement !== priceWrap && priceEl !== priceWrap) {
             priceWrap.appendChild(priceEl);
+          }
+
+          // Hide any duplicate / leftover price elements outside metadata to keep price strictly in bottom-right
+          var extraPrices = card.querySelectorAll('.price-block:not(.sonarline-card-price-wrap *), .price:not(.sonarline-card-price-wrap *), [class*="price"]:not(.sonarline-card-metadata *):not(.card__inner *)');
+          for (var ep = 0; ep < extraPrices.length; ep++) {
+            extraPrices[ep].style.setProperty('display', 'none', 'important');
+          }
+
+          var cardInfos = content.querySelectorAll('.card__information, .card-information');
+          for (var ci = 0; ci < cardInfos.length; ci++) {
+            if (!cardInfos[ci].textContent.trim() || cardInfos[ci].children.length === 0) {
+              cardInfos[ci].style.setProperty('display', 'none', 'important');
+            }
           }
 
           // Card Quick-Listen Button
@@ -2120,12 +2341,13 @@
           }
 
           // Background sync: fill missing tag/audio from product page + scrub handled globally
-          var needsSync = (!tagText || !audioUrl);
+          var needsSync = (tags.length === 0 || !audioUrl);
           if (needsSync) {
             try { sonarlineSyncCardShortcodes(card); } catch (e) {}
           }
         }
       });
+      try { initProductPageTags(); } catch (e) {}
       try { sonarlineScrubProductDescriptions(); } catch (e) {}
       try { initCategoryFilter(); } catch (e) {}
     }
@@ -2139,14 +2361,26 @@
       if (cards.length === 0) return;
 
       var tagCounts = {};
-      var total = 0;
+      var total = cards.length;
       for (var i = 0; i < cards.length; i++) {
-        var pill = cards[i].querySelector('.sonarline-card-tag-pill');
-        var tag = (pill && pill.textContent.trim() && pill.style.display !== 'none') ? pill.textContent.trim() : '';
-        if (tag) {
-          tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+        var cardTags = [];
+        var rawTagsAttr = cards[i].getAttribute('data-tags');
+        if (rawTagsAttr) {
+          try { cardTags = JSON.parse(rawTagsAttr); } catch (e) {}
         }
-        total++;
+        if (!cardTags || cardTags.length === 0) {
+          var pills = cards[i].querySelectorAll('.sonarline-card-tag-pill');
+          for (var p = 0; p < pills.length; p++) {
+            var txt = pills[p].textContent.trim();
+            if (txt && pills[p].style.display !== 'none' && cardTags.indexOf(txt) === -1) {
+              cardTags.push(txt);
+            }
+          }
+        }
+        for (var t = 0; t < cardTags.length; t++) {
+          var tgKey = cardTags[t];
+          tagCounts[tgKey] = (tagCounts[tgKey] || 0) + 1;
+        }
       }
 
       var tags = Object.keys(tagCounts);
@@ -2188,9 +2422,21 @@
             if (filterTag === 'ALL') {
               cCard.classList.remove('is-filtered-out');
             } else {
-              var cpill = cCard.querySelector('.sonarline-card-tag-pill');
-              var ctag = (cpill && cpill.textContent.trim()) ? cpill.textContent.trim() : '';
-              if (ctag === filterTag) {
+              var cTags = [];
+              var cRawTags = cCard.getAttribute('data-tags');
+              if (cRawTags) {
+                try { cTags = JSON.parse(cRawTags); } catch (e) {}
+              }
+              if (!cTags || cTags.length === 0) {
+                var cPills = cCard.querySelectorAll('.sonarline-card-tag-pill');
+                for (var cp = 0; cp < cPills.length; cp++) {
+                  var ctxt = cPills[cp].textContent.trim();
+                  if (ctxt && cPills[cp].style.display !== 'none' && cTags.indexOf(ctxt) === -1) {
+                    cTags.push(ctxt);
+                  }
+                }
+              }
+              if (cTags.indexOf(filterTag) !== -1) {
                 cCard.classList.remove('is-filtered-out');
               } else {
                 cCard.classList.add('is-filtered-out');
@@ -2288,23 +2534,31 @@
       '.section-collection .collection-products, .section-collection [class*="grid"], .sl-carousel-viewport, .sl-carousel-track, [data-sl-rail="done"] .collection-products, [data-sl-rail="done"] .sl-carousel-track, #page-section-collection .collection-products, #page-section-collection [class*="grid"], #page-section-collection .grid-list, #page-section-collection .grid, #page-section-collection .sl-carousel-viewport, #page-section-collection .sl-carousel-track, #page-section-collection[data-sl-rail="done"] .collection-products, #page-section-collection[data-sl-rail="done"] .sl-carousel-track, [data-section-key="collection"] .collection-products, [data-section-key="collection"] [class*="grid"], [data-section-key="collection"] .grid-list, [data-section-key="collection"] .grid, [data-section-key="collection"] .sl-carousel-viewport, [data-section-key="collection"] .sl-carousel-track, [data-section-key="collection"][data-sl-rail="done"] .collection-products, [data-section-key="collection"][data-sl-rail="done"] .sl-carousel-track, .theme-tusk .collection-products, .theme-tusk [class*="grid"], .theme-tusk .grid, .theme-tusk .grid-list, .theme-tusk .sl-carousel-track { display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important; grid-template-columns: none !important; grid-auto-flow: column !important; width: max-content !important; max-width: none !important; overflow-x: visible !important; }',
       '/* Force the outer viewport to clip and maintain full screen width */',
       '.sl-carousel-viewport, #page-section-collection .sl-carousel-viewport, [data-section-key="collection"] .sl-carousel-viewport, [data-sl-rail="done"] .sl-carousel-viewport { width: 100% !important; max-width: 100vw !important; overflow: hidden !important; position: relative !important; }',
-      '.sl-carousel-track, [data-sl-rail="done"] .sl-carousel-track, #page-section-collection[data-sl-rail="done"] .grid-list.js-grid-list.sl-rail-track, #page-section-collection[data-sl-rail="done"] .grid-list.sl-rail-track, #page-section-collection[data-sl-rail="done"] .sl-carousel-track, #page-section-collection .grid-list.sl-rail-track, #page-section-collection .sl-carousel-track, [data-section-key="collection"] .grid-list.sl-rail-track, [data-section-key="collection"] .sl-carousel-track, [data-sl-rail="done"] .grid-list.js-grid-list.sl-rail-track, [data-sl-rail="done"] .grid-list.sl-rail-track { display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important; grid-template-columns: none !important; grid-auto-flow: column !important; align-items: stretch !important; width: max-content !important; min-width: 100% !important; flex-shrink: 0 !important; animation: sonarlineInfiniteRail 35s linear infinite !important; will-change: transform !important; gap: 16px !important; padding: 28px 0 !important; margin: 0 !important; box-sizing: border-box !important; cursor: grab !important; user-select: none !important; -webkit-user-select: none !important; }',
-      '.sl-carousel-track:hover, .sl-carousel-track.is-hovered { animation-play-state: paused !important; }',
+      '.sl-carousel-track, [data-sl-rail="done"] .sl-carousel-track, #page-section-collection[data-sl-rail="done"] .grid-list.js-grid-list.sl-rail-track, #page-section-collection[data-sl-rail="done"] .grid-list.sl-rail-track, #page-section-collection[data-sl-rail="done"] .sl-carousel-track, #page-section-collection .grid-list.sl-rail-track, #page-section-collection .sl-carousel-track, [data-section-key="collection"] .grid-list.sl-rail-track, [data-section-key="collection"] .sl-carousel-track, [data-sl-rail="done"] .grid-list.js-grid-list.sl-rail-track, [data-sl-rail="done"] .grid-list.sl-rail-track { display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important; grid-template-columns: none !important; grid-auto-flow: column !important; align-items: stretch !important; width: max-content !important; min-width: 100% !important; flex-shrink: 0 !important; animation-name: sonarlineInfiniteRail !important; animation-duration: 35s !important; animation-timing-function: linear !important; animation-iteration-count: infinite !important; will-change: transform !important; gap: 16px !important; padding: 28px 0 !important; margin: 0 !important; box-sizing: border-box !important; cursor: grab !important; user-select: none !important; -webkit-user-select: none !important; }',
+      '#page-section-collection .sl-carousel-track:hover, #page-section-collection:hover .sl-carousel-track, [data-section-key="collection"] .sl-carousel-track:hover, [data-section-key="collection"]:hover .sl-carousel-track, [data-sl-rail="done"] .sl-carousel-track:hover, [data-sl-rail="done"]:hover .sl-carousel-track, .sl-carousel-viewport:hover .sl-carousel-track, .sl-carousel-body:hover .sl-carousel-track, .sl-carousel-viewport:has(:hover) .sl-carousel-track, .sl-carousel-body:has(:hover) .sl-carousel-track, .sl-carousel-track:hover, .sl-carousel-track.is-hovered, .sl-carousel-track:has(:hover), .sl-carousel-track:has(.card-wrapper:hover), .sl-carousel-track:has(.product-card:hover) { animation-play-state: paused !important; }',
       '.sl-carousel-track:active, .sl-carousel-track.is-dragging { cursor: grabbing !important; animation-play-state: paused !important; }',
       '.sl-carousel-track::-webkit-scrollbar, [data-sl-rail="done"] .grid-list::-webkit-scrollbar, .grid-list::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; }',
       '/* Lock each card\'s dimensions so Firefox never pushes them to a new line */',
       '.sl-carousel-track > *, .sl-carousel-track .card-wrapper, .sl-carousel-track .product-card, .collection-products > *, #page-section-collection .sl-carousel-track > *, #page-section-collection .sl-carousel-track .card-wrapper, #page-section-collection .sl-carousel-track .product-card, #page-section-collection .collection-products > *, #page-section-collection .card-wrapper, #page-section-collection .product-card, [data-section-key="collection"] .sl-carousel-track > *, [data-section-key="collection"] .sl-carousel-track .card-wrapper, [data-section-key="collection"] .sl-carousel-track .product-card, [data-section-key="collection"] .collection-products > *, [data-section-key="collection"] .card-wrapper, [data-section-key="collection"] .product-card, .theme-tusk .sl-carousel-track > *, .theme-tusk .sl-carousel-track .card-wrapper, .theme-tusk .sl-carousel-track .product-card, .theme-tusk .collection-products > *, #page-section-collection .sl-carousel-track div.card-wrapper.product-card-wrapper, [data-section-key="collection"] .sl-carousel-track div.card-wrapper.product-card-wrapper, .sl-carousel-track div.card-wrapper.product-card-wrapper, .sl-carousel-track .card-wrapper.product-card-wrapper, .sl-carousel-track .product-card-wrapper, [data-sl-rail="done"] div.card-wrapper.product-card-wrapper, [data-sl-rail="done"] .card-wrapper.product-card-wrapper, [data-sl-rail="done"] .product-card-wrapper { flex: 0 0 280px !important; width: 280px !important; min-width: 280px !important; max-width: 280px !important; display: flex !important; flex-direction: column !important; margin: 0 !important; }',
       '.sl-carousel-track > div, .sl-carousel-track .card-wrapper, .sl-carousel-track .product-card, [data-sl-rail="done"] .card-wrapper.product-card-wrapper, [data-sl-rail="done"] .card-wrapper, [data-sl-rail="done"] .product-card, .card-wrapper, .product-card { flex: 0 0 280px !important; width: 280px !important; min-width: 280px !important; max-width: 280px !important; display: flex !important; flex-direction: column !important; background: #0f0f0f !important; border: 1px solid rgba(255,255,255,0.08) !important; border-radius: 8px !important; overflow: hidden !important; transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease !important; }',
+      '.card-wrapper > .card, .product-card > .card, .card-wrapper .card, .card { display: flex !important; flex-direction: column !important; height: 100% !important; flex-grow: 1 !important; }',
+      '.card-wrapper > .card > .card__content, .card-wrapper .card > .card__content:not(.card__inner .card__content), .card-wrapper .card__content:not(.card__inner *), .product-card > .card__content, .card__content { display: flex !important; flex-direction: column !important; flex-grow: 1 !important; height: 100% !important; justify-content: space-between !important; padding: 16px 18px 18px 18px !important; }',
       '[data-sl-rail="done"] .card-wrapper:hover, [data-sl-rail="done"] .product-card:hover, .card-wrapper:hover, .product-card:hover { transform: translateY(-6px) !important; border-color: rgba(255, 255, 255, 0.6) !important; }',
       '.card-wrapper.sonarline-card--highlighted, .product-card.sonarline-card--highlighted, [data-highlighted="true"], [data-sl-rail="done"] .card-wrapper.product-card-wrapper.sonarline-card--highlighted, [data-sl-rail="done"] .card-wrapper.sonarline-card--highlighted, [data-sl-rail="done"] .product-card.sonarline-card--highlighted, [data-sl-rail="done"] [data-sl-highlighted="true"], [data-sl-rail="done"] [data-highlighted="true"], div.card-wrapper.product-card-wrapper.sonarline-card--highlighted, .card-wrapper.product-card-wrapper.sonarline-card--highlighted, [data-sl-highlighted="true"], .sonarline-card--highlighted { border: 1px solid #FF3B30 !important; border-color: #FF3B30 !important; box-shadow: 0 0 12px rgba(255, 59, 48, 0.3) !important; }',
       '.card-wrapper.sonarline-card--highlighted:hover, .product-card.sonarline-card--highlighted:hover, [data-highlighted="true"]:hover, [data-sl-rail="done"] .card-wrapper.sonarline-card--highlighted:hover, [data-sl-rail="done"] .product-card.sonarline-card--highlighted:hover { border-color: #FF3B30 !important; }',
       '.card-wrapper img, .product-card img, .card-wrapper:hover img, .product-card:hover img, .card-wrapper:hover .card__media img, .product-card:hover .card__media img, [data-sl-rail="done"] .card-wrapper:hover img, [data-sl-rail="done"] .product-card:hover img { transform: none !important; }',
-      '.sonarline-card-metadata { padding: 0 !important; margin: 0 !important; display: flex !important; flex-direction: column !important; gap: 10px !important; flex-grow: 1 !important; box-sizing: border-box !important; background: transparent !important; border: none !important; width: 100% !important; justify-content: space-between !important; }',
+      '.sonarline-card-metadata { padding: 0 !important; margin: 0 !important; display: flex !important; flex-direction: column !important; gap: 10px !important; flex-grow: 1 !important; height: 100% !important; box-sizing: border-box !important; background: transparent !important; border: none !important; width: 100% !important; justify-content: space-between !important; }',
       '.sonarline-card-info-badge { display: none !important; }',
+      '.sonarline-card-row-bottom { display: flex !important; align-items: flex-end !important; justify-content: space-between !important; width: 100% !important; gap: 8px !important; margin-top: auto !important; }',
+      '.sonarline-card-tags-wrap { display: inline-flex !important; flex-wrap: wrap !important; gap: 4px !important; align-items: center !important; flex: 1 1 auto !important; min-width: 0 !important; }',
       '.sonarline-card-tag-pill { display: inline-flex !important; align-items: center !important; justify-content: center !important; padding: 3px 8px !important; border-radius: 9999px !important; background: rgba(255, 255, 255, 0.06) !important; border: 1px solid rgba(255, 255, 255, 0.18) !important; color: #ffffff !important; font-family: var(--font-mono, \'Space Mono\', monospace) !important; font-size: 0.7rem !important; font-weight: 700 !important; letter-spacing: 0.08em !important; text-transform: uppercase !important; line-height: 1.2 !important; white-space: nowrap !important; max-width: none !important; flex-shrink: 0 !important; box-sizing: border-box !important; }',
+      '.sonarline-modal-tags-wrap { display: inline-flex !important; flex-wrap: wrap !important; gap: 6px !important; align-items: center !important; }',
+      '.sonarline-product-tags-wrap { display: inline-flex !important; flex-wrap: wrap !important; gap: 6px !important; align-items: center !important; margin-bottom: 12px !important; }',
+      '.sonarline-product-tag-pill { display: inline-flex !important; align-items: center !important; justify-content: center !important; padding: 3px 10px !important; border-radius: 9999px !important; background: rgba(255, 255, 255, 0.06) !important; border: 1px solid rgba(255, 255, 255, 0.18) !important; color: #ffffff !important; font-family: var(--font-mono, \'Space Mono\', monospace) !important; font-size: 0.75rem !important; font-weight: 700 !important; letter-spacing: 0.08em !important; text-transform: uppercase !important; line-height: 1.2 !important; }',
       '.sonarline-card-price-wrap *, .sonarline-card-row-bottom .price, .sonarline-card-row-bottom .price *, .sonarline-card-row-bottom [class*="price"], .sonarline-card-price-wrap::before, .sonarline-card-price-wrap::after, [data-sl-rail="done"] .sonarline-card-price-wrap *, .price-block, .price-block *, .price, .price *, .price__container, .price__container *, .price-item, .price-item * { background: transparent !important; background-color: transparent !important; box-shadow: none !important; -moz-box-shadow: none !important; border: none !important; border-radius: 0 !important; filter: none !important; backdrop-filter: none !important; outline: none !important; text-shadow: none !important; }',
-      '.sonarline-card-price-wrap, [data-sl-rail="done"] .sonarline-card-price-wrap { background: transparent !important; border: none !important; box-shadow: none !important; color: #ffffff !important; font-family: \'Space Mono\', monospace !important; font-size: 0.88rem !important; font-weight: 700 !important; letter-spacing: 0.05em !important; display: inline-flex !important; align-items: center !important; justify-content: flex-end !important; margin-left: auto !important; flex: 0 0 auto !important; padding: 0 !important; white-space: nowrap !important; }',
-      '.sonarline-card-price-wrap *, [data-sl-rail="done"] .sonarline-card-price-wrap * { font-family: \'Space Mono\', monospace !important; font-size: 0.88rem !important; font-weight: 700 !important; color: #ffffff !important; letter-spacing: 0.05em !important; text-transform: uppercase !important; margin: 0 !important; padding: 0 !important; border-radius: 0 !important; white-space: nowrap !important; line-height: 1.2 !important; background: transparent !important; background-color: transparent !important; box-shadow: none !important; -moz-box-shadow: none !important; border: none !important; filter: none !important; }',
+      '.sonarline-card-price-wrap, [data-sl-rail="done"] .sonarline-card-price-wrap { background: transparent !important; border: none !important; box-shadow: none !important; color: #ffffff !important; font-family: \'Space Mono\', monospace !important; font-size: 0.88rem !important; font-weight: 700 !important; letter-spacing: 0.05em !important; display: inline-flex !important; align-items: flex-end !important; justify-content: flex-end !important; margin-left: auto !important; flex: 0 0 auto !important; padding: 0 !important; white-space: nowrap !important; text-align: right !important; align-self: flex-end !important; }',
+      '.sonarline-card-price-wrap *, [data-sl-rail="done"] .sonarline-card-price-wrap * { font-family: \'Space Mono\', monospace !important; font-size: 0.88rem !important; font-weight: 700 !important; color: #ffffff !important; letter-spacing: 0.05em !important; text-transform: uppercase !important; margin: 0 !important; padding: 0 !important; border-radius: 0 !important; white-space: nowrap !important; line-height: 1.2 !important; background: transparent !important; background-color: transparent !important; box-shadow: none !important; -moz-box-shadow: none !important; border: none !important; filter: none !important; text-align: right !important; }',
+      '.sonarline-card-price-wrap .visually-hidden, .sonarline-card-price-wrap .sr-only { display: none !important; }',
       '.grid-list:has(> .card-wrapper:only-of-type) .card-wrapper, .grid-list:has(> .product-card:only-of-type) .product-card, .grid-list > .card-wrapper:only-of-type, .grid-list > .product-card:only-of-type, [data-single-product="true"] .card-wrapper, [data-single-product="true"] .product-card, .card-wrapper.sl-single-product, .product-card.sl-single-product { max-width: 340px !important; width: 100% !important; margin: 40px auto !important; float: none !important; }',
       '.grid-list:has(> .card-wrapper:only-of-type), .grid-list:has(> .product-card:only-of-type), [data-single-product="true"] .grid-list { display: flex !important; justify-content: center !important; grid-template-columns: none !important; }',
       '@media (max-width: 640px) { [data-sl-rail="done"] .card-wrapper.product-card-wrapper, [data-sl-rail="done"] .card-wrapper, [data-sl-rail="done"] .product-card, .sl-carousel-track > *, .sl-carousel-track .card-wrapper, .sl-carousel-track .product-card { flex: 0 0 220px !important; width: 220px !important; min-width: 220px !important; max-width: 220px !important; } #page-section-collection .grid-list.sl-rail-track, #page-section-collection .sl-carousel-track, [data-sl-rail="done"] .grid-list.js-grid-list.sl-rail-track, [data-sl-rail="done"] .grid-list.sl-rail-track, [data-sl-rail="done"] .sl-carousel-track, .sl-carousel-track { gap: 14px !important; padding: 16px 0 !important; } .sl-carousel-header { padding: 12px 20px !important; } }'
@@ -2496,9 +2750,36 @@
         card.style.setProperty('margin', '0', 'important');
       });
 
-      // Verify the CSS keyframe sonarlineInfiniteRail is attached to that exact .sl-carousel-track element so the entire row moves as one solid strip from right to left
-      grid.style.setProperty('animation', 'sonarlineInfiniteRail 35s linear infinite', 'important');
+      // Attach animation properties individually (avoid inline shorthand overriding hover pause)
+      grid.style.setProperty('animation-name', 'sonarlineInfiniteRail', 'important');
+      grid.style.setProperty('animation-duration', '35s', 'important');
+      grid.style.setProperty('animation-timing-function', 'linear', 'important');
+      grid.style.setProperty('animation-iteration-count', 'infinite', 'important');
       grid.style.setProperty('will-change', 'transform', 'important');
+
+      var isHovered = false;
+      function pauseRail() {
+        isHovered = true;
+        grid.classList.add('is-hovered');
+        if (!isDown) {
+          grid.style.setProperty('animation-play-state', 'paused', 'important');
+        }
+      }
+      function resumeRail() {
+        isHovered = false;
+        grid.classList.remove('is-hovered');
+        if (!isDown) {
+          grid.style.removeProperty('animation-play-state');
+        }
+      }
+      grid.addEventListener('mouseenter', pauseRail);
+      grid.addEventListener('mouseleave', resumeRail);
+      grid.addEventListener('mouseover', pauseRail);
+      grid.addEventListener('mouseout', function(e) {
+        if (!grid.contains(e.relatedTarget) && !viewport.contains(e.relatedTarget)) {
+          resumeRail();
+        }
+      });
 
       // 2. Build Technical Section Header (Left: Dynamic Title with Single Glowing Red Dot | Right: Dynamic Counter)
       var oldHeader = section ? section.querySelector('.sl-carousel-header, .sl-rail-header') : null;
@@ -2526,6 +2807,30 @@
       viewport.style.setProperty('max-width', '100vw', 'important');
       viewport.style.setProperty('overflow', 'hidden', 'important');
       viewport.style.setProperty('position', 'relative', 'important');
+      viewport.addEventListener('mouseenter', pauseRail);
+      viewport.addEventListener('mouseleave', resumeRail);
+      viewport.addEventListener('mouseover', pauseRail);
+      viewport.addEventListener('mouseout', function(e) {
+        if (!viewport.contains(e.relatedTarget) && !grid.contains(e.relatedTarget)) {
+          resumeRail();
+        }
+      });
+
+      // Prevent wheel scrolling over carousel cards from scrolling horizontally
+      function onCarouselWheel(e) {
+        if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
+          e.preventDefault();
+        }
+      }
+      viewport.addEventListener('wheel', onCarouselWheel, { passive: false });
+      grid.addEventListener('wheel', onCarouselWheel, { passive: false });
+
+      viewport.addEventListener('scroll', function() {
+        if (viewport.scrollLeft !== 0) viewport.scrollLeft = 0;
+      }, { passive: true });
+      grid.addEventListener('scroll', function() {
+        if (grid.scrollLeft !== 0) grid.scrollLeft = 0;
+      }, { passive: true });
 
       // Assemble DOM hierarchy
       grid.parentNode.insertBefore(body, grid);
@@ -2593,18 +2898,25 @@
         isDown = false;
         grid.classList.remove('is-dragging');
 
+        grid.style.removeProperty('transform');
+        grid.style.removeProperty('animation');
+        grid.style.setProperty('animation-name', 'sonarlineInfiniteRail', 'important');
+        grid.style.setProperty('animation-duration', '35s', 'important');
+        grid.style.setProperty('animation-timing-function', 'linear', 'important');
+        grid.style.setProperty('animation-iteration-count', 'infinite', 'important');
+
         if (halfWidth > 0) {
           var ratio = Math.abs(currentTranslateX) / halfWidth;
           if (ratio < 0) ratio = 0;
           if (ratio >= 1) ratio = ratio % 1;
           var delay = -(ratio * 35);
-
-          grid.style.removeProperty('transform');
-          grid.style.removeProperty('animation');
           grid.style.setProperty('animation-delay', delay.toFixed(3) + 's', 'important');
+        }
+
+        if (isHovered) {
+          grid.style.setProperty('animation-play-state', 'paused', 'important');
         } else {
-          grid.style.removeProperty('transform');
-          grid.style.removeProperty('animation');
+          grid.style.removeProperty('animation-play-state');
         }
       }
 
@@ -2618,28 +2930,6 @@
           hasMoved = false;
         }
       }, true);
-
-      // 5. Wheel Scrolling: Map vertical wheel over carousel track to horizontal manual scrub
-      grid.addEventListener('wheel', function(e) {
-        if (e.deltaX) return;
-        if (!halfWidth || halfWidth <= 0) halfWidth = grid.scrollWidth / 2;
-        if (halfWidth <= 0) return;
-
-        var curX = getTranslateX();
-        curX -= e.deltaY;
-        while (curX > 0) curX -= halfWidth;
-        while (curX < -halfWidth) curX += halfWidth;
-
-        var ratio = Math.abs(curX) / halfWidth;
-        if (ratio < 0) ratio = 0;
-        if (ratio >= 1) ratio = ratio % 1;
-        var delay = -(ratio * 35);
-
-        grid.style.removeProperty('transform');
-        grid.style.removeProperty('animation');
-        grid.style.setProperty('animation-delay', delay.toFixed(3) + 's', 'important');
-        e.preventDefault();
-      }, { passive: false });
 
       carousels.push({
         grid: grid,
@@ -2959,13 +3249,22 @@
           '  background-image: none !important;',
           '  outline: none !important;',
           '}',
-          '.card-wrapper .price-block {',
+          '.card-wrapper .price-block,',
+          '.product-card .price-block,',
+          '.card-wrapper .price,',
+          '.product-card .price,',
+          '.card-wrapper [class*="price"]:not(.sonarline-card-price-wrap):not(.sonarline-card-row-bottom),',
+          '.product-card [class*="price"]:not(.sonarline-card-price-wrap):not(.sonarline-card-row-bottom) {',
           '  margin: 0 !important;',
+          '  margin-top: auto !important;',
+          '  margin-left: auto !important;',
           '  padding: 0 !important;',
           '  border: none !important;',
           '  border-top: none !important;',
           '  box-shadow: none !important;',
           '  background: transparent !important;',
+          '  text-align: right !important;',
+          '  align-self: flex-end !important;',
           '}',
           'div.card-wrapper.product-card-wrapper, .card-wrapper.product-card-wrapper, .product-card-wrapper, .product-card, .card-wrapper {',
           '  background: #0e0e0e !important;',
@@ -2976,6 +3275,22 @@
           '  overflow: hidden !important;',
           '  display: flex !important;',
           '  flex-direction: column !important;',
+          '  height: 100% !important;',
+          '  flex-grow: 1 !important;',
+          '}',
+          '.card-wrapper > .card, .product-card > .card, .card-wrapper .card, .card {',
+          '  display: flex !important;',
+          '  flex-direction: column !important;',
+          '  height: 100% !important;',
+          '  flex-grow: 1 !important;',
+          '}',
+          '.card-wrapper > .card > .card__content, .card-wrapper .card > .card__content:not(.card__inner .card__content), .card-wrapper .card__content:not(.card__inner *), .product-card > .card__content, .card__content {',
+          '  display: flex !important;',
+          '  flex-direction: column !important;',
+          '  flex-grow: 1 !important;',
+          '  height: 100% !important;',
+          '  justify-content: space-between !important;',
+          '  padding: 16px 18px 18px 18px !important;',
           '}',
           '.card-wrapper .card__inner, .product-card .card__inner {',
           '  border-radius: 7px 7px 0 0 !important;',
@@ -2990,6 +3305,7 @@
           '  flex-direction: column !important;',
           '  gap: 10px !important;',
           '  flex-grow: 1 !important;',
+          '  height: 100% !important;',
           '  box-sizing: border-box !important;',
           '  background: transparent !important;',
           '  border: none !important;',
@@ -3029,11 +3345,19 @@
           '}',
           '.sonarline-card-row-bottom {',
           '  display: flex !important;',
-          '  align-items: center !important;',
+          '  align-items: flex-end !important;',
           '  justify-content: space-between !important;',
           '  width: 100% !important;',
-          '  gap: 10px !important;',
+          '  gap: 8px !important;',
           '  margin-top: auto !important;',
+          '}',
+          '.sonarline-card-tags-wrap {',
+          '  display: inline-flex !important;',
+          '  flex-wrap: wrap !important;',
+          '  gap: 4px !important;',
+          '  align-items: center !important;',
+          '  flex: 1 1 auto !important;',
+          '  min-width: 0 !important;',
           '}',
           '.sonarline-card-tag-pill {',
           '  display: inline-flex !important;',
@@ -3054,6 +3378,70 @@
           '  max-width: none !important;',
           '  flex-shrink: 0 !important;',
           '  box-sizing: border-box !important;',
+          '}',
+          '.sonarline-modal-tags-wrap {',
+          '  display: inline-flex !important;',
+          '  flex-wrap: wrap !important;',
+          '  gap: 6px !important;',
+          '  align-items: center !important;',
+          '}',
+          '.sonarline-product-tags-wrap {',
+          '  display: inline-flex !important;',
+          '  flex-wrap: wrap !important;',
+          '  gap: 6px !important;',
+          '  align-items: center !important;',
+          '  margin-bottom: 12px !important;',
+          '}',
+          '.sonarline-product-tag-pill {',
+          '  display: inline-flex !important;',
+          '  align-items: center !important;',
+          '  justify-content: center !important;',
+          '  padding: 3px 10px !important;',
+          '  border-radius: 9999px !important;',
+          '  background: rgba(255, 255, 255, 0.06) !important;',
+          '  border: 1px solid rgba(255, 255, 255, 0.18) !important;',
+          '  color: #ffffff !important;',
+          '  font-family: var(--font-mono, \'Space Mono\', monospace) !important;',
+          '  font-size: 0.75rem !important;',
+          '  font-weight: 700 !important;',
+          '  letter-spacing: 0.08em !important;',
+          '  text-transform: uppercase !important;',
+          '  line-height: 1.2 !important;',
+          '}',
+          '.sonarline-card-price-wrap,',
+          '.sonarline-card-price-wrap .price-block,',
+          '.sonarline-card-price-wrap .price,',
+          '.sonarline-card-price-wrap [class*="price"] {',
+          '  display: inline-flex !important;',
+          '  align-items: flex-end !important;',
+          '  justify-content: flex-end !important;',
+          '  margin-left: auto !important;',
+          '  margin-top: auto !important;',
+          '  flex: 0 0 auto !important;',
+          '  padding: 0 !important;',
+          '  white-space: nowrap !important;',
+          '  text-align: right !important;',
+          '  align-self: flex-end !important;',
+          '}',
+          '.sonarline-card-price-wrap *,',
+          '.sonarline-card-row-bottom .price,',
+          '.sonarline-card-row-bottom .price *,',
+          '.sonarline-card-row-bottom [class*="price"] {',
+          '  padding: 0 !important;',
+          '  margin: 0 !important;',
+          '  border: none !important;',
+          '  box-shadow: none !important;',
+          '  background: transparent !important;',
+          '  background-color: transparent !important;',
+          '  color: #ffffff !important;',
+          '  font-family: \'Space Mono\', monospace !important;',
+          '  font-size: 0.88rem !important;',
+          '  font-weight: 700 !important;',
+          '  letter-spacing: 0.05em !important;',
+          '  text-transform: uppercase !important;',
+          '  line-height: 1.2 !important;',
+          '  white-space: nowrap !important;',
+          '  text-align: right !important;',
           '}',
           '.sonarline-card-tag-pill:empty {',
           '  display: none !important;',
@@ -3430,12 +3818,18 @@
           '  font-weight: 700 !important;',
           '  letter-spacing: 0.05em !important;',
           '  display: inline-flex !important;',
-          '  align-items: center !important;',
+          '  align-items: flex-end !important;',
           '  justify-content: flex-end !important;',
           '  margin-left: auto !important;',
           '  flex: 0 0 auto !important;',
           '  padding: 0 !important;',
           '  white-space: nowrap !important;',
+          '  text-align: right !important;',
+          '  align-self: flex-end !important;',
+          '}',
+          '.sonarline-card-price-wrap .visually-hidden,',
+          '.sonarline-card-price-wrap .sr-only {',
+          '  display: none !important;',
           '}',
           '.sonarline-card-price-wrap *,',
           '[data-sl-rail="done"] .sonarline-card-price-wrap * {',

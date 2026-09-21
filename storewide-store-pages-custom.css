@@ -990,7 +990,7 @@ h3.title {
   display: flex !important;
   flex-direction: row !important;
   flex-wrap: nowrap !important;
-  overflow-x: auto !important;
+  overflow-x: visible !important;
   gap: 16px !important;
   scrollbar-width: none !important; /* Hide scrollbars Firefox */
   -ms-overflow-style: none !important; /* IE/Edge */
@@ -1312,11 +1312,18 @@ html body .card-wrapper .card__inner .media img {
 }
 
 /* Native Product Prices - Clean Single-Line Monospace without Ghost Lines */
-.card-wrapper .price-block {
+.card-wrapper .price-block,
+.product-card .price-block,
+.card-wrapper .price,
+.product-card .price,
+.card-wrapper [class*="price"]:not(.sonarline-card-price-wrap):not(.sonarline-card-row-bottom),
+.product-card [class*="price"]:not(.sonarline-card-price-wrap):not(.sonarline-card-row-bottom) {
   margin-top: auto !important;
+  margin-left: auto !important;
   padding-top: 8px !important;
   border: none !important;
-  border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+  text-align: right !important;
+  align-self: flex-end !important;
 }
 
 /* Strip all duplicate borders, box-shadows, and extra padding from nested price children */
@@ -1350,7 +1357,7 @@ html body .card-wrapper .card__inner .media img {
   font-family: var(--font-mono, 'Space Mono', monospace) !important;
   font-size: 0.9rem !important;
   font-weight: 700 !important;
-  color: #ff3b30 !important;
+  color: #ffffff !important;
   letter-spacing: 0.08em !important;
   text-transform: uppercase !important;
   line-height: 1.3 !important;
@@ -1642,7 +1649,7 @@ h4.card__heading,
 /* 4. Product Prices: Monospace Clean Type Aligned Right */
 .sonarline-card-price-wrap {
   display: inline-flex !important;
-  align-items: center !important;
+  align-items: flex-end !important;
   justify-content: flex-end !important;
   margin-left: auto !important;
   flex: 0 0 auto !important;
@@ -1656,6 +1663,13 @@ h4.card__heading,
   letter-spacing: 0.05em !important;
   padding: 0 !important;
   white-space: nowrap !important;
+  text-align: right !important;
+  align-self: flex-end !important;
+}
+
+.sonarline-card-price-wrap .visually-hidden,
+.sonarline-card-price-wrap .sr-only {
+  display: none !important;
 }
 
 .sonarline-card-price-wrap *,
@@ -1854,15 +1868,27 @@ html body .card-wrapper .card__inner .media img {
 }
 
 /* Two-Row Metadata Container */
+.card-wrapper > .card,
+.product-card > .card,
+.card-wrapper .card,
+.card {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+  flex-grow: 1 !important;
+}
+
 .card-wrapper > .card > .card__content,
 .card-wrapper .card > .card__content:not(.card__inner .card__content),
 .card-wrapper .card__content:not(.card__inner *),
-.product-card > .card__content {
+.product-card > .card__content,
+.card__content {
   padding: 16px 18px 18px 18px !important;
   display: flex !important;
   flex-direction: column !important;
   gap: 12px !important;
   flex-grow: 1 !important;
+  height: 100% !important;
   box-sizing: border-box !important;
   background: transparent !important;
   border: none !important;
@@ -1876,6 +1902,7 @@ html body .card-wrapper .card__inner .media img {
   flex-direction: column !important;
   gap: 10px !important;
   flex-grow: 1 !important;
+  height: 100% !important;
   box-sizing: border-box !important;
   background: transparent !important;
   border: none !important;
@@ -1914,14 +1941,23 @@ html body .card-wrapper .card__inner .media img {
 /* Lower Row: Category Pill Left + Price Right */
 .sonarline-card-row-bottom {
   display: flex !important;
-  align-items: center !important;
+  align-items: flex-end !important;
   justify-content: space-between !important;
   width: 100% !important;
-  gap: 10px !important;
+  gap: 8px !important;
   margin-top: auto !important;
 }
 
-/* Category Pill Badge */
+/* Category Tags Container & Pills */
+.sonarline-card-tags-wrap {
+  display: inline-flex !important;
+  flex-wrap: wrap !important;
+  gap: 4px !important;
+  align-items: center !important;
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+}
+
 .sonarline-card-tag-pill {
   display: inline-flex !important;
   align-items: center !important;
@@ -1943,16 +1979,54 @@ html body .card-wrapper .card__inner .media img {
   box-sizing: border-box !important;
 }
 
+.sonarline-modal-tags-wrap {
+  display: inline-flex !important;
+  flex-wrap: wrap !important;
+  gap: 6px !important;
+  align-items: center !important;
+}
+
+.sonarline-product-tags-wrap {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 6px !important;
+  align-items: center !important;
+  margin-bottom: 12px !important;
+  width: 100% !important;
+  flex-basis: 100% !important;
+}
+
+.sonarline-product-tag-pill {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 3px 10px !important;
+  border-radius: 9999px !important;
+  background: rgba(255, 255, 255, 0.06) !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  color: #ffffff !important;
+  font-family: var(--font-mono, 'Space Mono', monospace) !important;
+  font-size: 0.75rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  line-height: 1.2 !important;
+}
+
 .sonarline-card-tag-pill:empty {
   display: none !important;
 }
 
 /* Price Tag: Clean Monospace Aligned Right (Zero Layering / Glow) */
-.sonarline-card-price-wrap {
+.sonarline-card-price-wrap,
+.sonarline-card-price-wrap .price-block,
+.sonarline-card-price-wrap .price,
+.sonarline-card-price-wrap [class*="price"] {
   display: inline-flex !important;
-  align-items: center !important;
+  align-items: flex-end !important;
   justify-content: flex-end !important;
   margin-left: auto !important;
+  margin-top: auto !important;
   flex: 0 0 auto !important;
   background: transparent !important;
   border: none !important;
@@ -1964,15 +2038,22 @@ html body .card-wrapper .card__inner .media img {
   letter-spacing: 0.05em !important;
   padding: 0 !important;
   white-space: nowrap !important;
+  text-align: right !important;
+  align-self: flex-end !important;
 }
 
 .sonarline-card-price-wrap *,
 .card-wrapper .price-block,
+.product-card .price-block,
 .card-wrapper .price,
+.product-card .price,
 .card-wrapper .price__container,
 .card-wrapper .price__regular,
 .card-wrapper .price-item {
-  margin: 0 !important;
+  margin-top: auto !important;
+  margin-left: auto !important;
+  text-align: right !important;
+  align-self: flex-end !important;
   padding: 0 !important;
   border: none !important;
   border-top: none !important;
@@ -2855,7 +2936,10 @@ h2.section-title,
   width: max-content !important;
   min-width: 100% !important;
   flex-shrink: 0 !important;
-  animation: sonarlineInfiniteRail 35s linear infinite !important;
+  animation-name: sonarlineInfiniteRail !important;
+  animation-duration: 35s !important;
+  animation-timing-function: linear !important;
+  animation-iteration-count: infinite !important;
   will-change: transform !important;
   gap: 16px !important;
   padding: 28px 0 !important;
@@ -2866,8 +2950,21 @@ h2.section-title,
   -webkit-user-select: none !important;
 }
 
+#page-section-collection .sl-carousel-track:hover,
+#page-section-collection:hover .sl-carousel-track,
+[data-section-key="collection"] .sl-carousel-track:hover,
+[data-section-key="collection"]:hover .sl-carousel-track,
+[data-sl-rail="done"] .sl-carousel-track:hover,
+[data-sl-rail="done"]:hover .sl-carousel-track,
+.sl-carousel-viewport:hover .sl-carousel-track,
+.sl-carousel-body:hover .sl-carousel-track,
+.sl-carousel-viewport:has(:hover) .sl-carousel-track,
+.sl-carousel-body:has(:hover) .sl-carousel-track,
 .sl-carousel-track:hover,
-.sl-carousel-track.is-hovered {
+.sl-carousel-track.is-hovered,
+.sl-carousel-track:has(:hover),
+.sl-carousel-track:has(.card-wrapper:hover),
+.sl-carousel-track:has(.product-card:hover) {
   animation-play-state: paused !important; /* Pause smoothly on hover */
 }
 
@@ -3018,12 +3115,14 @@ div.card-wrapper.product-card-wrapper.sonarline-card--highlighted,
   font-weight: 700 !important;
   letter-spacing: 0.05em !important;
   display: inline-flex !important;
-  align-items: center !important;
+  align-items: flex-end !important;
   justify-content: flex-end !important;
   margin-left: auto !important;
   flex: 0 0 auto !important;
   padding: 0 !important;
   white-space: nowrap !important;
+  text-align: right !important;
+  align-self: flex-end !important;
 }
 
 .sonarline-card-price-wrap *,
@@ -3032,6 +3131,11 @@ div.card-wrapper.product-card-wrapper.sonarline-card--highlighted,
 [data-sl-rail="done"] .sonarline-card-price-wrap .price-block,
 [data-sl-rail="done"] .sonarline-card-price-wrap [class*="price"] {
   padding: 0 !important;
+  margin: 0 !important;
+  border: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  background-color: transparent !important;
   border-radius: 0 !important;
   color: #ffffff !important;
   font-family: 'Space Mono', monospace !important;
@@ -3041,6 +3145,7 @@ div.card-wrapper.product-card-wrapper.sonarline-card--highlighted,
   text-transform: uppercase !important;
   line-height: 1.2 !important;
   white-space: nowrap !important;
+  text-align: right !important;
 }
 @media (max-width: 640px) {
   [data-sl-rail="done"] .card-wrapper.product-card-wrapper,

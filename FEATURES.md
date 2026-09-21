@@ -247,6 +247,25 @@
 - **Refined Price Tag**: Reduced font size to `0.72rem` Space Mono, eliminated nested pill backgrounds/borders across `.price-block`, `.price`, `.price__container`, etc., enforced the zero-glow mandate (no drop-shadows, glow halos, or layered blur effects), and isolated right-aligned flexbox to the `.sonarline-card-price-wrap` container so nested price text/sale items retain natural layout.
 - **Removed `!` Buttons**: Completely removed product preview exclamation badges (`.sonarline-card-info-badge { display: none !important; }` and purged all instances from DOM).
 
+### [2026-09-21 - Release 17]
+- **Card Price Tag Bottom-Right Alignment**:
+  - Enforced `display: flex !important; flex-direction: column !important; height: 100% !important; flex-grow: 1 !important; justify-content: space-between !important;` on cards, `.card`, `.card__content`, and `.sonarline-card-metadata`.
+  - Locked `.sonarline-card-row-bottom` to `margin-top: auto !important; align-items: flex-end !important; justify-content: space-between !important; width: 100% !important;`.
+  - Pinned `.sonarline-card-price-wrap` and all inner price elements to `margin-top: auto !important; margin-left: auto !important; text-align: right !important; align-self: flex-end !important; display: inline-flex !important; align-items: flex-end !important; justify-content: flex-end !important;`.
+  - Purged duplicate leftover price elements outside `sonarline-card-metadata` and hid `.visually-hidden` and `.sr-only` elements inside the price wrap.
+- **Reliable Card Hover Pause**:
+  - Removed inline `animation-play-state: running !important;` overrides from `resumeRail()` and `endDrag()`, allowing CSS `:hover` rules to cleanly take effect.
+  - Added bubbling `mouseover` and `mouseout` listeners on `grid` and `viewport` that toggle `is-hovered` and pause/resume drift when the cursor hovers over any card or the track.
+  - Expanded CSS hover pause rules to cover `.sl-carousel-track:has(.card-wrapper:hover)`, `.sl-carousel-viewport:hover .sl-carousel-track`, and `.sl-carousel-body:hover .sl-carousel-track`.
+- **Removed Sideways Wheel Scroll on Cards**:
+  - Completely removed the vertical wheel event listener that mapped wheel delta to horizontal track scroll.
+  - Changed `overflow-x: auto` to `overflow-x: visible !important;` on `[class*="product-list"]`, `[class*="products-list"]`, and related containers to prevent modern browsers from translating vertical scroll to horizontal scroll over flex containers.
+  - Intercepted and blocked horizontal wheel delta and zeroed out accidental `scrollLeft` on `viewport` and `grid`.
+- **Sitewide Multiple Tag System**:
+  - Implemented `sonarlineExtractTags()` supporting single/double brackets (`[[tag:...]]`, `[tag:...]`, `[[tags:...]]`), multiple delimiters (comma, semicolon, pipe, bullet, newline, `//`), preserving `/` in compound tags (e.g. `BUNDLE / KITS`), and stripping rich text HTML/entities.
+  - Rendered multiple tags into `.sonarline-card-tags-wrap` with individual `.sonarline-card-tag-pill` badges.
+  - Extended tag rendering sitewide: dynamically injected `.sonarline-product-tags-wrap` with `.sonarline-product-tag-pill` on product detail pages (`/b/...`, `/p/...`, `/product/...`, `/item/...`), inside the product preview modal (`.sonarline-modal-tags-wrap`), and synced via `sessionStorage` across collection cards.
+
 ### [2026-09-21 - Release 16]
 - **Firefox Gecko Single-Row Track Hard-Override & Unification**:
   - Scoped all 28 global card selectors in CSS lines 1016–1046 (`#page-section-collection .card-wrapper`, `div.card-wrapper.product-card-wrapper`, `.product-card-wrapper`, etc.) and mobile 480px media queries with `:not(.sl-carousel-track *):not([data-sl-rail="done"] *)`, permanently stopping `width: 100% !important` and `flex: 1 1 auto !important` leaks into carousel cards.
