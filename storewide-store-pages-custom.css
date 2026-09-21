@@ -1212,6 +1212,23 @@ div.card-wrapper.product-card-wrapper:hover,
   box-shadow: 0 12px 35px rgba(0, 0, 0, 0.75) !important;
 }
 
+/* Highlight must survive hover: higher specificity + later source order (Firefox-safe) */
+.card-wrapper.sonarline-card--highlighted:hover,
+.product-card.sonarline-card--highlighted:hover,
+[data-highlighted="true"]:hover,
+[data-sl-highlighted="true"]:hover,
+[data-sl-rail="done"] .sl-carousel-track .card-wrapper.sonarline-card--highlighted,
+[data-sl-rail="done"] .sl-carousel-track .product-card.sonarline-card--highlighted,
+[data-sl-rail="done"] .sl-carousel-track [data-highlighted="true"],
+[data-sl-rail="done"] .sl-carousel-track [data-sl-highlighted="true"],
+[data-sl-rail="done"] .sl-carousel-track .card-wrapper.sonarline-card--highlighted:hover,
+[data-sl-rail="done"] .sl-carousel-track .product-card.sonarline-card--highlighted:hover,
+[data-sl-rail="done"] .sl-carousel-track [data-highlighted="true"]:hover {
+  border-color: #FF3B30 !important;
+  border: 1px solid #FF3B30 !important;
+  box-shadow: 0 0 12px rgba(255, 59, 48, 0.3) !important;
+}
+
 /* 2. HIDE DUPLICATE INNER CONTENT & NESTED BORDERS */
 .card-wrapper .card__inner .card__content,
 .card-wrapper .card__inner .card__information,
@@ -2888,7 +2905,7 @@ body.sonarline-modal-open {
   -webkit-user-select: none !important;
 }
 
-/* Two-Tone Section Header Strip */
+/* Two-Tone Section Header Strip (click toggles the rail below; open by default) */
 .sonarline-carousel-header,
 .sl-carousel-header {
   background: #121212 !important; /* Distinct lighter gray strip */
@@ -2901,6 +2918,17 @@ body.sonarline-modal-open {
   justify-content: space-between !important;
   align-items: center !important;
   box-sizing: border-box !important;
+  cursor: pointer !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}
+
+.sl-carousel-header.is-collapsed {
+  opacity: 0.85 !important;
+}
+
+[data-sl-collapsed="true"] .sl-carousel-body {
+  display: none !important;
 }
 
 /* Single glowing circular dot */

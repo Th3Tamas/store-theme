@@ -1878,6 +1878,29 @@
       } catch (e) {}
     }
 
+    // Single highlight writer: true/false (missing defaults to false per spec).
+    function sonarlineSetHighlight(card, highlighted) {
+      try {
+        if (!card) return;
+        var on = (highlighted === true);
+        card.setAttribute('data-highlighted', on ? 'true' : 'false');
+        card.setAttribute('data-sl-highlighted', on ? 'true' : 'false');
+        if (on) card.classList.add('sonarline-card--highlighted');
+        else card.classList.remove('sonarline-card--highlighted');
+      } catch (e) {}
+    }
+
+    // Read explicit highlight token from a card's own DOM (true/false/null when absent).
+    function sonarlineReadCardHighlight(card) {
+      try {
+        var text = card.textContent || '';
+        var html = card.innerHTML || '';
+        if (/\[\[highlighted:\s*true\s*\]\]/i.test(text) || /\[\[highlighted:\s*true\s*\]\]/i.test(html)) return true;
+        if (/\[\[highlighted:\s*false\s*\]\]/i.test(text) || /\[\[highlighted:\s*false\s*\]\]/i.test(html)) return false;
+      } catch (e) {}
+      return null;
+    }
+
     function sonarlineParseShortcodes(htmlText) {
       var out = { tags: [], tag: '', audio: '', highlighted: null };
       if (!htmlText) return out;
@@ -1923,7 +1946,8 @@
           targetCards.push(card);
         }
 
-        var tags = (data.tags && data.tags.length) ? data.tags : (data.tag ? [data.tag] : []);
+        // Legacy caches may store a single comma-joined `tag` string; split it so each tag renders separately.
+        var tags = (data.tags && data.tags.length) ? data.tags.slice() : (data.tag ? String(data.tag).split(/\s*,\s*/).map(function(s) { return s.trim(); }).filter(Boolean) : []);
 
         for (var tc = 0; tc < targetCards.length; tc++) {
           var targetCard = targetCards[tc];
@@ -1932,37 +1956,11 @@
             targetCard.setAttribute('data-audio-src', data.audio);
           }
           if (tags.length > 0) {
+            tags = tags.filter(function(t, i, a) { return a.indexOf(t) === i; });
             targetCard.setAttribute('data-tags', JSON.stringify(tags));
             targetCard.setAttribute('data-tag-text', tags.join(', '));
-            var tagsWrap = targetCard.querySelector('.sonarline-card-tags-wrap');
-            if (!tagsWrap) {
-              var oldPill = targetCard.querySelector('.sonarline-card-tag-pill');
-              tagsWrap = document.createElement('div');
-              tagsWrap.className = 'sonarline-card-tags-wrap';
-              if (oldPill && oldPill.parentNode) {
-                oldPill.parentNode.insertBefore(tagsWrap, oldPill);
-                oldPill.parentNode.removeChild(oldPill);
-              } else {
-                var rowBottom = targetCard.querySelector('.sonarline-card-row-bottom');
-                if (rowBottom) {
-                  rowBottom.insertBefore(tagsWrap, rowBottom.firstChild);
-                } else {
-                  var meta = targetCard.querySelector('.sonarline-card-metadata, .card__content, .card-information');
-                  if (meta) meta.appendChild(tagsWrap);
-                  else targetCard.appendChild(tagsWrap);
-                }
-              }
-            }
-            if (tagsWrap) {
-              tagsWrap.innerHTML = '';
-              for (var ti = 0; ti < tags.length; ti++) {
-                var tp = document.createElement('span');
-                tp.className = 'sonarline-card-tag-pill';
-                tp.textContent = tags[ti];
-                tagsWrap.appendChild(tp);
-              }
-              tagsWrap.style.setProperty('display', 'inline-flex', 'important');
-            }
+            var legacyWrap = targetCard.querySelector('.sonarline-card-tags-wrap');
+            if (legacyWrap && legacyWrap.parentNode) legacyWrap.parentNode.removeChild(legacyWrap);
             var tagsGroup = targetCard.querySelector('.sonarline-card-tags-group');
             if (!tagsGroup) {
               tagsGroup = document.createElement('div');
@@ -1972,8 +1970,10 @@
               if (rb2) {
                 if (pw2 && pw2.parentNode === rb2) rb2.insertBefore(tagsGroup, pw2);
                 else rb2.insertBefore(tagsGroup, rb2.firstChild);
-              } else if (tagsWrap && tagsWrap.parentNode) {
-                tagsWrap.parentNode.insertBefore(tagsGroup, tagsWrap.nextSibling);
+              } else {
+                var meta2 = targetCard.querySelector('.sonarline-card-metadata, .card__content, .card-information');
+                if (meta2) meta2.appendChild(tagsGroup);
+                else targetCard.appendChild(tagsGroup);
               }
             }
             if (tagsGroup) {
@@ -1985,13 +1985,9 @@
             }
           }
           if (typeof data.highlighted === 'boolean') {
-            targetCard.setAttribute('data-highlighted', data.highlighted ? 'true' : 'false');
-            targetCard.setAttribute('data-sl-highlighted', data.highlighted ? 'true' : 'false');
-            if (data.highlighted) {
-              targetCard.classList.add('sonarline-card--highlighted');
-            } else {
-              targetCard.classList.remove('sonarline-card--highlighted');
-            }
+            sonarlineSetHighlight(targetCard, data.highlighted);
+          } else {
+            sonarlineSetHighlight(targetCard, false);
           }
         }
 
@@ -2190,6 +2186,7 @@
     function cleanProductCards() {
       var cards = document.querySelectorAll('.card-wrapper, .product-card');
       cards.forEach(function(card) {
+        try {
 
         // 1. Hide duplicate inner content inside card__inner
         var innerContent = card.querySelectorAll('.card__inner .card__content, .card__inner .card__information');
@@ -2228,24 +2225,17 @@
           imgs[m].style.setProperty('border-radius', '7px 7px 0 0', 'important');
         }
 
-        // 5. Robust [[highlighted: true/false]] Detection & Deep Token Cleanup (Card-level, works across all browsers)
-        var textHl = card.textContent || '';
-        var htmlHl = card.innerHTML || '';
-        var isHl = /\[\[highlighted:\s*true\s*\]\]/i.test(textHl) || /\[\[highlighted:\s*true\s*\]\]/i.test(htmlHl);
-        var isFalse = /\[\[highlighted:\s*false\s*\]\]/i.test(textHl) || /\[\[highlighted:\s*false\s*\]\]/i.test(htmlHl);
-
-        if (isHl) {
-          card.setAttribute('data-highlighted', 'true');
-          card.setAttribute('data-sl-highlighted', 'true');
-          card.classList.add('sonarline-card--highlighted');
-        } else if (isFalse) {
-          card.setAttribute('data-highlighted', 'false');
-          card.setAttribute('data-sl-highlighted', 'false');
-          card.classList.remove('sonarline-card--highlighted');
-        } else if (card.getAttribute('data-highlighted') === 'true' || card.classList.contains('sonarline-card--highlighted')) {
-          card.setAttribute('data-highlighted', 'true');
-          card.setAttribute('data-sl-highlighted', 'true');
-          card.classList.add('sonarline-card--highlighted');
+        // 5. Robust [[highlighted: true/false]] Detection & Deep Token Cleanup (multi-card, Firefox-safe, defaults false)
+        var hlState = sonarlineReadCardHighlight(card);
+        var hlExplicit = (hlState !== null);
+        if (hlState === true) {
+          sonarlineSetHighlight(card, true);
+        } else if (hlState === false) {
+          sonarlineSetHighlight(card, false);
+        } else if (card.getAttribute('data-highlighted') === 'true' || card.getAttribute('data-sl-highlighted') === 'true' || card.classList.contains('sonarline-card--highlighted')) {
+          sonarlineSetHighlight(card, true);
+        } else {
+          sonarlineSetHighlight(card, false);
         }
 
         // Deep Token Cleanup: Strip [[highlighted: true]] and [[highlighted: false]] cleanly without breaking HTML tags
@@ -2341,6 +2331,9 @@
             }
           }
 
+          // Dedupe: stale caches may carry repeats; pills must be unique per card.
+          tags = tags.filter(function(t, i, a) { return a.indexOf(t) === i; });
+
           if (tags.length > 0) {
             card.setAttribute('data-tags', JSON.stringify(tags));
             card.setAttribute('data-tag-text', tags.join(', '));
@@ -2356,7 +2349,6 @@
                 '<div class="sonarline-card-title-wrap"></div>' +
               '</div>' +
               '<div class="sonarline-card-row-bottom">' +
-                '<div class="sonarline-card-tags-wrap"></div>' +
                 '<div class="sonarline-card-tags-group"></div>' +
                 '<div class="sonarline-card-price-wrap"></div>' +
               '</div>';
@@ -2375,35 +2367,11 @@
             titleWrap.appendChild(titleEl);
           }
 
-          // Update tags in row 2 (Strictly conditional, multiple tag support)
-          var tagsWrap = metaWrap.querySelector('.sonarline-card-tags-wrap');
-          if (!tagsWrap) {
-            var oldPill = metaWrap.querySelector('.sonarline-card-tag-pill');
-            tagsWrap = document.createElement('div');
-            tagsWrap.className = 'sonarline-card-tags-wrap';
-            if (oldPill && oldPill.parentNode) {
-              oldPill.parentNode.insertBefore(tagsWrap, oldPill);
-              oldPill.parentNode.removeChild(oldPill);
-            } else {
-              var rowBottom = metaWrap.querySelector('.sonarline-card-row-bottom');
-              if (rowBottom) rowBottom.insertBefore(tagsWrap, rowBottom.firstChild);
-            }
-          }
-
-          if (tagsWrap) {
-            tagsWrap.innerHTML = '';
-            if (tags.length > 0) {
-              for (var tgIdx = 0; tgIdx < tags.length; tgIdx++) {
-                var pill = document.createElement('span');
-                pill.className = 'sonarline-card-tag-pill';
-                pill.textContent = tags[tgIdx];
-                tagsWrap.appendChild(pill);
-              }
-              tagsWrap.style.setProperty('display', 'inline-flex', 'important');
-            } else {
-              tagsWrap.style.setProperty('display', 'none', 'important');
-            }
-          }
+          // Update tags in row 2: .sonarline-card-tags-group is the single source of truth.
+          // Legacy .sonarline-card-tags-wrap is removed to prevent duplicated pill sets
+          // (dual rendering showed e.g. [[tag: red]] [[tag: yellow]] as repeated pills).
+          var legacyTagsWrap = metaWrap.querySelector('.sonarline-card-tags-wrap');
+          if (legacyTagsWrap && legacyTagsWrap.parentNode) legacyTagsWrap.parentNode.removeChild(legacyTagsWrap);
 
           // FIX TESTBEAT MULTI-TAGS: render each tag into .sonarline-card-tags-group.
           var tagsContainer = metaWrap.querySelector('.sonarline-card-tags-group');
@@ -2487,11 +2455,16 @@
             }
           }
 
-          // Background sync: fill missing tag/audio from product page + scrub handled globally
-          var needsSync = (tags.length === 0 || !audioUrl);
+          // Background sync: fill missing tag/audio/highlight from product page + scrub handled globally
+          // Highlight lives in product descriptions (invisible to cards), so always sync unless
+          // the card carried an explicit [[highlighted: ...]] token of its own.
+          var needsSync = (tags.length === 0 || !audioUrl || !hlExplicit);
           if (needsSync) {
             try { sonarlineSyncCardShortcodes(card); } catch (e) {}
           }
+        }
+        } catch (cardErr) {
+          try { console.error('cleanProductCards card error:', cardErr); } catch (e) {}
         }
       });
       try { replaceInlineTags(document.body); } catch (e) {}
@@ -2672,7 +2645,9 @@
     var CAROUSEL_CSS = [
       '.section-collection, [data-section-key="collection"], #page-section-collection, .sl-carousel-wrapper, [data-sl-rail="done"] { position: relative !important; width: 100vw !important; max-width: 100vw !important; left: 50% !important; right: 50% !important; margin-left: -50vw !important; margin-right: -50vw !important; background: #0a0a0a !important; box-sizing: border-box !important; padding: 0 !important; border-top: 1px solid rgba(255,255,255,0.08) !important; border-bottom: 1px solid rgba(255,255,255,0.08) !important; overflow: clip !important; }',
       '.sl-carousel-viewport, [data-sl-rail="done"] .sl-rail-viewport { position: relative !important; width: 100% !important; max-width: 100vw !important; overflow: hidden !important; mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent) !important; -webkit-mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent) !important; touch-action: pan-y !important; user-select: none !important; -webkit-user-select: none !important; }',
-      '.sonarline-carousel-header, .sl-carousel-header { background: #121212 !important; border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important; padding: 12px 48px !important; width: 100% !important; max-width: 100% !important; margin: 0 !important; display: flex !important; justify-content: space-between !important; align-items: center !important; box-sizing: border-box !important; }',
+      '.sonarline-carousel-header, .sl-carousel-header { background: #121212 !important; border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important; padding: 12px 48px !important; width: 100% !important; max-width: 100% !important; margin: 0 !important; display: flex !important; justify-content: space-between !important; align-items: center !important; box-sizing: border-box !important; cursor: pointer !important; user-select: none !important; -webkit-user-select: none !important; }',
+      '.sl-carousel-header.is-collapsed { opacity: 0.85 !important; }',
+      '[data-sl-collapsed="true"] .sl-carousel-body { display: none !important; }',
       '.sl-dot, .sl-carousel-header-left .sl-dot { display: inline-block !important; width: 6px !important; height: 6px !important; background: #FF2A2A !important; border-radius: 50% !important; box-shadow: 0 0 8px #FF2A2A !important; margin-right: 8px !important; flex-shrink: 0 !important; vertical-align: middle !important; animation: slSlowBlink 2.5s ease-in-out infinite !important; }',
       '.sonarline-carousel-title .sl-dot, .sl-carousel-header-left .sl-dot { width: 6px !important; height: 6px !important; background: #FF2A2A !important; border-radius: 50% !important; animation: slSlowBlink 2.5s ease-in-out infinite !important; }',
       '@keyframes slSlowBlink { 0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 10px #FF2A2A; } 50% { opacity: 0.35; transform: scale(0.92); box-shadow: 0 0 2px #FF2A2A; } }',
@@ -2716,7 +2691,9 @@
       '.sonarline-card-price-wrap { margin-left: auto !important; flex-shrink: 0 !important; text-align: right !important; white-space: nowrap !important; }',
       '.grid-list:has(> .card-wrapper:only-of-type) .card-wrapper, .grid-list:has(> .product-card:only-of-type) .product-card, .grid-list > .card-wrapper:only-of-type, .grid-list > .product-card:only-of-type, [data-single-product="true"] .card-wrapper, [data-single-product="true"] .product-card, .card-wrapper.sl-single-product, .product-card.sl-single-product { max-width: 340px !important; width: 100% !important; margin: 40px auto !important; float: none !important; }',
       '.grid-list:has(> .card-wrapper:only-of-type), .grid-list:has(> .product-card:only-of-type), [data-single-product="true"] .grid-list { display: flex !important; justify-content: center !important; grid-template-columns: none !important; }',
-      '@media (max-width: 640px) { [data-sl-rail="done"] .card-wrapper.product-card-wrapper, [data-sl-rail="done"] .card-wrapper, [data-sl-rail="done"] .product-card, .sl-carousel-track > *, .sl-carousel-track .card-wrapper, .sl-carousel-track .product-card { flex: 0 0 220px !important; width: 220px !important; min-width: 220px !important; max-width: 220px !important; } #page-section-collection .grid-list.sl-rail-track, #page-section-collection .sl-carousel-track, [data-sl-rail="done"] .grid-list.js-grid-list.sl-rail-track, [data-sl-rail="done"] .grid-list.sl-rail-track, [data-sl-rail="done"] .sl-carousel-track, .sl-carousel-track { gap: 14px !important; padding: 16px 0 !important; } .sl-carousel-header { padding: 12px 20px !important; } }'
+      '@media (max-width: 640px) { [data-sl-rail="done"] .card-wrapper.product-card-wrapper, [data-sl-rail="done"] .card-wrapper, [data-sl-rail="done"] .product-card, .sl-carousel-track > *, .sl-carousel-track .card-wrapper, .sl-carousel-track .product-card { flex: 0 0 220px !important; width: 220px !important; min-width: 220px !important; max-width: 220px !important; } #page-section-collection .grid-list.sl-rail-track, #page-section-collection .sl-carousel-track, [data-sl-rail="done"] .grid-list.js-grid-list.sl-rail-track, [data-sl-rail="done"] .grid-list.sl-rail-track, [data-sl-rail="done"] .sl-carousel-track, .sl-carousel-track { gap: 14px !important; padding: 16px 0 !important; } .sl-carousel-header { padding: 12px 20px !important; } }',
+      '[data-sl-rail="done"] .sl-carousel-track .card-wrapper.sonarline-card--highlighted, [data-sl-rail="done"] .sl-carousel-track .product-card.sonarline-card--highlighted, [data-sl-rail="done"] .sl-carousel-track [data-highlighted="true"], [data-sl-rail="done"] .sl-carousel-track [data-sl-highlighted="true"] { border: 1px solid #FF3B30 !important; border-color: #FF3B30 !important; box-shadow: 0 0 12px rgba(255, 59, 48, 0.3) !important; }',
+      '[data-sl-rail="done"] .sl-carousel-track .card-wrapper.sonarline-card--highlighted:hover, [data-sl-rail="done"] .sl-carousel-track .product-card.sonarline-card--highlighted:hover, [data-sl-rail="done"] .sl-carousel-track [data-highlighted="true"]:hover { border-color: #FF3B30 !important; box-shadow: 0 0 12px rgba(255, 59, 48, 0.3) !important; }'
     ].join('\n');
 
     function ensureCarouselCss() {
@@ -2762,6 +2739,7 @@
       }
 
       // Perform the shortcode parse and add .sonarline-card--highlighted BEFORE running the clone function
+      // Multi-card: every original evaluated independently; missing token defaults to false.
       originalCards.forEach(function(card) {
         var text = card.textContent || '';
         var html = card.innerHTML || '';
@@ -2776,10 +2754,14 @@
           card.setAttribute('data-highlighted', 'false');
           card.setAttribute('data-sl-highlighted', 'false');
           card.classList.remove('sonarline-card--highlighted');
-        } else if (card.getAttribute('data-highlighted') === 'true' || card.classList.contains('sonarline-card--highlighted')) {
+        } else if (card.getAttribute('data-highlighted') === 'true' || card.getAttribute('data-sl-highlighted') === 'true' || card.classList.contains('sonarline-card--highlighted')) {
           card.setAttribute('data-highlighted', 'true');
           card.setAttribute('data-sl-highlighted', 'true');
           card.classList.add('sonarline-card--highlighted');
+        } else {
+          card.setAttribute('data-highlighted', 'false');
+          card.setAttribute('data-sl-highlighted', 'false');
+          card.classList.remove('sonarline-card--highlighted');
         }
 
         // Deep Token Cleanup: Strip [[highlighted: true]] and [[highlighted: false]] cleanly from visible nodes without breaking HTML tags
@@ -2995,6 +2977,38 @@
       if (body.parentNode) {
         body.parentNode.insertBefore(header, body);
       }
+
+      // Collapsible rail: click (or Enter/Space) on the title bar toggles the track.
+      // Open by default; closes and reopens on demand.
+      try {
+        header.style.setProperty('cursor', 'pointer', 'important');
+        header.setAttribute('role', 'button');
+        header.setAttribute('tabindex', '0');
+        header.setAttribute('aria-expanded', 'true');
+        header.setAttribute('title', 'Toggle products');
+        if (section) section.removeAttribute('data-sl-collapsed');
+        body.style.removeProperty('display');
+        header.addEventListener('click', function() {
+          var isHidden = (body.style.display === 'none');
+          if (isHidden) {
+            body.style.removeProperty('display');
+            header.setAttribute('aria-expanded', 'true');
+            header.classList.remove('is-collapsed');
+            if (section) section.removeAttribute('data-sl-collapsed');
+          } else {
+            body.style.setProperty('display', 'none', 'important');
+            header.setAttribute('aria-expanded', 'false');
+            header.classList.add('is-collapsed');
+            if (section) section.setAttribute('data-sl-collapsed', 'true');
+          }
+        });
+        header.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            header.click();
+          }
+        });
+      } catch (e) {}
 
       // 4. Manual Drag Scrub with Seamless Linear Drift Resumption
       var isDown = false;
