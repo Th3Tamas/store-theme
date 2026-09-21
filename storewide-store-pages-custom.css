@@ -2892,6 +2892,19 @@ body.sonarline-modal-open {
   overflow: clip !important;
 }
 
+/* Builder sections are already full-width: neutralize inner centered wrappers in rail mode */
+[id^="content-section-"][data-sl-rail="done"] .section-contents-wrapper,
+[id^="content-section-"][data-sl-rail="done"] .section-contents,
+[id^="content-section-"][data-sl-rail="done"] .section-background,
+[id^="content-section-"][data-sl-rail="done"] .standard-padding-left-right {
+  width: 100% !important;
+  max-width: none !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
 .sl-carousel-viewport,
 [data-sl-rail="done"] .sl-rail-viewport {
   position: relative !important;
