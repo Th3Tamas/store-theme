@@ -398,8 +398,10 @@ img[src*="mountain"],
 }
 
 @keyframes slSlowBlink {
-  0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 10px #FF2A2A; }
-  50% { opacity: 0.35; transform: scale(0.92); box-shadow: 0 0 2px #FF2A2A; }
+  /* Composite-only pulse: opacity + transform stay on the compositor.
+     box-shadow is static on the dot classes (animating it repaints every frame). */
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.35; transform: scale(0.92); }
 }
 
 .sl-hud-dot {
@@ -407,6 +409,7 @@ img[src*="mountain"],
   height: 7px !important;
   background: #FF2A2A !important;
   border-radius: 50% !important;
+  box-shadow: 0 0 10px #FF2A2A !important;
   animation: slSlowBlink 2.5s ease-in-out infinite !important;
   position: relative !important;
 }
