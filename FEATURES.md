@@ -247,6 +247,16 @@
 - **Refined Price Tag**: Reduced font size to `0.72rem` Space Mono, eliminated nested pill backgrounds/borders across `.price-block`, `.price`, `.price__container`, etc., enforced the zero-glow mandate (no drop-shadows, glow halos, or layered blur effects), and isolated right-aligned flexbox to the `.sonarline-card-price-wrap` container so nested price text/sale items retain natural layout.
 - **Removed `!` Buttons**: Completely removed product preview exclamation badges (`.sonarline-card-info-badge { display: none !important; }` and purged all instances from DOM).
 
+### [2026-09-21 - Release 12]
+- **Continuous Infinite Auto-Looping Rail**: Transformed the collection carousel into a continuous, seamless infinite marquee rail drifting smoothly right-to-left using hardware-accelerated CSS keyframes (`@keyframes sonarlineInfiniteRail { 0% { transform: translate3d(0, 0, 0); } 100% { transform: translate3d(-50%, 0, 0); } }`).
+- **Dual-Track Cloning Architecture**: Multiplied cards if `< 6` and mirrored Set 1 into Set 2 (`data-sl-clone="true"`), ensuring a mathematically seamless `-50%` transition with 0px jump.
+- **Active Class & Highlight Preservation**: Every card cloned from Set 1 into Set 2 strictly inherits and retains `.sonarline-card--highlighted`, `data-highlighted="true"`, and `data-sl-highlighted="true"`, guaranteeing that the `#FF3B30` red border never vanishes as the track loops.
+- **Interactive Hover Pause**: Track smoothly pauses drift on `:hover` and `.is-hovered` (`animation-play-state: paused !important`).
+- **Manual Drag Scrub with Seamless Drift Resumption**: Interactive drag and vertical wheel scrub calculate the exact current normalized offset ratio (`Math.abs(currentTranslateX) / halfWidth`) and resume the continuous CSS linear keyframe animation via `animation-delay: -${(ratio * 35).toFixed(3)}s` with zero visual jump.
+- **Permanently Purged Chevrons**: Completely removed `<` and `>` chevron buttons (`.sl-carousel-chevron`, `.sl-carousel-prev`, `.sl-carousel-next`) from both DOM injection and CSS stylesheets.
+- **Firefox / Gecko Price Shadow & Glow Reset**: Enforced aggressive resets targeting `.sonarline-card-price-wrap`, `.sonarline-card-row-bottom .price`, `.price-block`, `.price`, `.price__container`, `.price-item`, and pseudo-elements with `box-shadow: none !important; -moz-box-shadow: none !important; filter: none !important; outline: none !important;` to eliminate all nested stairstep drop shadows on Gecko.
+- **Accurate Dynamic Header Product Counter**: Calibrated the section header product count to query only original cards (`:not([data-sl-clone])`), accurately reflecting unique products (e.g., `3 PRODUCTS`) rather than double-counting cloned cards.
+
 ### [2026-09-21 - Release 11]
 - **Added:** Full-Width Section Bleed (`100vw`, `left: 50%`, `margin-left: -50vw`) with Two-Tone Gray Background (Reference Image 5): `#0a0a0a` main carousel body and `#121212` distinct upper header strip.
 - **Added:** Dynamic Section Header with Single Glowing Red Dot: exactly 1 circular `#FF2A2A` dot (`box-shadow: 0 0 8px #FF2A2A`), crimson glowing title (`text-shadow: 0 0 8px rgba(255, 42, 42, 0.45)`), dynamically reading Payhip's native heading (`h2.heading-text, .js-builder-heading-text`) with fallback to "MOST POPULAR", while completely hiding native heading elements (`display: none !important`).

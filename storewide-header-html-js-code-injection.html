@@ -2274,28 +2274,25 @@
       '.sl-dot, .sl-carousel-header-left .sl-dot { display: inline-block !important; width: 6px !important; height: 6px !important; background: #FF2A2A !important; border-radius: 50% !important; box-shadow: 0 0 8px #FF2A2A !important; margin-right: 8px !important; flex-shrink: 0 !important; vertical-align: middle !important; }',
       '.sonarline-carousel-title, .sl-carousel-header-left { font-family: var(--font-mono, \'Space Mono\', monospace) !important; font-size: 11px !important; letter-spacing: 0.15em !important; text-transform: uppercase !important; color: #FF2A2A !important; text-shadow: 0 0 8px rgba(255, 42, 42, 0.45) !important; font-weight: 700 !important; display: inline-flex !important; align-items: center !important; gap: 8px !important; }',
       '.sl-carousel-header-right { display: inline-flex !important; align-items: center !important; font-family: var(--font-mono, \'Space Mono\', monospace) !important; font-size: 11px !important; color: rgba(255, 255, 255, 0.6) !important; letter-spacing: 0.12em !important; text-transform: uppercase !important; }',
-      '.sl-carousel-body { position: relative !important; width: 100% !important; }',
-      '.sl-carousel-chevron { position: absolute !important; top: 50% !important; transform: translateY(-50%) !important; z-index: 30 !important; pointer-events: auto !important; width: 42px !important; height: 42px !important; background: rgba(12, 12, 12, 0.85) !important; backdrop-filter: blur(8px) !important; -webkit-backdrop-filter: blur(8px) !important; border: 1px solid rgba(255, 255, 255, 0.15) !important; border-radius: 50% !important; color: #ffffff !important; font-family: var(--font-mono, \'Space Mono\', monospace) !important; font-size: 1.1rem !important; font-weight: 700 !important; display: flex !important; align-items: center !important; justify-content: center !important; cursor: pointer !important; transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease, transform 0.2s ease, opacity 0.2s ease !important; user-select: none !important; -webkit-user-select: none !important; outline: none !important; padding: 0 !important; line-height: 1 !important; }',
-      '.sl-carousel-chevron:hover { border-color: #FF3B30 !important; color: #FF3B30 !important; background: rgba(20, 20, 20, 0.95) !important; transform: translateY(-50%) scale(1.08) !important; }',
-      '.sl-carousel-chevron.sl-carousel-prev { left: 16px !important; }',
-      '.sl-carousel-chevron.sl-carousel-next { right: 16px !important; }',
-      '.sl-carousel-chevron.is-disabled { opacity: 0.25 !important; pointer-events: none !important; border-color: rgba(255, 255, 255, 0.05) !important; }',
+      '.sl-carousel-body { position: relative !important; width: 100% !important; overflow: hidden !important; }',
+      '@keyframes sonarlineInfiniteRail { 0% { transform: translate3d(0, 0, 0); } 100% { transform: translate3d(-50%, 0, 0); } }',
       'h2.heading-text, .heading-text.js-builder-heading-text, .heading-text, .js-builder-heading-text, h2.section-title, .collection-title, [class*="collection-title"], .collection-header h2, .section-collection > h2, .section-collection > .container > h2, .section-contents > h2.heading-text, [data-sl-rail="done"] .sl-rail-header, .sl-rail-header, .collection-products-count, [class*="products-count"], .collection-header { display: none !important; }',
-      '#page-section-collection[data-sl-rail="done"] .grid-list.js-grid-list.sl-rail-track, #page-section-collection[data-sl-rail="done"] .grid-list.sl-rail-track, #page-section-collection .grid-list.sl-rail-track, [data-section-key="collection"] .grid-list.sl-rail-track, [data-sl-rail="done"] .grid-list.js-grid-list.sl-rail-track, [data-sl-rail="done"] .grid-list.sl-rail-track, .sl-carousel-track { display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important; overflow-x: scroll !important; scroll-snap-type: x mandatory !important; gap: 16px !important; scrollbar-width: none !important; -ms-overflow-style: none !important; padding: 32px 72px !important; box-sizing: border-box !important; width: 100% !important; margin: 0 !important; scroll-behavior: smooth !important; -webkit-overflow-scrolling: touch !important; cursor: grab !important; }',
-      '.sl-carousel-track:active, .sl-carousel-track.is-dragging { cursor: grabbing !important; }',
+      '#page-section-collection[data-sl-rail="done"] .grid-list.js-grid-list.sl-rail-track, #page-section-collection[data-sl-rail="done"] .grid-list.sl-rail-track, #page-section-collection .grid-list.sl-rail-track, [data-section-key="collection"] .grid-list.sl-rail-track, [data-sl-rail="done"] .grid-list.js-grid-list.sl-rail-track, [data-sl-rail="done"] .grid-list.sl-rail-track, .sl-carousel-track { display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important; width: max-content !important; animation: sonarlineInfiniteRail 35s linear infinite !important; will-change: transform !important; gap: 16px !important; padding: 28px 0 !important; margin: 0 !important; box-sizing: border-box !important; cursor: grab !important; user-select: none !important; -webkit-user-select: none !important; }',
+      '.sl-carousel-track:hover, .sl-carousel-track.is-hovered { animation-play-state: paused !important; }',
+      '.sl-carousel-track:active, .sl-carousel-track.is-dragging { cursor: grabbing !important; animation-play-state: paused !important; }',
       '.sl-carousel-track::-webkit-scrollbar, [data-sl-rail="done"] .grid-list::-webkit-scrollbar, .grid-list::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; }',
-      '[data-sl-rail="done"] .card-wrapper.product-card-wrapper, [data-sl-rail="done"] .card-wrapper, [data-sl-rail="done"] .product-card, .card-wrapper, .product-card { flex: 0 0 280px !important; width: 280px !important; min-width: 280px !important; max-width: 280px !important; scroll-snap-align: start !important; background: #0f0f0f !important; border: 1px solid rgba(255,255,255,0.08) !important; border-radius: 8px !important; overflow: hidden !important; transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease !important; }',
+      '[data-sl-rail="done"] .card-wrapper.product-card-wrapper, [data-sl-rail="done"] .card-wrapper, [data-sl-rail="done"] .product-card, .card-wrapper, .product-card { flex: 0 0 280px !important; width: 280px !important; min-width: 280px !important; max-width: 280px !important; background: #0f0f0f !important; border: 1px solid rgba(255,255,255,0.08) !important; border-radius: 8px !important; overflow: hidden !important; transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease !important; }',
       '[data-sl-rail="done"] .card-wrapper:hover, [data-sl-rail="done"] .product-card:hover, .card-wrapper:hover, .product-card:hover { transform: translateY(-6px) !important; border-color: rgba(255, 255, 255, 0.6) !important; }',
       '[data-sl-rail="done"] .card-wrapper.product-card-wrapper.sonarline-card--highlighted, [data-sl-rail="done"] .card-wrapper.sonarline-card--highlighted, [data-sl-rail="done"] .product-card.sonarline-card--highlighted, [data-sl-rail="done"] [data-sl-highlighted="true"], div.card-wrapper.product-card-wrapper.sonarline-card--highlighted, .card-wrapper.product-card-wrapper.sonarline-card--highlighted, .card-wrapper.sonarline-card--highlighted, .product-card.sonarline-card--highlighted, [data-sl-highlighted="true"], .sonarline-card--highlighted { border: 1px solid #FF3B30 !important; border-color: #FF3B30 !important; box-shadow: 0 0 12px rgba(255, 59, 48, 0.25) !important; }',
       '.sonarline-card-metadata { padding: 0 !important; margin: 0 !important; display: flex !important; flex-direction: column !important; gap: 10px !important; flex-grow: 1 !important; box-sizing: border-box !important; background: transparent !important; border: none !important; width: 100% !important; justify-content: space-between !important; }',
       '.sonarline-card-info-badge { display: none !important; }',
       '.sonarline-card-tag-pill { display: inline-flex !important; align-items: center !important; justify-content: center !important; padding: 3px 8px !important; border-radius: 9999px !important; background: rgba(255, 255, 255, 0.06) !important; border: 1px solid rgba(255, 255, 255, 0.18) !important; color: #ffffff !important; font-family: var(--font-mono, \'Space Mono\', monospace) !important; font-size: 0.7rem !important; font-weight: 700 !important; letter-spacing: 0.08em !important; text-transform: uppercase !important; line-height: 1.2 !important; white-space: nowrap !important; max-width: none !important; flex-shrink: 0 !important; box-sizing: border-box !important; }',
-      '.sonarline-card-price-wrap, .sonarline-card-price-wrap *, [data-sl-rail="done"] .sonarline-card-price-wrap, [data-sl-rail="done"] .sonarline-card-price-wrap *, .price-block, .price-block *, .price, .price *, .price__container, .price__container *, .price-item, .price-item * { box-shadow: none !important; text-shadow: none !important; filter: none !important; backdrop-filter: none !important; background: transparent !important; border: none !important; }',
+      '.sonarline-card-price-wrap, .sonarline-card-price-wrap *, .sonarline-card-row-bottom .price, .sonarline-card-row-bottom .price *, .sonarline-card-price-wrap::before, .sonarline-card-price-wrap::after, [data-sl-rail="done"] .sonarline-card-price-wrap, [data-sl-rail="done"] .sonarline-card-price-wrap *, .price-block, .price-block *, .price, .price *, .price__container, .price__container *, .price-item, .price-item * { box-shadow: none !important; text-shadow: none !important; filter: none !important; backdrop-filter: none !important; background: transparent !important; border: none !important; outline: none !important; -moz-box-shadow: none !important; }',
       '.sonarline-card-price-wrap, [data-sl-rail="done"] .sonarline-card-price-wrap { display: inline-flex !important; align-items: center !important; justify-content: flex-end !important; margin-left: auto !important; flex: 0 0 auto !important; padding: 0 !important; white-space: nowrap !important; }',
       '.sonarline-card-price-wrap *, [data-sl-rail="done"] .sonarline-card-price-wrap * { font-family: var(--font-mono, \'Space Mono\', monospace) !important; font-size: 0.72rem !important; font-weight: 700 !important; color: #ffffff !important; letter-spacing: 0.04em !important; text-transform: uppercase !important; margin: 0 !important; padding: 0 !important; border-radius: 0 !important; white-space: nowrap !important; line-height: 1.2 !important; }',
       '.grid-list:has(> .card-wrapper:only-of-type) .card-wrapper, .grid-list:has(> .product-card:only-of-type) .product-card, .grid-list > .card-wrapper:only-of-type, .grid-list > .product-card:only-of-type, [data-single-product="true"] .card-wrapper, [data-single-product="true"] .product-card, .card-wrapper.sl-single-product, .product-card.sl-single-product { max-width: 340px !important; width: 100% !important; margin: 40px auto !important; float: none !important; }',
       '.grid-list:has(> .card-wrapper:only-of-type), .grid-list:has(> .product-card:only-of-type), [data-single-product="true"] .grid-list { display: flex !important; justify-content: center !important; grid-template-columns: none !important; }',
-      '@media (max-width: 640px) { [data-sl-rail="done"] .card-wrapper.product-card-wrapper, [data-sl-rail="done"] .card-wrapper, [data-sl-rail="done"] .product-card { width: 220px !important; min-width: 220px !important; max-width: 220px !important; } #page-section-collection .grid-list.sl-rail-track, [data-sl-rail="done"] .grid-list.js-grid-list.sl-rail-track, [data-sl-rail="done"] .grid-list.sl-rail-track, .sl-carousel-track { gap: 14px !important; padding: 16px 20px !important; } .sl-carousel-header { padding: 12px 20px !important; } .sl-carousel-chevron { width: 34px !important; height: 34px !important; font-size: 0.95rem !important; } .sl-carousel-chevron.sl-carousel-prev { left: 6px !important; } .sl-carousel-chevron.sl-carousel-next { right: 6px !important; } }'
+      '@media (max-width: 640px) { [data-sl-rail="done"] .card-wrapper.product-card-wrapper, [data-sl-rail="done"] .card-wrapper, [data-sl-rail="done"] .product-card { width: 220px !important; min-width: 220px !important; max-width: 220px !important; } #page-section-collection .grid-list.sl-rail-track, [data-sl-rail="done"] .grid-list.js-grid-list.sl-rail-track, [data-sl-rail="done"] .grid-list.sl-rail-track, .sl-carousel-track { gap: 14px !important; padding: 16px 0 !important; } .sl-carousel-header { padding: 12px 20px !important; } }'
     ].join('\n');
 
     function ensureCarouselCss() {
@@ -2310,14 +2307,14 @@
 
     function buildCarousel(grid) {
       if (!grid || grid.getAttribute('data-sl-carousel') === '1') return;
-      var cards = grid.querySelectorAll('.card-wrapper, .product-card');
-      if (cards.length === 0) return;
+      var originalCards = Array.from(grid.querySelectorAll('.card-wrapper:not([data-sl-clone]), .product-card:not([data-sl-clone])'));
+      if (originalCards.length === 0) return;
 
       var section = grid.closest('#page-section-collection, [data-section-key="collection"]') || grid.parentNode;
 
       // Handle single product constraint
-      if (cards.length === 1) {
-        var singleCard = cards[0];
+      if (originalCards.length === 1) {
+        var singleCard = originalCards[0];
         singleCard.classList.add('sl-single-product');
         singleCard.style.setProperty('max-width', '340px', 'important');
         singleCard.style.setProperty('margin', '40px auto', 'important');
@@ -2335,7 +2332,49 @@
       grid.setAttribute('data-sl-carousel', '1');
       grid.classList.add('sl-carousel-track');
 
-      // 1. Build Technical Section Header (Left: Dynamic Title with Single Glowing Red Dot | Right: Dynamic Counter)
+      // 1. Dual-Track Infinite Loop: Clone card set so there are at least two identical mirrored sets side-by-side
+      var oldClones = grid.querySelectorAll('[data-sl-clone]');
+      for (var c = 0; c < oldClones.length; c++) {
+        if (oldClones[c].parentNode) oldClones[c].parentNode.removeChild(oldClones[c]);
+      }
+
+      // Ensure Set 1 has at least 6 cards for wide viewports
+      var multiplier = 1;
+      while (originalCards.length * multiplier < 6) {
+        multiplier++;
+      }
+
+      for (var m = 1; m < multiplier; m++) {
+        for (var o = 0; o < originalCards.length; o++) {
+          var repCard = originalCards[o].cloneNode(true);
+          repCard.setAttribute('data-sl-clone', 'true');
+          // Critical: preserve .sonarline-card--highlighted and data-sl-highlighted on clones
+          if (originalCards[o].classList.contains('sonarline-card--highlighted') || originalCards[o].getAttribute('data-highlighted') === 'true' || originalCards[o].getAttribute('data-sl-highlighted') === 'true') {
+            repCard.classList.add('sonarline-card--highlighted');
+            repCard.setAttribute('data-highlighted', 'true');
+            repCard.setAttribute('data-sl-highlighted', 'true');
+          }
+          grid.appendChild(repCard);
+        }
+      }
+
+      // Set 1 is now complete
+      var set1Cards = Array.from(grid.children);
+
+      // Build Set 2 as an exact clone of Set 1 to guarantee seamless -50% loop
+      for (var s = 0; s < set1Cards.length; s++) {
+        var cloneCard = set1Cards[s].cloneNode(true);
+        cloneCard.setAttribute('data-sl-clone', 'true');
+        // Critical: preserve .sonarline-card--highlighted and data-sl-highlighted on clones
+        if (set1Cards[s].classList.contains('sonarline-card--highlighted') || set1Cards[s].getAttribute('data-highlighted') === 'true' || set1Cards[s].getAttribute('data-sl-highlighted') === 'true') {
+          cloneCard.classList.add('sonarline-card--highlighted');
+          cloneCard.setAttribute('data-highlighted', 'true');
+          cloneCard.setAttribute('data-sl-highlighted', 'true');
+        }
+        grid.appendChild(cloneCard);
+      }
+
+      // 2. Build Technical Section Header (Left: Dynamic Title with Single Glowing Red Dot | Right: Dynamic Counter)
       var oldHeader = section ? section.querySelector('.sl-carousel-header, .sl-rail-header') : null;
       if (oldHeader && oldHeader.parentNode) oldHeader.parentNode.removeChild(oldHeader);
 
@@ -2349,108 +2388,74 @@
       header.className = 'sl-carousel-header';
       header.innerHTML = 
         '<div class="sl-carousel-header-left"><span class="sl-dot"></span><span class="sonarline-carousel-title">' + sectionTitle + '</span></div>' +
-        '<div class="sl-carousel-header-right"><span class="sl-carousel-count">' + cards.length + '</span>&nbsp;PRODUCTS</div>';
+        '<div class="sl-carousel-header-right"><span class="sl-carousel-count">' + originalCards.length + '</span>&nbsp;PRODUCTS</div>';
 
-      // 2. Build Carousel Body with Viewport (Edge Fade Masks) and Brutalist Chevrons
+      // 3. Build Carousel Body with Viewport (Edge Fade Masks) - NO CHEVRONS
       var body = document.createElement('div');
       body.className = 'sl-carousel-body';
-
-      var prevBtn = document.createElement('button');
-      prevBtn.type = 'button';
-      prevBtn.className = 'sl-carousel-chevron sl-carousel-prev';
-      prevBtn.setAttribute('aria-label', 'Previous products');
-      prevBtn.innerHTML = '&lt;';
-
-      var nextBtn = document.createElement('button');
-      nextBtn.type = 'button';
-      nextBtn.className = 'sl-carousel-chevron sl-carousel-next';
-      nextBtn.setAttribute('aria-label', 'Next products');
-      nextBtn.innerHTML = '&gt;';
 
       var viewport = document.createElement('div');
       viewport.className = 'sl-carousel-viewport';
 
       // Assemble DOM hierarchy
       grid.parentNode.insertBefore(body, grid);
-      body.appendChild(prevBtn);
       body.appendChild(viewport);
-      body.appendChild(nextBtn);
       viewport.appendChild(grid);
 
       if (body.parentNode) {
         body.parentNode.insertBefore(header, body);
       }
 
-      // 3. Chevron Scroll Triggers
-      prevBtn.addEventListener('click', function(e) {
-        e.preventDefault();
-        grid.scrollBy({ left: -300, behavior: 'smooth' });
-      });
-
-      nextBtn.addEventListener('click', function(e) {
-        e.preventDefault();
-        grid.scrollBy({ left: 300, behavior: 'smooth' });
-      });
-
-      // 4. Update Arrow Disabled States
-      function updateArrows() {
-        try {
-          var maxScroll = grid.scrollWidth - grid.clientWidth;
-          if (maxScroll <= 5) {
-            prevBtn.classList.add('is-disabled');
-            nextBtn.classList.add('is-disabled');
-            return;
-          }
-          prevBtn.classList.toggle('is-disabled', grid.scrollLeft <= 5);
-          nextBtn.classList.toggle('is-disabled', grid.scrollLeft >= maxScroll - 5);
-        } catch (e) {}
-      }
-
-      grid.addEventListener('scroll', updateArrows, { passive: true });
-      window.addEventListener('resize', updateArrows, { passive: true });
-      updateArrows();
-
-      // 5. Click-and-Drag Mouse Scrolling with Kinetic Deceleration
+      // 4. Manual Drag Scrub with Seamless Linear Drift Resumption
       var isDown = false;
       var startX = 0;
-      var scrollLeftStart = 0;
-      var velocity = 0;
-      var lastX = 0;
-      var lastTime = 0;
-      var rafId = null;
+      var startTranslateX = 0;
+      var currentTranslateX = 0;
+      var halfWidth = 0;
       var hasMoved = false;
+
+      function getTranslateX() {
+        try {
+          var style = window.getComputedStyle(grid);
+          var transform = style.transform || style.webkitTransform;
+          if (transform && transform !== 'none') {
+            var matrix = new DOMMatrix(transform);
+            return matrix.m41 || 0;
+          }
+        } catch (e) {}
+        return 0;
+      }
 
       grid.addEventListener('mousedown', function(e) {
         if (e.button !== 0) return;
         isDown = true;
         hasMoved = false;
-        startX = e.pageX - grid.offsetLeft;
-        scrollLeftStart = grid.scrollLeft;
-        lastX = e.pageX;
-        lastTime = performance.now();
-        velocity = 0;
-        if (rafId) cancelAnimationFrame(rafId);
+        startX = e.pageX;
+        halfWidth = grid.scrollWidth / 2;
+        startTranslateX = getTranslateX();
+        currentTranslateX = startTranslateX;
+
         grid.classList.add('is-dragging');
-        grid.style.setProperty('scroll-snap-type', 'none', 'important');
-        grid.style.setProperty('scroll-behavior', 'auto', 'important');
+        grid.style.setProperty('animation', 'none', 'important');
+        grid.style.setProperty('transform', 'translate3d(' + currentTranslateX + 'px, 0, 0)', 'important');
       });
 
       window.addEventListener('mousemove', function(e) {
         if (!isDown) return;
-        var x = e.pageX - grid.offsetLeft;
-        var walk = x - startX;
+        var walk = e.pageX - startX;
         if (Math.abs(walk) > 4) {
           hasMoved = true;
         }
-        grid.scrollLeft = scrollLeftStart - walk;
+        if (!halfWidth || halfWidth <= 0) halfWidth = grid.scrollWidth / 2;
+        currentTranslateX = startTranslateX + walk;
 
-        var now = performance.now();
-        var dt = now - lastTime;
-        if (dt > 0) {
-          velocity = (lastX - e.pageX) / dt;
+        // Normalize currentTranslateX between 0 and -halfWidth
+        if (halfWidth > 0) {
+          while (currentTranslateX > 0) currentTranslateX -= halfWidth;
+          while (currentTranslateX < -halfWidth) currentTranslateX += halfWidth;
         }
-        lastX = e.pageX;
-        lastTime = now;
+
+        grid.style.setProperty('transform', 'translate3d(' + currentTranslateX + 'px, 0, 0)', 'important');
       });
 
       function endDrag() {
@@ -2458,18 +2463,19 @@
         isDown = false;
         grid.classList.remove('is-dragging');
 
-        function applyMomentum() {
-          if (Math.abs(velocity) > 0.05) {
-            grid.scrollLeft += velocity * 16;
-            velocity *= 0.92;
-            rafId = requestAnimationFrame(applyMomentum);
-          } else {
-            grid.style.setProperty('scroll-snap-type', 'x mandatory', 'important');
-            grid.style.setProperty('scroll-behavior', 'smooth', 'important');
-            updateArrows();
-          }
+        if (halfWidth > 0) {
+          var ratio = Math.abs(currentTranslateX) / halfWidth;
+          if (ratio < 0) ratio = 0;
+          if (ratio >= 1) ratio = ratio % 1;
+          var delay = -(ratio * 35);
+
+          grid.style.removeProperty('transform');
+          grid.style.removeProperty('animation');
+          grid.style.setProperty('animation-delay', delay.toFixed(3) + 's', 'important');
+        } else {
+          grid.style.removeProperty('transform');
+          grid.style.removeProperty('animation');
         }
-        applyMomentum();
       }
 
       window.addEventListener('mouseup', endDrag);
@@ -2483,23 +2489,31 @@
         }
       }, true);
 
-      // 6. Wheel Scrolling: Map vertical wheel over carousel track to horizontal scroll
+      // 5. Wheel Scrolling: Map vertical wheel over carousel track to horizontal manual scrub
       grid.addEventListener('wheel', function(e) {
         if (e.deltaX) return;
-        var maxScroll = grid.scrollWidth - grid.clientWidth;
-        if (maxScroll <= 0) return;
-        var canScrollRight = e.deltaY > 0 && grid.scrollLeft < maxScroll - 2;
-        var canScrollLeft = e.deltaY < 0 && grid.scrollLeft > 2;
-        if (canScrollRight || canScrollLeft) {
-          grid.scrollLeft += e.deltaY;
-          e.preventDefault();
-        }
+        if (!halfWidth || halfWidth <= 0) halfWidth = grid.scrollWidth / 2;
+        if (halfWidth <= 0) return;
+
+        var curX = getTranslateX();
+        curX -= e.deltaY;
+        while (curX > 0) curX -= halfWidth;
+        while (curX < -halfWidth) curX += halfWidth;
+
+        var ratio = Math.abs(curX) / halfWidth;
+        if (ratio < 0) ratio = 0;
+        if (ratio >= 1) ratio = ratio % 1;
+        var delay = -(ratio * 35);
+
+        grid.style.removeProperty('transform');
+        grid.style.removeProperty('animation');
+        grid.style.setProperty('animation-delay', delay.toFixed(3) + 's', 'important');
+        e.preventDefault();
       }, { passive: false });
 
       carousels.push({
         grid: grid,
-        header: header,
-        updateArrows: updateArrows
+        header: header
       });
 
       return header;
@@ -2518,7 +2532,7 @@
         for (var c = 0; c < carousels.length; c++) {
           var item = carousels[c];
           if (item && item.grid && item.header) {
-            var visible = item.grid.querySelectorAll('.card-wrapper:not(.is-filtered-out), .product-card:not(.is-filtered-out)');
+            var visible = item.grid.querySelectorAll('.card-wrapper:not(.is-filtered-out):not([data-sl-clone]), .product-card:not(.is-filtered-out):not([data-sl-clone])');
             var countEl = item.header.querySelector('.sl-carousel-count');
             if (countEl) countEl.textContent = String(visible.length);
             if (item.updateArrows) item.updateArrows();

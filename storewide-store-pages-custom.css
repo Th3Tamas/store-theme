@@ -986,29 +986,19 @@ h3.title {
 [class*="product-list"],
 [class*="products-list"],
 [class*="products-container"],
-[class*="product-items"],
-.sl-carousel-track {
+[class*="product-items"] {
   display: flex !important;
   flex-direction: row !important;
   flex-wrap: nowrap !important;
-  overflow-x: scroll !important;
-  scroll-snap-type: x mandatory !important;
+  overflow-x: auto !important;
   gap: 16px !important;
   scrollbar-width: none !important; /* Hide scrollbars Firefox */
   -ms-overflow-style: none !important; /* IE/Edge */
-  padding: 32px 72px !important;
   box-sizing: border-box !important;
   width: 100% !important;
   max-width: 100% !important;
   margin: 0 auto !important;
-  scroll-behavior: smooth !important;
   -webkit-overflow-scrolling: touch !important;
-  cursor: grab !important;
-}
-
-.sl-carousel-track:active,
-.sl-carousel-track.is-dragging {
-  cursor: grabbing !important;
 }
 
 #page-section-collection .grid-list::-webkit-scrollbar,
@@ -2748,60 +2738,16 @@ h2.section-title,
   display: none !important;
 }
 
-/* Sleek Brutalist Chevrons (< and >) */
+/* Infinite Looping Marquee Rail */
 .sl-carousel-body {
   position: relative !important;
   width: 100% !important;
+  overflow: hidden !important;
 }
 
-.sl-carousel-chevron {
-  position: absolute !important;
-  top: 50% !important;
-  transform: translateY(-50%) !important;
-  z-index: 30 !important;
-  pointer-events: auto !important;
-  width: 42px !important;
-  height: 42px !important;
-  background: rgba(12, 12, 12, 0.85) !important;
-  backdrop-filter: blur(8px) !important;
-  -webkit-backdrop-filter: blur(8px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.15) !important;
-  border-radius: 50% !important;
-  color: #ffffff !important;
-  font-family: var(--font-mono, 'Space Mono', monospace) !important;
-  font-size: 1.1rem !important;
-  font-weight: 700 !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  cursor: pointer !important;
-  transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease, transform 0.2s ease, opacity 0.2s ease !important;
-  user-select: none !important;
-  -webkit-user-select: none !important;
-  outline: none !important;
-  padding: 0 !important;
-  line-height: 1 !important;
-}
-
-.sl-carousel-chevron:hover {
-  border-color: #FF3B30 !important;
-  color: #FF3B30 !important;
-  background: rgba(20, 20, 20, 0.95) !important;
-  transform: translateY(-50%) scale(1.08) !important;
-}
-
-.sl-carousel-chevron.sl-carousel-prev {
-  left: 16px !important;
-}
-
-.sl-carousel-chevron.sl-carousel-next {
-  right: 16px !important;
-}
-
-.sl-carousel-chevron.is-disabled {
-  opacity: 0.25 !important;
-  pointer-events: none !important;
-  border-color: rgba(255, 255, 255, 0.05) !important;
+@keyframes sonarlineInfiniteRail {
+  0% { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(-50%, 0, 0); }
 }
 
 #page-section-collection[data-sl-rail="done"] .grid-list.js-grid-list.sl-rail-track,
@@ -2814,23 +2760,27 @@ h2.section-title,
   display: flex !important;
   flex-direction: row !important;
   flex-wrap: nowrap !important;
-  overflow-x: scroll !important;
-  scroll-snap-type: x mandatory !important;
+  width: max-content !important;
+  animation: sonarlineInfiniteRail 35s linear infinite !important;
+  will-change: transform !important;
   gap: 16px !important;
-  scrollbar-width: none !important;
-  -ms-overflow-style: none !important;
-  padding: 32px 72px !important;
-  box-sizing: border-box !important;
-  width: 100% !important;
+  padding: 28px 0 !important;
   margin: 0 !important;
-  scroll-behavior: smooth !important;
-  -webkit-overflow-scrolling: touch !important;
+  box-sizing: border-box !important;
   cursor: grab !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}
+
+.sl-carousel-track:hover,
+.sl-carousel-track.is-hovered {
+  animation-play-state: paused !important; /* Pause smoothly on hover */
 }
 
 .sl-carousel-track:active,
 .sl-carousel-track.is-dragging {
   cursor: grabbing !important;
+  animation-play-state: paused !important;
 }
 
 [data-sl-rail="done"] .card-wrapper.product-card-wrapper,
@@ -2840,7 +2790,6 @@ h2.section-title,
   width: 280px !important;
   min-width: 280px !important;
   max-width: 280px !important;
-  scroll-snap-align: start !important;
   background: #0f0f0f !important;
   border: 1px solid rgba(255, 255, 255, 0.08) !important;
   border-radius: 8px !important;
@@ -2881,6 +2830,10 @@ h2.section-title,
 }
 .sonarline-card-price-wrap,
 .sonarline-card-price-wrap *,
+.sonarline-card-row-bottom .price,
+.sonarline-card-row-bottom .price *,
+.sonarline-card-price-wrap::before,
+.sonarline-card-price-wrap::after,
 [data-sl-rail="done"] .sonarline-card-price-wrap,
 [data-sl-rail="done"] .sonarline-card-price-wrap *,
 .price-block,
@@ -2897,6 +2850,8 @@ h2.section-title,
   backdrop-filter: none !important;
   background: transparent !important;
   border: none !important;
+  outline: none !important;
+  -moz-box-shadow: none !important;
 }
 [data-sl-rail="done"] .sonarline-card-price-wrap {
   display: inline-flex !important;
