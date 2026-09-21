@@ -40,11 +40,11 @@
   - `Space Mono` — Technical readouts, terminal syntax, price tags, audio timestamps.
   - `Inter` — Body text, descriptions, UI labels.
 - `[x]` **Custom Kinetic Cursor:**
-  - Multi-element cursor with `mix-blend-mode: difference` inversion.
-  - Outer tracking ring with Sonarline orange accent.
-  - Smooth physics, hover enlargement on interactive targets (`a`, `button`, `.sonarline-card-info-badge`).
-- `[x]` **Desktop Drag-Selection Box (`#sl-selection-box`):**
-  - `pointer:fine`-only wireframe rectangle (`mix-blend-mode: difference`), ignores interactive targets, suppresses native selection while active.
+  - Multi-element cursor with `mix-blend-mode: difference` inversion across all surfaces.
+  - Centered 10px white dot + trailing 32px outer ring with smooth rAF lerp physics.
+  - Interactive reaction: outer ring smoothly shrinks and collapses directly onto the dot when hovering over clickable targets (`a`, `button`, cards, badges, pills, etc.).
+- `[-]` **Desktop Drag-Selection Box (`#sl-selection-box`):**
+  - Scrapped and removed per user direction.
 - `[x]` **Layout Cleanup & Overflow Protection:**
   - Enforced `overflow-x: clip` on root containers to eliminate horizontal page scrollbars.
   - Stripped default Payhip footer subscription/newsletter form.
@@ -226,7 +226,8 @@
 ## 10. Changelog & Revision History
 
 ### [2026-09-21 - Release 7]
-- **Fixed:** Desktop Drag-Selection Box (`#sl-selection-box`) — resolved CSS specificity issue (`display: none !important` was blocking JS inline display assignment); added `#sl-selection-box.is-active { display: block !important; }`; removed `pointer: coarse` false-positive check that suppressed selection box on touchscreen/hybrid devices; added `.sl-rail-viewport, .sl-rail-header, .sonarline-filter-hud` to ignore targets.
+- **Updated Cursor:** Re-added trailing outer ring (`#sl-cursor-circle`, 32px) around a slightly smaller (10px) centered dot (`#sl-cursor-dot`), both with `mix-blend-mode: difference`. When hovering over clickable targets (`a`, `button`, cards, badges, pills, etc.), the outer ring smoothly shrinks and collapses directly onto the dot.
+- **Removed:** Desktop Drag-Selection Box (`#sl-selection-box`) scrapped and removed per user direction.
 - **Fixed:** Product Rail ("MOST POPULAR" marquee) — resolved CSS specificity collision where `#page-section-collection .grid-list` with `!important` was overriding the rail track flex styling; added `:not(.sl-rail-track)` to all grid declarations; removed `prefers-reduced-motion` early return from the rail IIFE and handled reduced motion gracefully by pausing auto-scroll while keeping manual drag/swipe active.
 - **Added:** Retro Audio Waveform Visualizer inside `#sonarline-product-modal` with click-to-seek and dynamic frequency bar animation.
 - **Added:** Audio Player Keyboard Accessibility (`Space`, `ArrowLeft`/`ArrowRight`, `ArrowUp`/`ArrowDown`, `Escape`) + `localStorage` volume persistence.

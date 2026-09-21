@@ -3527,9 +3527,10 @@
   })();
 
   // ==========================================================================
-  // Subtask 1: Custom Cursor - single bigger white inverting dot
-  // White dot with mix-blend-mode: difference for negative effect.
-  // No outer circle. OS native cursor suppressed across entire page.
+  // ==========================================================================
+  // Subtask 1: Custom Kinetic Cursor
+  // White dot with mix-blend-mode: difference + trailing outer ring that
+  // smoothly shrinks onto the dot when hovering over clickable elements.
   // ==========================================================================
   (function() {
     if (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) {
@@ -3546,17 +3547,44 @@
       '  position: fixed !important;',
       '  top: 0 !important;',
       '  left: 0 !important;',
-      '  width: 14px !important;',
-      '  height: 14px !important;',
+      '  width: 10px !important;',
+      '  height: 10px !important;',
+      '  margin-top: -5px !important;',
+      '  margin-left: -5px !important;',
       '  background: #ffffff !important;',
       '  border-radius: 50% !important;',
       '  pointer-events: none !important;',
       '  z-index: 2147483646 !important;',
       '  mix-blend-mode: difference !important;',
       '  transform: translate3d(-100px, -100px, 0);',
-      '  will-change: transform;',
+      '  will-change: transform !important;',
+      '  backface-visibility: hidden !important;',
       '}',
-      '#sl-cursor-circle { display: none !important; }',
+      '#sl-cursor-circle {',
+      '  position: fixed !important;',
+      '  top: 0 !important;',
+      '  left: 0 !important;',
+      '  width: 32px !important;',
+      '  height: 32px !important;',
+      '  margin-top: -16px !important;',
+      '  margin-left: -16px !important;',
+      '  border: 1px solid rgba(255, 255, 255, 0.8) !important;',
+      '  border-radius: 50% !important;',
+      '  pointer-events: none !important;',
+      '  z-index: 2147483645 !important;',
+      '  mix-blend-mode: difference !important;',
+      '  transform: translate3d(-100px, -100px, 0);',
+      '  transition: width 0.22s cubic-bezier(0.16, 1, 0.3, 1), height 0.22s cubic-bezier(0.16, 1, 0.3, 1), margin 0.22s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease !important;',
+      '  will-change: transform, width, height, margin !important;',
+      '  backface-visibility: hidden !important;',
+      '}',
+      '#sl-cursor-circle.hovered {',
+      '  width: 10px !important;',
+      '  height: 10px !important;',
+      '  margin-top: -5px !important;',
+      '  margin-left: -5px !important;',
+      '  border-color: #ffffff !important;',
+      '}',
       '@media (pointer: coarse) {',
       '  #sl-cursor-dot, #sl-cursor-circle { display: none !important; }',
       '  html, body, a, button, input, select, textarea, [role="button"], * { cursor: auto !important; }',
@@ -3566,98 +3594,66 @@
     if (existing && existing.parentNode) existing.parentNode.removeChild(existing);
     (document.head || document.documentElement).appendChild(style);
 
-    var staleCircle = document.getElementById('sl-cursor-circle');
-    if (staleCircle && staleCircle.parentNode) staleCircle.parentNode.removeChild(staleCircle);
-
     var dot = document.getElementById('sl-cursor-dot');
     if (!dot) {
       dot = document.createElement('div');
       dot.id = 'sl-cursor-dot';
+      dot.setAttribute('aria-hidden', 'true');
+    }
+    var circle = document.getElementById('sl-cursor-circle');
+    if (!circle) {
+      circle = document.createElement('div');
+      circle.id = 'sl-cursor-circle';
+      circle.setAttribute('aria-hidden', 'true');
     }
 
     function mountCursor() {
       if (!document.getElementById('sl-cursor-dot')) {
         (document.body || document.documentElement).appendChild(dot);
       }
-      var leftover = document.getElementById('sl-cursor-circle');
-      if (leftover && leftover.parentNode) leftover.parentNode.removeChild(leftover);
+      if (!document.getElementById('sl-cursor-circle')) {
+        (document.body || document.documentElement).appendChild(circle);
+      }
+      var oldBox = document.getElementById('sl-selection-box');
+      if (oldBox && oldBox.parentNode) oldBox.parentNode.removeChild(oldBox);
     }
     if (document.body) mountCursor();
     else document.addEventListener('DOMContentLoaded', mountCursor);
 
+    var mouseX = -100, mouseY = -100;
+    var circleX = -100, circleY = -100;
+    var isHovered = false;
+
+    var interactiveSelector = 'a, button, input, textarea, select, [role="button"], [role="link"], [role="tab"], .sonarline-card-info-badge, .sonarline-card-quickplay, .sonarline-filter-pill, .card-wrapper, .product-card, .payhip-btn, .btn, .theme-btn, .clickable, [onclick], [data-filter-tag], label[for], .close, .modal-close';
+
     window.addEventListener('mousemove', function(e) {
-      dot.style.transform = 'translate3d(' + (e.clientX - 7) + 'px, ' + (e.clientY - 7) + 'px, 0)';
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+      dot.style.transform = 'translate3d(' + mouseX + 'px, ' + mouseY + 'px, 0)';
+
+      var targetInteractive = e.target && e.target.closest && e.target.closest(interactiveSelector);
+      if (targetInteractive) {
+        if (!isHovered) {
+          isHovered = true;
+          circle.classList.add('hovered');
+        }
+      } else {
+        if (isHovered) {
+          isHovered = false;
+          circle.classList.remove('hovered');
+        }
+      }
     }, { passive: true });
-  })();
 
-  // ==========================================================================
-  // Desktop Custom Drag-Selection Box (#sl-selection-box, pointer:fine only)
-  // Brutalist wireframe rectangle with difference blend; ignores interactive
-  // targets and touch pointers. Purely visual — native text selection is
-  // suppressed while dragging.
-  // ==========================================================================
-  (function() {
-    try {
-      var box = document.getElementById('sl-selection-box');
-      if (!box) {
-        box = document.createElement('div');
-        box.id = 'sl-selection-box';
-        box.setAttribute('aria-hidden', 'true');
+    function lerpCursor() {
+      if (!document.hidden) {
+        circleX += (mouseX - circleX) * 0.22;
+        circleY += (mouseY - circleY) * 0.22;
+        circle.style.transform = 'translate3d(' + circleX + 'px, ' + circleY + 'px, 0)';
       }
-      function mountBox() {
-        if (!document.getElementById('sl-selection-box')) {
-          (document.body || document.documentElement).appendChild(box);
-        }
-      }
-      if (document.body) mountBox();
-      else document.addEventListener('DOMContentLoaded', mountBox);
-
-      var ignoreSelector = 'a, button, input, textarea, select, [role="button"], .sonarline-card-info-badge, .sonarline-card-quickplay, .card-wrapper, .product-card, iframe, video, audio, .sonarline-modal-container, .sl-rail-viewport, .sl-rail-header, .sonarline-filter-hud';
-      var active = false;
-      var startX = 0, startY = 0;
-
-      document.addEventListener('mousedown', function(e) {
-        if (e.button !== 0) return;
-        if (e.target.closest && e.target.closest(ignoreSelector)) return;
-        if (!box.parentElement) mountBox();
-        active = true;
-        startX = e.clientX;
-        startY = e.clientY;
-        if (document.body) document.body.classList.add('sl-selecting');
-        box.style.setProperty('display', 'none', 'important');
-        box.classList.remove('is-active');
-      });
-
-      document.addEventListener('mousemove', function(e) {
-        if (!active) return;
-        var left = Math.min(e.clientX, startX);
-        var top = Math.min(e.clientY, startY);
-        var width = Math.abs(e.clientX - startX);
-        var height = Math.abs(e.clientY - startY);
-        if (width > 3 || height > 3) {
-          box.style.setProperty('left', left + 'px', 'important');
-          box.style.setProperty('top', top + 'px', 'important');
-          box.style.setProperty('width', width + 'px', 'important');
-          box.style.setProperty('height', height + 'px', 'important');
-          box.style.setProperty('display', 'block', 'important');
-          box.classList.add('is-active');
-        } else {
-          box.style.setProperty('display', 'none', 'important');
-          box.classList.remove('is-active');
-        }
-      }, { passive: true });
-
-      function endDrag() {
-        if (!active) return;
-        active = false;
-        box.style.setProperty('display', 'none', 'important');
-        box.classList.remove('is-active');
-        if (document.body) document.body.classList.remove('sl-selecting');
-      }
-      document.addEventListener('mouseup', endDrag);
-      document.addEventListener('mouseleave', endDrag);
-      window.addEventListener('blur', endDrag);
-    } catch (err) { /* fail silently: selection box is decorative */ }
+      window.requestAnimationFrame(lerpCursor);
+    }
+    window.requestAnimationFrame(lerpCursor);
   })();
 
   // ==========================================================================

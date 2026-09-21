@@ -1995,8 +1995,10 @@ html, body, a, button, input, select, textarea, [role="button"], * {
   position: fixed !important;
   top: 0 !important;
   left: 0 !important;
-  width: 14px !important;
-  height: 14px !important;
+  width: 10px !important;
+  height: 10px !important;
+  margin-top: -5px !important;
+  margin-left: -5px !important;
   background: #ffffff !important;
   border-radius: 50% !important;
   pointer-events: none !important;
@@ -2008,11 +2010,30 @@ html, body, a, button, input, select, textarea, [role="button"], * {
 }
 
 #sl-cursor-circle {
-  display: none !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 32px !important;
+  height: 32px !important;
+  margin-top: -16px !important;
+  margin-left: -16px !important;
+  border: 1px solid rgba(255, 255, 255, 0.8) !important;
+  border-radius: 50% !important;
+  pointer-events: none !important;
+  z-index: 2147483645 !important;
+  mix-blend-mode: difference !important;
+  transform: translate3d(-100px, -100px, 0);
+  transition: width 0.22s cubic-bezier(0.16, 1, 0.3, 1), height 0.22s cubic-bezier(0.16, 1, 0.3, 1), margin 0.22s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease !important;
+  will-change: transform, width, height, margin !important;
+  backface-visibility: hidden !important;
 }
 
 #sl-cursor-circle.hovered {
-  display: none !important;
+  width: 10px !important;
+  height: 10px !important;
+  margin-top: -5px !important;
+  margin-left: -5px !important;
+  border-color: #ffffff !important;
 }
 
 @media (pointer: coarse) {
@@ -2022,40 +2043,6 @@ html, body, a, button, input, select, textarea, [role="button"], * {
   }
   html, body, a, button, input, select, textarea, [role="button"], * {
     cursor: auto !important;
-  }
-}
-
-/* --------------------------------------------------------------------------
-   8b. Desktop Custom Drag-Selection Box (brutalist wireframe, difference blend)
-   -------------------------------------------------------------------------- */
-#sl-selection-box {
-  position: fixed !important;
-  pointer-events: none !important;
-  z-index: 2147483640 !important;
-  display: none;
-  border: 1px solid #ffffff !important;
-  background: #ffffff !important;
-  mix-blend-mode: difference !important;
-  box-shadow: none !important;
-  box-sizing: border-box !important;
-  will-change: transform, left, top, width, height !important;
-  transform: translateZ(0) !important;
-  backface-visibility: hidden !important;
-}
-#sl-selection-box.is-active {
-  display: block !important;
-}
-body.sl-selecting,
-body.sl-selecting * {
-  user-select: none !important;
-  -webkit-user-select: none !important;
-}
-body.sl-selecting ::selection {
-  background: transparent !important;
-}
-@media (hover: none) and (pointer: coarse) {
-  #sl-selection-box {
-    display: none !important;
   }
 }
 
