@@ -2033,8 +2033,8 @@ html, body, a, button, input, select, textarea, [role="button"], * {
   pointer-events: none !important;
   z-index: 2147483640 !important;
   display: none;
-  border: 1px solid rgba(255, 255, 255, 1) !important;
-  background: rgba(255, 255, 255, 0.35) !important;
+  border: 1px solid #ffffff !important;
+  background: #ffffff !important;
   mix-blend-mode: difference !important;
   box-shadow: none !important;
   box-sizing: border-box !important;
