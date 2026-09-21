@@ -3,7 +3,7 @@
 **Project:** Sonarline Audio Storefront (`https://sonarlineaudio.space`)  
 **Platform:** Payhip Custom Theme Injection  
 **Repository:** `Th3Tamas/store-theme`  
-**Last Updated:** 2026-09-20  
+**Last Updated:** 2026-09-21  
 
 ---
 
@@ -204,18 +204,20 @@
   - Interactive `<canvas>` oscilloscope and dynamic frequency bars inside the preview modal with seek-on-click support.
 - `[x]` **Product Category Filter Bar:**
   - Real-time tag filtering HUD (`ARCHIVE // [ ALL ] [ DRUM KIT ] ...`) above the collection grid with zero page reload.
-- `[ ]` **Cart Drawer & Checkout Styling Alignment:**
+- `[x]` **Cart Drawer & Checkout Styling Alignment:**
   - Style Payhip's native slide-out cart drawer with matching wireframe borders, dark background, and monospace font hierarchy.
 - `[x]` **Audio Volume Persistence:**
   - Save user volume preferences in `localStorage` (`sonarline_audio_vol`) across page visits.
 - `[x]` **Keyboard Accessibility for Audio Player:**
   - Full keyboard shortcuts: `Space` (play/pause), `ArrowLeft`/`ArrowRight` (seek +/- 5s), `ArrowUp`/`ArrowDown` (volume +/- 10%), `Escape` (close modal).
-- `[ ]` **Global Sticky Bottom Audio Deck:** Persistent playback when modal is closed or during page navigation.
+- `[x]` **Global Sticky Bottom Audio Deck:**
+  - Persistent playback when modal is closed or during page navigation with synchronized controls, scrubber, volume slider, and modal expand trigger.
 - `[x]` **Card Quick-Listen Trigger:** Instant 1-click play/pause overlay on card artwork hover with animated soundwave indicator.
 - `[ ]` **Audio Stem / Layer Selector in Preview Modal:** Multi-track demo auditioning via `[[audio:stem:url]]`.
 - `[ ]` **Multi-Sample Directory Tree:** `[[contents: ...]]` formatted into an ASCII tree breakdown inside modals.
 - `[ ]` **Instant In-Page Search & Live Card Filter HUD:** Real-time counter readouts and instant filtering.
-- `[ ]` **3D Hardware-Accelerated Perspective Tilt on Card Hover:** Subtle perspective mouse tracking.
+- `[x]` **3D Hardware-Accelerated Perspective Tilt on Card Hover:**
+  - Subtle perspective mouse tracking with dynamic specular glare highlight effect on collection cards.
 - `[x]` **Monospace Text Scramble / Character Decryption Effect on Hover:** Cyberpunk text reveal animation on card title hover.
 - `[ ]` **Dynamic Web Audio API Oscilloscope / Reactive Scanline Pulse:** Real-time visualizer canvas.
 - `[ ]` **Brutalist Terms of Service & Sample Clearance Drawer:** Dedicated slide-over modal for licensing.
@@ -224,6 +226,11 @@
 ---
 
 ## 10. Changelog & Revision History
+
+### [2026-09-21 - Release 8]
+- **Added:** 3D Hardware-Accelerated Perspective Tilt on Card Hover (`init3DCardTilt`) with dynamic specular glare highlight effect, mouse tracking, and smooth transform resets.
+- **Added:** Global Sticky Bottom Audio Deck (`#sonarline-bottom-deck`) with continuous persistent playback when preview modal is closed, synchronized audio engine controls, timeline scrubber, volume slider, quick modal expand button, and close deck button.
+- **Added:** Payhip Cart Drawer & Checkout Styling Alignment — styled native Payhip slide-out cart drawer with matching dark brutalist wireframe borders (`rgba(255, 255, 255, 0.12)`), `#0d0d0d`/`#111111` surfaces, Space Grotesk/Space Mono typography, and styled checkout buttons.
 
 ### [2026-09-21 - Release 7]
 - **Updated Cursor:** Re-added trailing outer ring (`#sl-cursor-circle`, 32px) around a slightly smaller (10px) centered dot (`#sl-cursor-dot`), both with `mix-blend-mode: difference`. When hovering over clickable targets (`a`, `button`, cards, badges, pills, etc.), the outer ring smoothly shrinks and collapses directly onto the dot.

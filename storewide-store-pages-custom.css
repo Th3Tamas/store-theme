@@ -2818,4 +2818,352 @@ body.sonarline-modal-open {
   display: none !important;
 }
 
+/* --------------------------------------------------------------------------
+   13. 3D Hardware-Accelerated Perspective Tilt on Card Hover
+   -------------------------------------------------------------------------- */
+@media (hover: hover) and (pointer: fine) {
+  .card-wrapper,
+  .product-card {
+    perspective: 1000px !important;
+    transform-style: preserve-3d !important;
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease !important;
+    will-change: transform !important;
+  }
+  .card-wrapper.is-tilting,
+  .product-card.is-tilting {
+    transition: transform 0.06s ease-out, box-shadow 0.2s ease !important;
+  }
+  .card-wrapper.is-tilting .card__inner,
+  .product-card.is-tilting .card__inner {
+    transform: translateZ(8px) !important;
+    transition: transform 0.06s ease-out !important;
+  }
+  .card-wrapper.is-tilting .sonarline-card-metadata,
+  .product-card.is-tilting .sonarline-card-metadata {
+    transform: translateZ(14px) !important;
+    transition: transform 0.06s ease-out !important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   14. Global Sticky Bottom Audio Deck (Persistent Playback HUD)
+   -------------------------------------------------------------------------- */
+#sonarline-bottom-deck {
+  position: fixed !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  height: 56px !important;
+  background: rgba(10, 10, 10, 0.94) !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.12) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  z-index: 2147483640 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 0 20px !important;
+  box-sizing: border-box !important;
+  transform: translateY(100%) !important;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+#sonarline-bottom-deck.is-active {
+  transform: translateY(0%) !important;
+}
+.sonarline-deck-left {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  min-width: 220px !important;
+  max-width: 320px !important;
+  overflow: hidden !important;
+}
+.sonarline-deck-thumb {
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 4px !important;
+  object-fit: cover !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  flex-shrink: 0 !important;
+}
+.sonarline-deck-meta {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 2px !important;
+  overflow: hidden !important;
+}
+.sonarline-deck-title {
+  color: #ffffff !important;
+  font-family: 'Space Grotesk', sans-serif !important;
+  font-size: 0.78rem !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+.sonarline-deck-tag {
+  color: #FF3B30 !important;
+  font-family: 'Space Mono', monospace !important;
+  font-size: 0.62rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase !important;
+}
+.sonarline-deck-center {
+  display: flex !important;
+  align-items: center !important;
+  gap: 16px !important;
+  flex: 1 !important;
+  max-width: 580px !important;
+  margin: 0 24px !important;
+}
+.sonarline-deck-playbtn {
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 50% !important;
+  background: #ffffff !important;
+  border: none !important;
+  color: #080808 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 0.8rem !important;
+  cursor: pointer !important;
+  flex-shrink: 0 !important;
+  transition: transform 0.15s ease, background-color 0.15s ease !important;
+}
+.sonarline-deck-playbtn:hover {
+  background: #FF3B30 !important;
+  transform: scale(1.08) !important;
+}
+.sonarline-deck-time {
+  color: #888888 !important;
+  font-family: 'Space Mono', monospace !important;
+  font-size: 0.68rem !important;
+  letter-spacing: 0.06em !important;
+  white-space: nowrap !important;
+  min-width: 75px !important;
+}
+.sonarline-deck-scrub-wrap {
+  flex: 1 !important;
+  height: 4px !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-radius: 2px !important;
+  position: relative !important;
+  cursor: pointer !important;
+  overflow: hidden !important;
+}
+.sonarline-deck-scrub-fill {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  bottom: 0 !important;
+  width: 0% !important;
+  background: #FF3B30 !important;
+  border-radius: 2px !important;
+}
+.sonarline-deck-right {
+  display: flex !important;
+  align-items: center !important;
+  gap: 14px !important;
+  min-width: 200px !important;
+  justify-content: flex-end !important;
+}
+.sonarline-deck-vol {
+  width: 70px !important;
+  accent-color: #FF3B30 !important;
+  cursor: pointer !important;
+  height: 4px !important;
+}
+.sonarline-deck-expand {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  border-radius: 4px !important;
+  color: #cccccc !important;
+  font-family: 'Space Mono', monospace !important;
+  font-size: 0.64rem !important;
+  font-weight: 700 !important;
+  padding: 4px 10px !important;
+  cursor: pointer !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  transition: all 0.15s ease !important;
+}
+.sonarline-deck-expand:hover {
+  border-color: #ffffff !important;
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.12) !important;
+}
+.sonarline-deck-close {
+  background: none !important;
+  border: none !important;
+  color: #666666 !important;
+  font-size: 1.2rem !important;
+  line-height: 1 !important;
+  cursor: pointer !important;
+  padding: 4px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: color 0.15s ease !important;
+}
+.sonarline-deck-close:hover {
+  color: #FF3B30 !important;
+}
+
+@media (max-width: 768px) {
+  #sonarline-bottom-deck {
+    height: 52px !important;
+    padding: 0 12px !important;
+  }
+  .sonarline-deck-left {
+    min-width: 0 !important;
+    max-width: 140px !important;
+  }
+  .sonarline-deck-center {
+    margin: 0 10px !important;
+    gap: 8px !important;
+  }
+  .sonarline-deck-vol,
+  .sonarline-deck-expand {
+    display: none !important;
+  }
+  .sonarline-deck-right {
+    min-width: 0 !important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   15. Payhip Cart Drawer & Checkout Styling Alignment
+   -------------------------------------------------------------------------- */
+.side-cart,
+#side-cart,
+.cart-drawer,
+[class*="side-cart"],
+[class*="cart-drawer"] {
+  background-color: #0d0d0d !important;
+  color: #ffffff !important;
+  border-left: 1px solid rgba(255, 255, 255, 0.12) !important;
+  box-shadow: -12px 0 36px rgba(0, 0, 0, 0.8) !important;
+}
+.side-cart .modal-header,
+.side-cart [class*="header"],
+#side-cart [class*="header"] {
+  background-color: #080808 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  padding: 16px 20px !important;
+}
+.side-cart .modal-title,
+.side-cart [class*="title"],
+#side-cart [class*="title"] {
+  font-family: 'Space Grotesk', sans-serif !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.1em !important;
+  color: #ffffff !important;
+  font-size: 0.95rem !important;
+}
+.side-cart .close,
+#side-cart .close,
+.side-cart [class*="close"] {
+  color: #ffffff !important;
+  opacity: 0.7 !important;
+  text-shadow: none !important;
+}
+.side-cart .close:hover,
+#side-cart .close:hover {
+  opacity: 1 !important;
+  color: #FF3B30 !important;
+}
+.side-cart [class*="item"],
+#side-cart [class*="item"],
+.side-cart-item {
+  background-color: #111111 !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 6px !important;
+  padding: 14px !important;
+  margin-bottom: 12px !important;
+}
+.side-cart [class*="item-title"],
+#side-cart [class*="item-title"],
+.side-cart a[class*="title"] {
+  font-family: 'Space Grotesk', sans-serif !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  color: #ffffff !important;
+  font-size: 0.85rem !important;
+}
+.side-cart [class*="price"],
+#side-cart [class*="price"],
+.side-cart-price {
+  font-family: 'Space Mono', monospace !important;
+  color: #FF3B30 !important;
+  font-weight: 700 !important;
+  font-size: 0.85rem !important;
+}
+.side-cart .quantity-button,
+#side-cart .quantity-button,
+.side-cart [class*="quantity-button"] {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  color: #ffffff !important;
+  border-radius: 3px !important;
+}
+.side-cart .quantity-button:hover,
+#side-cart .quantity-button:hover {
+  background: rgba(255, 255, 255, 0.15) !important;
+  border-color: #ffffff !important;
+}
+.side-cart [class*="footer"],
+#side-cart [class*="footer"],
+.side-cart-footer {
+  background-color: #080808 !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+  padding: 18px 20px !important;
+}
+.side-cart [class*="subtotal"],
+#side-cart [class*="subtotal"] {
+  font-family: 'Space Mono', monospace !important;
+  color: #888888 !important;
+  font-size: 0.82rem !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.08em !important;
+}
+.side-cart [class*="subtotal"] [class*="price"],
+.side-cart [class*="subtotal"] strong,
+#side-cart [class*="subtotal"] [class*="price"] {
+  color: #ffffff !important;
+  font-weight: 700 !important;
+}
+.side-cart .btn-primary,
+.side-cart [class*="checkout"],
+#side-cart .btn-primary,
+#side-cart [class*="checkout"],
+.side-cart button[type="submit"] {
+  background-color: #FF2A2A !important;
+  border: 1px solid #FF2A2A !important;
+  border-radius: 4px !important;
+  color: #080808 !important;
+  font-family: 'Space Grotesk', sans-serif !important;
+  font-weight: 700 !important;
+  font-size: 0.85rem !important;
+  letter-spacing: 0.14em !important;
+  text-transform: uppercase !important;
+  padding: 12px 20px !important;
+  width: 100% !important;
+  box-shadow: none !important;
+  transition: all 0.2s ease !important;
+}
+.side-cart .btn-primary:hover,
+.side-cart [class*="checkout"]:hover,
+#side-cart .btn-primary:hover,
+#side-cart [class*="checkout"]:hover,
+.side-cart button[type="submit"]:hover {
+  background-color: #ffffff !important;
+  border-color: #ffffff !important;
+  color: #080808 !important;
+}
+
 
