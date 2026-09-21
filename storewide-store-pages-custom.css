@@ -45,7 +45,7 @@
   transform: scaleX(0);
   will-change: transform !important;
   pointer-events: none !important;
-  transition: transform 0.08s cubic-bezier(0.25, 1, 0.5, 1) !important;
+  /* No CSS transition: driven directly per rAF frame to avoid scroll lag. */
 }
 
 /* --------------------------------------------------------------------------
@@ -1330,8 +1330,9 @@ html body .card-wrapper .card__inner .media img {
   padding: 0 !important;
   opacity: 1 !important;
   visibility: visible !important;
-  filter: contrast(1.04) brightness(0.96) !important;
-  transition: filter 0.4s var(--ease-brutal) !important;
+  /* Image grade filter removed for scroll performance: per-image GPU filter passes
+     on every animated frame cost more than the subtle 1.04/0.96 grade is worth. */
+  transition: transform 0.25s ease !important;
   transform: none !important;
 }
 
@@ -1358,7 +1359,7 @@ html body .card-wrapper .card__inner .media img {
 [data-sl-rail="done"] .card-wrapper:hover .card__media img,
 [data-sl-rail="done"] .product-card:hover .card__media img {
   transform: none !important;
-  filter: contrast(1.04) brightness(0.96) !important;
+  filter: none !important;
 }
 
 /* 4. TEXT AREA STRICT PADDING (Strictly applied to content underneath media) */
@@ -3169,6 +3170,13 @@ h2.section-title,
 .sl-carousel-track.is-dragging {
   cursor: none !important;
   animation-play-state: paused !important;
+}
+
+/* Offscreen rail cards skip rendering (progressive enhancement; ignored where unsupported) */
+.sl-carousel-track > .card-wrapper,
+.sl-carousel-track > .product-card {
+  content-visibility: auto !important;
+  contain-intrinsic-size: 280px 430px !important;
 }
 
 /* Lock each card's dimensions so Firefox never pushes them to a new line */

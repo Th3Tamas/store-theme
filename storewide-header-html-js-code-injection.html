@@ -682,7 +682,8 @@
     transform: scaleX(0);
     will-change: transform !important;
     pointer-events: none !important;
-    transition: transform 0.08s cubic-bezier(0.25, 1, 0.5, 1) !important;
+    /* No CSS transition: the bar is driven directly per rAF frame; transitioning
+       every write adds perceived lag and extra compositor work on scroll. */
   }
 </style>
 <script>
@@ -2699,7 +2700,8 @@
       '.grid-list:has(> .card-wrapper:only-of-type), .grid-list:has(> .product-card:only-of-type), [data-single-product="true"] .grid-list { display: flex !important; justify-content: center !important; grid-template-columns: none !important; }',
       '@media (max-width: 640px) { [data-sl-rail="done"] .card-wrapper.product-card-wrapper, [data-sl-rail="done"] .card-wrapper, [data-sl-rail="done"] .product-card, .sl-carousel-track > *, .sl-carousel-track .card-wrapper, .sl-carousel-track .product-card { flex: 0 0 220px !important; width: 220px !important; min-width: 220px !important; max-width: 220px !important; } #page-section-collection .grid-list.sl-rail-track, #page-section-collection .sl-carousel-track, [data-sl-rail="done"] .grid-list.js-grid-list.sl-rail-track, [data-sl-rail="done"] .grid-list.sl-rail-track, [data-sl-rail="done"] .sl-carousel-track, .sl-carousel-track { gap: 14px !important; padding: 16px 0 !important; } .sl-carousel-header { padding: 12px 20px !important; } }',
       '[data-sl-rail="done"] .sl-carousel-track .card-wrapper.sonarline-card--highlighted, [data-sl-rail="done"] .sl-carousel-track .product-card.sonarline-card--highlighted, [data-sl-rail="done"] .sl-carousel-track [data-highlighted="true"], [data-sl-rail="done"] .sl-carousel-track [data-sl-highlighted="true"] { border: 1px solid #FF3B30 !important; border-color: #FF3B30 !important; box-shadow: 0 0 12px rgba(255, 59, 48, 0.3) !important; }',
-      '[data-sl-rail="done"] .sl-carousel-track .card-wrapper.sonarline-card--highlighted:hover, [data-sl-rail="done"] .sl-carousel-track .product-card.sonarline-card--highlighted:hover, [data-sl-rail="done"] .sl-carousel-track [data-highlighted="true"]:hover { border-color: #FF3B30 !important; box-shadow: 0 0 12px rgba(255, 59, 48, 0.3) !important; }'
+      '[data-sl-rail="done"] .sl-carousel-track .card-wrapper.sonarline-card--highlighted:hover, [data-sl-rail="done"] .sl-carousel-track .product-card.sonarline-card--highlighted:hover, [data-sl-rail="done"] .sl-carousel-track [data-highlighted="true"]:hover { border-color: #FF3B30 !important; box-shadow: 0 0 12px rgba(255, 59, 48, 0.3) !important; }',
+      '.sl-carousel-track > .card-wrapper, .sl-carousel-track > .product-card { content-visibility: auto !important; contain-intrinsic-size: 280px 430px !important; }'
     ].join('\n');
 
     function ensureCarouselCss() {
@@ -4900,6 +4902,9 @@
     var tickerObserver = null;
     function setupTickerObserver() {
       if (tickerObserver) tickerObserver.disconnect();
+      // Debounced: ticker mutations can arrive in bursts (loop duplication, lazy
+      // rendering); reformatting synchronously per batch burns frames.
+      var tickerFormatT = null;
       tickerObserver = new MutationObserver(function(mutations) {
         var needsFormat = false;
         for (var m = 0; m < mutations.length; m++) {
@@ -4909,10 +4914,13 @@
             break;
           }
         }
-        if (needsFormat) {
-          tickerObserver.disconnect();
-          formatTickerElements();
-          attachTickerObserver();
+        if (needsFormat && !tickerFormatT) {
+          tickerFormatT = setTimeout(function() {
+            tickerFormatT = null;
+            try { tickerObserver.disconnect(); } catch (e) {}
+            formatTickerElements();
+            attachTickerObserver();
+          }, 250);
         }
       });
       attachTickerObserver();
@@ -5512,11 +5520,16 @@
     }, { passive: true });
 
     function lerpCursor() {
+      // Idle skip: when the ring has settled, stop writing styles until the mouse moves again.
       if (!document.hidden && initialized) {
         var speed = isHovered ? 0.35 : 0.15;
-        circleX += (mouseX - circleX) * speed;
-        circleY += (mouseY - circleY) * speed;
-        circle.style.transform = 'translate3d(' + circleX + 'px, ' + circleY + 'px, 0)';
+        var nx = circleX + (mouseX - circleX) * speed;
+        var ny = circleY + (mouseY - circleY) * speed;
+        if (Math.abs(nx - circleX) > 0.05 || Math.abs(ny - circleY) > 0.05) {
+          circleX = nx;
+          circleY = ny;
+          circle.style.transform = 'translate3d(' + circleX + 'px, ' + circleY + 'px, 0)';
+        }
       }
       window.requestAnimationFrame(lerpCursor);
     }
@@ -5884,6 +5897,12 @@
           if (scrollY < 0) scrollY = 0;
 
           var fadeProgress = Math.min(scrollY / 450, 1);
+          // Offscreen early-out: past full fade the hero is invisible; skip per-frame
+          // writes until the user scrolls back up (pointer state already settled).
+          if (scrollY > 600 && lastPointerNone && fadeProgress >= 1) {
+            ticking = false;
+            return;
+          }
           // Opacity falloff + subtle translate3d only. Dynamic Gaussian blur
           // on large containers forces a full-layer raster every frame, so it
           // is intentionally eliminated from the scroll path.
