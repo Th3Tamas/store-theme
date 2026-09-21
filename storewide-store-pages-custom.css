@@ -1039,9 +1039,9 @@ div.card-wrapper.product-card-wrapper,
 .products-grid > div,
 .product-list > div,
 .products-list > div,
-.collection-products > div,
-.theme-tusk .grid > div,
-.theme-tusk .collection-products > div,
+.collection-products > div:not(.card-wrapper):not(.product-card):not(.sl-carousel-track):not(.sl-carousel-viewport):not(.sl-carousel-body):not([data-sl-rail="done"] *),
+.theme-tusk .grid > div:not(.card-wrapper):not(.product-card):not(.sl-carousel-track):not(.sl-carousel-viewport):not(.sl-carousel-body):not([data-sl-rail="done"] *),
+.theme-tusk .collection-products > div:not(.card-wrapper):not(.product-card):not(.sl-carousel-track):not(.sl-carousel-viewport):not(.sl-carousel-body):not([data-sl-rail="done"] *),
 [class*="products-grid"] > div,
 [class*="product-grid"] > div {
   width: 100% !important;
@@ -2184,13 +2184,13 @@ html, body, a, button, input, select, textarea, [role="button"], * {
    9. Mobile Product Card Centering & Symmetrical Margin Calibration
    -------------------------------------------------------------------------- */
 @media (max-width: 768px) {
-  #page-section-collection .grid-list:not(.sl-rail-track):not(.sl-carousel-track),
-  [data-section-key="collection"] .grid-list:not(.sl-rail-track):not(.sl-carousel-track),
-  .collection-products:not(.sl-rail-track):not(.sl-carousel-track),
-  .product-grid:not(.sl-rail-track):not(.sl-carousel-track),
-  .products-grid:not(.sl-rail-track):not(.sl-carousel-track),
-  .theme-tusk .collection-products:not(.sl-rail-track):not(.sl-carousel-track),
-  .theme-tusk .grid:not(.sl-rail-track):not(.sl-carousel-track) {
+  #page-section-collection:not([data-sl-rail="done"]) .grid-list:not(.sl-rail-track):not(.sl-carousel-track),
+  [data-section-key="collection"]:not([data-sl-rail="done"]) .grid-list:not(.sl-rail-track):not(.sl-carousel-track),
+  .collection-products:not(.sl-rail-track):not(.sl-carousel-track):not([data-sl-rail="done"] *),
+  .product-grid:not(.sl-rail-track):not(.sl-carousel-track):not([data-sl-rail="done"] *),
+  .products-grid:not(.sl-rail-track):not(.sl-carousel-track):not([data-sl-rail="done"] *),
+  .theme-tusk .collection-products:not(.sl-rail-track):not(.sl-carousel-track):not([data-sl-rail="done"] *),
+  .theme-tusk .grid:not(.sl-rail-track):not(.sl-carousel-track):not([data-sl-rail="done"] *) {
     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)) !important;
     gap: 20px !important;
     padding: 0 16px !important;
@@ -2201,10 +2201,10 @@ html, body, a, button, input, select, textarea, [role="button"], * {
     justify-items: center !important;
   }
 
-  div.card-wrapper.product-card-wrapper,
-  .card-wrapper.product-card-wrapper,
-  .product-card-wrapper,
-  .product-card {
+  div.card-wrapper.product-card-wrapper:not(.sl-carousel-track *):not([data-sl-rail="done"] *),
+  .card-wrapper.product-card-wrapper:not(.sl-carousel-track *):not([data-sl-rail="done"] *),
+  .product-card-wrapper:not(.sl-carousel-track *):not([data-sl-rail="done"] *),
+  .product-card:not(.sl-carousel-track *):not([data-sl-rail="done"] *) {
     width: 100% !important;
     max-width: 100% !important;
     margin: 0 auto !important;
@@ -2220,13 +2220,13 @@ html, body, a, button, input, select, textarea, [role="button"], * {
     padding-right: 0 !important;
   }
 
-  #page-section-collection .grid-list:not(.sl-rail-track):not(.sl-carousel-track),
-  [data-section-key="collection"] .grid-list:not(.sl-rail-track):not(.sl-carousel-track),
-  .collection-products:not(.sl-rail-track):not(.sl-carousel-track),
-  .product-grid:not(.sl-rail-track):not(.sl-carousel-track),
-  .products-grid:not(.sl-rail-track):not(.sl-carousel-track),
-  .theme-tusk .collection-products:not(.sl-rail-track):not(.sl-carousel-track),
-  .theme-tusk .grid:not(.sl-rail-track):not(.sl-carousel-track) {
+  #page-section-collection:not([data-sl-rail="done"]) .grid-list:not(.sl-rail-track):not(.sl-carousel-track),
+  [data-section-key="collection"]:not([data-sl-rail="done"]) .grid-list:not(.sl-rail-track):not(.sl-carousel-track),
+  .collection-products:not(.sl-rail-track):not(.sl-carousel-track):not([data-sl-rail="done"] *),
+  .product-grid:not(.sl-rail-track):not(.sl-carousel-track):not([data-sl-rail="done"] *),
+  .products-grid:not(.sl-rail-track):not(.sl-carousel-track):not([data-sl-rail="done"] *),
+  .theme-tusk .collection-products:not(.sl-rail-track):not(.sl-carousel-track):not([data-sl-rail="done"] *),
+  .theme-tusk .grid:not(.sl-rail-track):not(.sl-carousel-track):not([data-sl-rail="done"] *) {
     grid-template-columns: 1fr !important;
     gap: 24px !important;
     padding: 0 16px !important;

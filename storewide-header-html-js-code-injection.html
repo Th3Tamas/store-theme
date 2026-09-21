@@ -2394,6 +2394,45 @@
       grid.style.setProperty('max-width', 'none', 'important');
       grid.style.setProperty('overflow-x', 'visible', 'important');
 
+      // SCRIPT-LEVEL TRACK UNIFICATION (Firefox Gecko compatibility):
+      // Locate the container that holds the product cards.
+      // Verify that all card elements (both original and cloned) are direct siblings inside ONE single wrapper: .sl-carousel-track.
+      // If Payhip left an intermediate .grid-list or row wrapper around individual cards, unwrap them or ensure that immediate parent has:
+      // element.style.display = 'flex';
+      // element.style.flexWrap = 'nowrap';
+      // element.style.width = 'max-content';
+      originalCards.forEach(function(card) {
+        var parent = card.parentElement;
+        while (parent && parent !== grid) {
+          var grandParent = parent.parentElement;
+          if (!grandParent) break;
+          grandParent.insertBefore(card, parent);
+          if (parent.children.length === 0) {
+            try { grandParent.removeChild(parent); } catch (e) {}
+          } else {
+            parent.style.display = 'flex';
+            parent.style.flexWrap = 'nowrap';
+            parent.style.width = 'max-content';
+          }
+          parent = card.parentElement;
+        }
+      });
+
+      if (grid.parentElement) {
+        grid.parentElement.style.display = 'flex';
+        grid.parentElement.style.flexWrap = 'nowrap';
+        grid.parentElement.style.width = 'max-content';
+      }
+
+      var intermediateWrappers = grid.querySelectorAll('.grid-list, .row, [class*="grid"]');
+      intermediateWrappers.forEach(function(wrapper) {
+        if (wrapper !== grid) {
+          wrapper.style.display = 'flex';
+          wrapper.style.flexWrap = 'nowrap';
+          wrapper.style.width = 'max-content';
+        }
+      });
+
       // 1. Dual-Track Infinite Loop: Clone card set so there are at least two identical mirrored sets side-by-side
       var oldClones = grid.querySelectorAll('[data-sl-clone]');
       for (var c = 0; c < oldClones.length; c++) {
@@ -2420,8 +2459,10 @@
         });
       }
 
-      // Set 1 is now complete
-      var set1Cards = Array.from(grid.children);
+      // Set 1 is now complete - verify all cards are direct siblings inside .sl-carousel-track
+      var set1Cards = Array.from(grid.children).filter(function(child) {
+        return child.classList.contains('card-wrapper') || child.classList.contains('product-card');
+      });
 
       // Build Set 2 as an exact clone of Set 1 to guarantee seamless -50% loop
       set1Cards.forEach(function(sCard) {
@@ -2435,6 +2476,22 @@
         }
         grid.appendChild(cloneCard);
       });
+
+      // Lock each card's dimensions so Firefox never pushes them to a new line
+      var allCards = grid.querySelectorAll('.card-wrapper, .product-card');
+      allCards.forEach(function(card) {
+        card.style.setProperty('flex', '0 0 280px', 'important');
+        card.style.setProperty('width', '280px', 'important');
+        card.style.setProperty('min-width', '280px', 'important');
+        card.style.setProperty('max-width', '280px', 'important');
+        card.style.setProperty('display', 'flex', 'important');
+        card.style.setProperty('flex-direction', 'column', 'important');
+        card.style.setProperty('margin', '0', 'important');
+      });
+
+      // Verify the CSS keyframe sonarlineInfiniteRail is attached to that exact .sl-carousel-track element so the entire row moves as one solid strip from right to left
+      grid.style.setProperty('animation', 'sonarlineInfiniteRail 35s linear infinite', 'important');
+      grid.style.setProperty('will-change', 'transform', 'important');
 
       // 2. Build Technical Section Header (Left: Dynamic Title with Single Glowing Red Dot | Right: Dynamic Counter)
       var oldHeader = section ? section.querySelector('.sl-carousel-header, .sl-rail-header') : null;
@@ -2587,11 +2644,18 @@
 
     function initCarousel() {
       try {
-        var grids = document.querySelectorAll('.grid-list');
-        for (var i = 0; i < grids.length; i++) {
+        var candidates = document.querySelectorAll('.grid-list, .collection-products, [data-section-key="collection"] [class*="grid"], #page-section-collection [class*="grid"], .products-wrapper');
+        for (var i = 0; i < candidates.length; i++) {
           try {
-            if (!grids[i].querySelector('.card-wrapper, .product-card')) continue;
-            buildCarousel(grids[i]);
+            var el = candidates[i];
+            if (el.getAttribute('data-sl-carousel') === '1' || el.closest('.sl-carousel-viewport')) continue;
+            if (!el.querySelector('.card-wrapper, .product-card')) continue;
+
+            // If this candidate contains a child .grid-list that also contains product cards, target that child
+            var innerGrid = el.querySelector('.grid-list');
+            var target = (innerGrid && innerGrid !== el && innerGrid.querySelector('.card-wrapper, .product-card')) ? innerGrid : el;
+
+            buildCarousel(target);
           } catch (e) {}
         }
         // Update counters on existing carousels (e.g. if category filter applied)
