@@ -962,27 +962,27 @@ h3.title {
 }
 
 .grid-block,
-.grid-list:not(.sl-rail-track) {
+.grid-list:not(.sl-rail-track):not(.sl-carousel-track) {
   width: 100% !important;
   box-sizing: border-box !important;
 }
 
-#page-section-collection .grid-list,
-[data-section-key="collection"] .grid-list,
-.grid-list.js-grid-list,
-.grid-block .grid-list,
-.grid-list,
-.theme-tusk .collection-products,
-.collection-products,
+#page-section-collection .grid-list:not(.sl-rail-track):not(.sl-carousel-track),
+[data-section-key="collection"] .grid-list:not(.sl-rail-track):not(.sl-carousel-track),
+.grid-list.js-grid-list:not(.sl-rail-track):not(.sl-carousel-track),
+.grid-block .grid-list:not(.sl-rail-track):not(.sl-carousel-track),
+.grid-list:not(.sl-rail-track):not(.sl-carousel-track),
+.theme-tusk .collection-products:not(.sl-rail-track):not(.sl-carousel-track),
+.collection-products:not(.sl-rail-track):not(.sl-carousel-track),
 .product-list,
 .payhip-product-list,
-.product-grid,
-.products-grid,
-.theme-tusk .grid,
+.product-grid:not(.sl-rail-track):not(.sl-carousel-track),
+.products-grid:not(.sl-rail-track):not(.sl-carousel-track),
+.theme-tusk .grid:not(.sl-rail-track):not(.sl-carousel-track),
 .theme-tusk .product-list,
-.grid,
-[class*="product-grid"],
-[class*="products-grid"],
+.grid:not(.sl-rail-track):not(.sl-carousel-track),
+[class*="product-grid"]:not(.sl-rail-track):not(.sl-carousel-track),
+[class*="products-grid"]:not(.sl-rail-track):not(.sl-carousel-track),
 [class*="product-list"],
 [class*="products-list"],
 [class*="products-container"],
@@ -2166,13 +2166,13 @@ html, body, a, button, input, select, textarea, [role="button"], * {
    9. Mobile Product Card Centering & Symmetrical Margin Calibration
    -------------------------------------------------------------------------- */
 @media (max-width: 768px) {
-  #page-section-collection .grid-list:not(.sl-rail-track),
-  [data-section-key="collection"] .grid-list:not(.sl-rail-track),
-  .collection-products:not(.sl-rail-track),
-  .product-grid:not(.sl-rail-track),
-  .products-grid:not(.sl-rail-track),
-  .theme-tusk .collection-products:not(.sl-rail-track),
-  .theme-tusk .grid:not(.sl-rail-track) {
+  #page-section-collection .grid-list:not(.sl-rail-track):not(.sl-carousel-track),
+  [data-section-key="collection"] .grid-list:not(.sl-rail-track):not(.sl-carousel-track),
+  .collection-products:not(.sl-rail-track):not(.sl-carousel-track),
+  .product-grid:not(.sl-rail-track):not(.sl-carousel-track),
+  .products-grid:not(.sl-rail-track):not(.sl-carousel-track),
+  .theme-tusk .collection-products:not(.sl-rail-track):not(.sl-carousel-track),
+  .theme-tusk .grid:not(.sl-rail-track):not(.sl-carousel-track) {
     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)) !important;
     gap: 20px !important;
     padding: 0 16px !important;
@@ -2202,13 +2202,13 @@ html, body, a, button, input, select, textarea, [role="button"], * {
     padding-right: 0 !important;
   }
 
-  #page-section-collection .grid-list:not(.sl-rail-track),
-  [data-section-key="collection"] .grid-list:not(.sl-rail-track),
-  .collection-products:not(.sl-rail-track),
-  .product-grid:not(.sl-rail-track),
-  .products-grid:not(.sl-rail-track),
-  .theme-tusk .collection-products:not(.sl-rail-track),
-  .theme-tusk .grid:not(.sl-rail-track) {
+  #page-section-collection .grid-list:not(.sl-rail-track):not(.sl-carousel-track),
+  [data-section-key="collection"] .grid-list:not(.sl-rail-track):not(.sl-carousel-track),
+  .collection-products:not(.sl-rail-track):not(.sl-carousel-track),
+  .product-grid:not(.sl-rail-track):not(.sl-carousel-track),
+  .products-grid:not(.sl-rail-track):not(.sl-carousel-track),
+  .theme-tusk .collection-products:not(.sl-rail-track):not(.sl-carousel-track),
+  .theme-tusk .grid:not(.sl-rail-track):not(.sl-carousel-track) {
     grid-template-columns: 1fr !important;
     gap: 24px !important;
     padding: 0 16px !important;
@@ -2767,32 +2767,71 @@ h2.section-title,
   100% { transform: translate3d(-50%, 0, 0); }
 }
 
-/* Target both the Payhip native collection container and custom wrapper */
+/* Kill all grid rules and forced wrapping on the carousel track and wrappers */
 .section-collection .collection-products,
-.products-wrapper,
+.section-collection [class*="grid"],
+.sl-carousel-viewport,
 .sl-carousel-track,
-[data-sl-rail="done"] .sl-carousel-track {
+[data-sl-rail="done"] .collection-products,
+[data-sl-rail="done"] .sl-carousel-track,
+#page-section-collection .collection-products,
+#page-section-collection [class*="grid"],
+#page-section-collection .grid-list,
+#page-section-collection .grid,
+#page-section-collection .sl-carousel-viewport,
+#page-section-collection .sl-carousel-track,
+#page-section-collection[data-sl-rail="done"] .collection-products,
+#page-section-collection[data-sl-rail="done"] .sl-carousel-track,
+[data-section-key="collection"] .collection-products,
+[data-section-key="collection"] [class*="grid"],
+[data-section-key="collection"] .grid-list,
+[data-section-key="collection"] .grid,
+[data-section-key="collection"] .sl-carousel-viewport,
+[data-section-key="collection"] .sl-carousel-track,
+[data-section-key="collection"][data-sl-rail="done"] .collection-products,
+[data-section-key="collection"][data-sl-rail="done"] .sl-carousel-track,
+.theme-tusk .collection-products,
+.theme-tusk [class*="grid"],
+.theme-tusk .grid,
+.theme-tusk .grid-list,
+.theme-tusk .sl-carousel-track {
   display: flex !important;
   flex-direction: row !important;
   flex-wrap: nowrap !important;
   grid-template-columns: none !important;
-  align-items: stretch !important;
+  grid-auto-flow: column !important;
   width: max-content !important;
-  min-width: 100% !important;
+  max-width: none !important;
+  overflow-x: visible !important;
+}
+
+/* Force the outer viewport to clip and maintain full screen width */
+.sl-carousel-viewport,
+#page-section-collection .sl-carousel-viewport,
+[data-section-key="collection"] .sl-carousel-viewport,
+[data-sl-rail="done"] .sl-carousel-viewport {
+  width: 100% !important;
+  max-width: 100vw !important;
+  overflow: hidden !important;
+  position: relative !important;
 }
 
 .sl-carousel-track,
 [data-sl-rail="done"] .sl-carousel-track,
 #page-section-collection[data-sl-rail="done"] .grid-list.js-grid-list.sl-rail-track,
 #page-section-collection[data-sl-rail="done"] .grid-list.sl-rail-track,
+#page-section-collection[data-sl-rail="done"] .sl-carousel-track,
 #page-section-collection .grid-list.sl-rail-track,
+#page-section-collection .sl-carousel-track,
 [data-section-key="collection"] .grid-list.sl-rail-track,
+[data-section-key="collection"] .sl-carousel-track,
 [data-sl-rail="done"] .grid-list.js-grid-list.sl-rail-track,
 [data-sl-rail="done"] .grid-list.sl-rail-track {
   display: flex !important;
   flex-direction: row !important;
   flex-wrap: nowrap !important;
   grid-template-columns: none !important;
+  grid-auto-flow: column !important;
   align-items: stretch !important;
   width: max-content !important;
   min-width: 100% !important;
@@ -2816,6 +2855,36 @@ h2.section-title,
 .sl-carousel-track.is-dragging {
   cursor: grabbing !important;
   animation-play-state: paused !important;
+}
+
+/* Lock each card's dimensions so Firefox never pushes them to a new line */
+.sl-carousel-track > *,
+.sl-carousel-track .card-wrapper,
+.sl-carousel-track .product-card,
+.collection-products > *,
+#page-section-collection .sl-carousel-track > *,
+#page-section-collection .sl-carousel-track .card-wrapper,
+#page-section-collection .sl-carousel-track .product-card,
+#page-section-collection .collection-products > *,
+#page-section-collection .card-wrapper,
+#page-section-collection .product-card,
+[data-section-key="collection"] .sl-carousel-track > *,
+[data-section-key="collection"] .sl-carousel-track .card-wrapper,
+[data-section-key="collection"] .sl-carousel-track .product-card,
+[data-section-key="collection"] .collection-products > *,
+[data-section-key="collection"] .card-wrapper,
+[data-section-key="collection"] .product-card,
+.theme-tusk .sl-carousel-track > *,
+.theme-tusk .sl-carousel-track .card-wrapper,
+.theme-tusk .sl-carousel-track .product-card,
+.theme-tusk .collection-products > * {
+  flex: 0 0 280px !important;
+  width: 280px !important;
+  min-width: 280px !important;
+  max-width: 280px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  margin: 0 !important;
 }
 
 /* Force individual card items to never shrink or expand to wrap */
@@ -2948,17 +3017,26 @@ div.card-wrapper.product-card-wrapper.sonarline-card--highlighted,
 @media (max-width: 640px) {
   [data-sl-rail="done"] .card-wrapper.product-card-wrapper,
   [data-sl-rail="done"] .card-wrapper,
-  [data-sl-rail="done"] .product-card {
+  [data-sl-rail="done"] .product-card,
+  .sl-carousel-track > *,
+  .sl-carousel-track .card-wrapper,
+  .sl-carousel-track .product-card {
+    flex: 0 0 220px !important;
     width: 220px !important;
     min-width: 220px !important;
     max-width: 220px !important;
   }
   #page-section-collection .grid-list.sl-rail-track,
+  #page-section-collection .sl-carousel-track,
   [data-sl-rail="done"] .grid-list.js-grid-list.sl-rail-track,
-  [data-sl-rail="done"] .grid-list.sl-rail-track {
+  [data-sl-rail="done"] .grid-list.sl-rail-track,
+  [data-sl-rail="done"] .sl-carousel-track,
+  .sl-carousel-track {
     gap: 14px !important;
+    padding: 16px 0 !important;
   }
-  [data-sl-rail="done"] .sl-rail-viewport {
+  [data-sl-rail="done"] .sl-rail-viewport,
+  .sl-carousel-viewport {
     padding: 18px 14px 24px !important;
   }
 }

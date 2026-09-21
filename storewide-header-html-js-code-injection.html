@@ -2284,12 +2284,16 @@
       '.sl-carousel-body { position: relative !important; width: 100% !important; overflow: hidden !important; }',
       '@keyframes sonarlineInfiniteRail { 0% { transform: translate3d(0, 0, 0); } 100% { transform: translate3d(-50%, 0, 0); } }',
       'h2.heading-text, .heading-text.js-builder-heading-text, .heading-text, .js-builder-heading-text, h2.section-title, .collection-title, [class*="collection-title"], .collection-header h2, .section-collection > h2, .section-collection > .container > h2, .section-contents > h2.heading-text, [data-sl-rail="done"] .sl-rail-header, .sl-rail-header, .collection-products-count, [class*="products-count"], .collection-header { display: none !important; }',
-      '/* Target both the Payhip native collection container and custom wrapper */',
-      '.section-collection .collection-products, .products-wrapper, .sl-carousel-track, [data-sl-rail="done"] .sl-carousel-track { display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important; grid-template-columns: none !important; align-items: stretch !important; width: max-content !important; min-width: 100% !important; }',
-      '.sl-carousel-track, [data-sl-rail="done"] .sl-carousel-track, #page-section-collection[data-sl-rail="done"] .grid-list.js-grid-list.sl-rail-track, #page-section-collection[data-sl-rail="done"] .grid-list.sl-rail-track, #page-section-collection .grid-list.sl-rail-track, [data-section-key="collection"] .grid-list.sl-rail-track, [data-sl-rail="done"] .grid-list.js-grid-list.sl-rail-track, [data-sl-rail="done"] .grid-list.sl-rail-track { display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important; grid-template-columns: none !important; align-items: stretch !important; width: max-content !important; min-width: 100% !important; animation: sonarlineInfiniteRail 35s linear infinite !important; will-change: transform !important; gap: 16px !important; padding: 28px 0 !important; margin: 0 !important; box-sizing: border-box !important; cursor: grab !important; user-select: none !important; -webkit-user-select: none !important; }',
+      '/* Kill all grid rules and forced wrapping on the carousel track and wrappers */',
+      '.section-collection .collection-products, .section-collection [class*="grid"], .sl-carousel-viewport, .sl-carousel-track, [data-sl-rail="done"] .collection-products, [data-sl-rail="done"] .sl-carousel-track, #page-section-collection .collection-products, #page-section-collection [class*="grid"], #page-section-collection .grid-list, #page-section-collection .grid, #page-section-collection .sl-carousel-viewport, #page-section-collection .sl-carousel-track, #page-section-collection[data-sl-rail="done"] .collection-products, #page-section-collection[data-sl-rail="done"] .sl-carousel-track, [data-section-key="collection"] .collection-products, [data-section-key="collection"] [class*="grid"], [data-section-key="collection"] .grid-list, [data-section-key="collection"] .grid, [data-section-key="collection"] .sl-carousel-viewport, [data-section-key="collection"] .sl-carousel-track, [data-section-key="collection"][data-sl-rail="done"] .collection-products, [data-section-key="collection"][data-sl-rail="done"] .sl-carousel-track, .theme-tusk .collection-products, .theme-tusk [class*="grid"], .theme-tusk .grid, .theme-tusk .grid-list, .theme-tusk .sl-carousel-track { display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important; grid-template-columns: none !important; grid-auto-flow: column !important; width: max-content !important; max-width: none !important; overflow-x: visible !important; }',
+      '/* Force the outer viewport to clip and maintain full screen width */',
+      '.sl-carousel-viewport, #page-section-collection .sl-carousel-viewport, [data-section-key="collection"] .sl-carousel-viewport, [data-sl-rail="done"] .sl-carousel-viewport { width: 100% !important; max-width: 100vw !important; overflow: hidden !important; position: relative !important; }',
+      '.sl-carousel-track, [data-sl-rail="done"] .sl-carousel-track, #page-section-collection[data-sl-rail="done"] .grid-list.js-grid-list.sl-rail-track, #page-section-collection[data-sl-rail="done"] .grid-list.sl-rail-track, #page-section-collection[data-sl-rail="done"] .sl-carousel-track, #page-section-collection .grid-list.sl-rail-track, #page-section-collection .sl-carousel-track, [data-section-key="collection"] .grid-list.sl-rail-track, [data-section-key="collection"] .sl-carousel-track, [data-sl-rail="done"] .grid-list.js-grid-list.sl-rail-track, [data-sl-rail="done"] .grid-list.sl-rail-track { display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important; grid-template-columns: none !important; grid-auto-flow: column !important; align-items: stretch !important; width: max-content !important; min-width: 100% !important; animation: sonarlineInfiniteRail 35s linear infinite !important; will-change: transform !important; gap: 16px !important; padding: 28px 0 !important; margin: 0 !important; box-sizing: border-box !important; cursor: grab !important; user-select: none !important; -webkit-user-select: none !important; }',
       '.sl-carousel-track:hover, .sl-carousel-track.is-hovered { animation-play-state: paused !important; }',
       '.sl-carousel-track:active, .sl-carousel-track.is-dragging { cursor: grabbing !important; animation-play-state: paused !important; }',
       '.sl-carousel-track::-webkit-scrollbar, [data-sl-rail="done"] .grid-list::-webkit-scrollbar, .grid-list::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; }',
+      '/* Lock each card\'s dimensions so Firefox never pushes them to a new line */',
+      '.sl-carousel-track > *, .sl-carousel-track .card-wrapper, .sl-carousel-track .product-card, .collection-products > *, #page-section-collection .sl-carousel-track > *, #page-section-collection .sl-carousel-track .card-wrapper, #page-section-collection .sl-carousel-track .product-card, #page-section-collection .collection-products > *, #page-section-collection .card-wrapper, #page-section-collection .product-card, [data-section-key="collection"] .sl-carousel-track > *, [data-section-key="collection"] .sl-carousel-track .card-wrapper, [data-section-key="collection"] .sl-carousel-track .product-card, [data-section-key="collection"] .collection-products > *, [data-section-key="collection"] .card-wrapper, [data-section-key="collection"] .product-card, .theme-tusk .sl-carousel-track > *, .theme-tusk .sl-carousel-track .card-wrapper, .theme-tusk .sl-carousel-track .product-card, .theme-tusk .collection-products > * { flex: 0 0 280px !important; width: 280px !important; min-width: 280px !important; max-width: 280px !important; display: flex !important; flex-direction: column !important; margin: 0 !important; }',
       '.sl-carousel-track > div, .sl-carousel-track .card-wrapper, .sl-carousel-track .product-card, [data-sl-rail="done"] .card-wrapper.product-card-wrapper, [data-sl-rail="done"] .card-wrapper, [data-sl-rail="done"] .product-card, .card-wrapper, .product-card { flex: 0 0 280px !important; width: 280px !important; min-width: 280px !important; max-width: 280px !important; display: flex !important; flex-direction: column !important; background: #0f0f0f !important; border: 1px solid rgba(255,255,255,0.08) !important; border-radius: 8px !important; overflow: hidden !important; transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease !important; }',
       '[data-sl-rail="done"] .card-wrapper:hover, [data-sl-rail="done"] .product-card:hover, .card-wrapper:hover, .product-card:hover { transform: translateY(-6px) !important; border-color: rgba(255, 255, 255, 0.6) !important; }',
       '.card-wrapper.sonarline-card--highlighted, .product-card.sonarline-card--highlighted, [data-highlighted="true"], [data-sl-rail="done"] .card-wrapper.product-card-wrapper.sonarline-card--highlighted, [data-sl-rail="done"] .card-wrapper.sonarline-card--highlighted, [data-sl-rail="done"] .product-card.sonarline-card--highlighted, [data-sl-rail="done"] [data-sl-highlighted="true"], [data-sl-rail="done"] [data-highlighted="true"], div.card-wrapper.product-card-wrapper.sonarline-card--highlighted, .card-wrapper.product-card-wrapper.sonarline-card--highlighted, [data-sl-highlighted="true"], .sonarline-card--highlighted { border: 1px solid #FF3B30 !important; border-color: #FF3B30 !important; box-shadow: 0 0 12px rgba(255, 59, 48, 0.3) !important; }',
@@ -2302,7 +2306,7 @@
       '.sonarline-card-price-wrap *, [data-sl-rail="done"] .sonarline-card-price-wrap * { font-family: \'Space Mono\', monospace !important; font-size: 0.88rem !important; font-weight: 700 !important; color: #ffffff !important; letter-spacing: 0.05em !important; text-transform: uppercase !important; margin: 0 !important; padding: 0 !important; border-radius: 0 !important; white-space: nowrap !important; line-height: 1.2 !important; background: transparent !important; background-color: transparent !important; box-shadow: none !important; -moz-box-shadow: none !important; border: none !important; filter: none !important; }',
       '.grid-list:has(> .card-wrapper:only-of-type) .card-wrapper, .grid-list:has(> .product-card:only-of-type) .product-card, .grid-list > .card-wrapper:only-of-type, .grid-list > .product-card:only-of-type, [data-single-product="true"] .card-wrapper, [data-single-product="true"] .product-card, .card-wrapper.sl-single-product, .product-card.sl-single-product { max-width: 340px !important; width: 100% !important; margin: 40px auto !important; float: none !important; }',
       '.grid-list:has(> .card-wrapper:only-of-type), .grid-list:has(> .product-card:only-of-type), [data-single-product="true"] .grid-list { display: flex !important; justify-content: center !important; grid-template-columns: none !important; }',
-      '@media (max-width: 640px) { [data-sl-rail="done"] .card-wrapper.product-card-wrapper, [data-sl-rail="done"] .card-wrapper, [data-sl-rail="done"] .product-card { width: 220px !important; min-width: 220px !important; max-width: 220px !important; } #page-section-collection .grid-list.sl-rail-track, [data-sl-rail="done"] .grid-list.js-grid-list.sl-rail-track, [data-sl-rail="done"] .grid-list.sl-rail-track, .sl-carousel-track { gap: 14px !important; padding: 16px 0 !important; } .sl-carousel-header { padding: 12px 20px !important; } }'
+      '@media (max-width: 640px) { [data-sl-rail="done"] .card-wrapper.product-card-wrapper, [data-sl-rail="done"] .card-wrapper, [data-sl-rail="done"] .product-card, .sl-carousel-track > *, .sl-carousel-track .card-wrapper, .sl-carousel-track .product-card { flex: 0 0 220px !important; width: 220px !important; min-width: 220px !important; max-width: 220px !important; } #page-section-collection .grid-list.sl-rail-track, #page-section-collection .sl-carousel-track, [data-sl-rail="done"] .grid-list.js-grid-list.sl-rail-track, [data-sl-rail="done"] .grid-list.sl-rail-track, [data-sl-rail="done"] .sl-carousel-track, .sl-carousel-track { gap: 14px !important; padding: 16px 0 !important; } .sl-carousel-header { padding: 12px 20px !important; } }'
     ].join('\n');
 
     function ensureCarouselCss() {
@@ -2377,7 +2381,17 @@
       ensureCarouselCss();
       if (section) section.setAttribute('data-sl-rail', 'done');
       grid.setAttribute('data-sl-carousel', '1');
-      grid.classList.add('sl-carousel-track');
+      grid.classList.add('sl-carousel-track', 'sl-rail-track');
+
+      // Hard-override Firefox Gecko grid collapse via direct inline styles with !important
+      grid.style.setProperty('display', 'flex', 'important');
+      grid.style.setProperty('flex-direction', 'row', 'important');
+      grid.style.setProperty('flex-wrap', 'nowrap', 'important');
+      grid.style.setProperty('grid-template-columns', 'none', 'important');
+      grid.style.setProperty('grid-auto-flow', 'column', 'important');
+      grid.style.setProperty('width', 'max-content', 'important');
+      grid.style.setProperty('max-width', 'none', 'important');
+      grid.style.setProperty('overflow-x', 'visible', 'important');
 
       // 1. Dual-Track Infinite Loop: Clone card set so there are at least two identical mirrored sets side-by-side
       var oldClones = grid.querySelectorAll('[data-sl-clone]');
@@ -2443,6 +2457,10 @@
 
       var viewport = document.createElement('div');
       viewport.className = 'sl-carousel-viewport';
+      viewport.style.setProperty('width', '100%', 'important');
+      viewport.style.setProperty('max-width', '100vw', 'important');
+      viewport.style.setProperty('overflow', 'hidden', 'important');
+      viewport.style.setProperty('position', 'relative', 'important');
 
       // Assemble DOM hierarchy
       grid.parentNode.insertBefore(body, grid);
@@ -3360,16 +3378,36 @@
           '  white-space: nowrap !important;',
           '  line-height: 1.2 !important;',
           '}',
-          '.sl-carousel-track > div,',
+          '/* Lock each card\'s dimensions so Firefox never pushes them to a new line */',
+          '.sl-carousel-track > *,',
           '.sl-carousel-track .card-wrapper,',
           '.sl-carousel-track .product-card,',
+          '.collection-products > *,',
+          '#page-section-collection .sl-carousel-track > *,',
+          '#page-section-collection .sl-carousel-track .card-wrapper,',
+          '#page-section-collection .sl-carousel-track .product-card,',
+          '#page-section-collection .collection-products > *,',
+          '#page-section-collection .card-wrapper,',
+          '#page-section-collection .product-card,',
+          '[data-section-key="collection"] .sl-carousel-track > *,',
+          '[data-section-key="collection"] .sl-carousel-track .card-wrapper,',
+          '[data-section-key="collection"] .sl-carousel-track .product-card,',
+          '[data-section-key="collection"] .collection-products > *,',
+          '[data-section-key="collection"] .card-wrapper,',
+          '[data-section-key="collection"] .product-card,',
+          '.theme-tusk .sl-carousel-track > *,',
+          '.theme-tusk .sl-carousel-track .card-wrapper,',
+          '.theme-tusk .sl-carousel-track .product-card,',
+          '.theme-tusk .collection-products > *,',
           '.card-wrapper,',
           '.product-card {',
           '  flex: 0 0 280px !important;',
+          '  width: 280px !important;',
           '  min-width: 280px !important;',
           '  max-width: 280px !important;',
           '  display: flex !important;',
           '  flex-direction: column !important;',
+          '  margin: 0 !important;',
           '  scroll-snap-align: start !important;',
           '  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease !important;',
           '}',
@@ -3400,27 +3438,54 @@
           '[data-sl-rail="done"] .product-card.sonarline-card--highlighted:hover {',
           '  border-color: #FF3B30 !important;',
           '}',
-          '/* Target both the Payhip native collection container and custom wrapper */',
+          '/* Kill all grid rules and forced wrapping on the carousel track and wrappers */',
           '.section-collection .collection-products,',
-          '.products-wrapper,',
+          '.section-collection [class*="grid"],',
+          '.sl-carousel-viewport,',
           '.sl-carousel-track,',
+          '[data-sl-rail="done"] .collection-products,',
           '[data-sl-rail="done"] .sl-carousel-track,',
+          '#page-section-collection .collection-products,',
+          '#page-section-collection [class*="grid"],',
+          '#page-section-collection .grid-list,',
+          '#page-section-collection .grid,',
+          '#page-section-collection .sl-carousel-viewport,',
+          '#page-section-collection .sl-carousel-track,',
+          '#page-section-collection[data-sl-rail="done"] .collection-products,',
+          '#page-section-collection[data-sl-rail="done"] .sl-carousel-track,',
+          '[data-section-key="collection"] .collection-products,',
+          '[data-section-key="collection"] [class*="grid"],',
+          '[data-section-key="collection"] .grid-list,',
+          '[data-section-key="collection"] .grid,',
+          '[data-section-key="collection"] .sl-carousel-viewport,',
+          '[data-section-key="collection"] .sl-carousel-track,',
+          '[data-section-key="collection"][data-sl-rail="done"] .collection-products,',
+          '[data-section-key="collection"][data-sl-rail="done"] .sl-carousel-track,',
+          '.theme-tusk .collection-products,',
+          '.theme-tusk [class*="grid"],',
+          '.theme-tusk .grid,',
+          '.theme-tusk .grid-list,',
+          '.theme-tusk .sl-carousel-track,',
           '#page-section-collection .grid-list,',
           '[data-section-key="collection"] .grid-list,',
           '.grid-list.js-grid-list,',
           '.grid-list,',
+          '.products-wrapper,',
           '.collection-products {',
           '  display: flex !important;',
           '  flex-direction: row !important;',
           '  flex-wrap: nowrap !important;',
           '  grid-template-columns: none !important;',
-          '  align-items: stretch !important;',
+          '  grid-auto-flow: column !important;',
           '  width: max-content !important;',
-          '  min-width: 100% !important;',
+          '  max-width: none !important;',
+          '  overflow-x: visible !important;',
+          '  align-items: stretch !important;',
           '  gap: 16px !important;',
           '  scrollbar-width: none !important;',
           '  -ms-overflow-style: none !important;',
-          '  padding: 24px 48px !important;',
+          '  padding: 28px 0 !important;',
+          '  margin: 0 !important;',
           '  box-sizing: border-box !important;',
           '  scroll-behavior: smooth !important;',
           '  -webkit-overflow-scrolling: touch !important;',
@@ -3430,7 +3495,15 @@
           '  width: 0 !important;',
           '  height: 0 !important;',
           '}',
-          '.sl-carousel-viewport {',
+          '/* Force the outer viewport to clip and maintain full screen width */',
+          '.sl-carousel-viewport,',
+          '#page-section-collection .sl-carousel-viewport,',
+          '[data-section-key="collection"] .sl-carousel-viewport,',
+          '[data-sl-rail="done"] .sl-carousel-viewport {',
+          '  width: 100% !important;',
+          '  max-width: 100vw !important;',
+          '  overflow: hidden !important;',
+          '  position: relative !important;',
           '  mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent) !important;',
           '  -webkit-mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent) !important;',
           '}',
