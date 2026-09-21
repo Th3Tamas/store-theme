@@ -227,6 +227,16 @@
 
 ## 10. Changelog & Revision History
 
+### [2026-09-21 - Release 9]
+- **Fixed Single Product Layout**: Constrained single product cards to `max-width: 340px !important; margin: 40px auto !important;` with centered flex container, preventing single products from stretching across the full 1200px container into massive squares.
+- **Removed Native Collection Header**: Hidden Payhip's native collection title and product count text (`.collection-title, .collection-products-count, [class*="collection-title"], [class*="products-count"], .collection-header, .sl-rail-header`) to eliminate "MOST POPULAR2 products" clutter.
+- **Auto-Scrolling Marquee Rail**: Upgraded product rail to smoothly auto-scroll cards right-to-left continuously; added robust hover pause listeners on both viewport and cards (`mouseenter`/`mouseleave`, `pointerenter`/`pointerleave`) that halt movement immediately on hover and resume on unhover.
+- **Removed 3D Perspective Tilt**: Stripped out mouse-tracking 3D perspective tilt (`init3DCardTilt`, `#sonarline-tilt-styles`, `rotateX`, `rotateY`, `perspective`).
+- **Added Card Hover Lift & Stronger Border**: Elevated cards on hover with `transform: translateY(-6px) !important;` and a crisp, enhanced border `border-color: rgba(255, 255, 255, 0.6) !important;` with smooth CSS transitions.
+- **Fixed Squished Card Tag**: Removed duplicate container padding from `.sonarline-card-metadata` (`padding: 0 !important; margin: 0 !important; width: 100% !important;`); styled `.sonarline-card-tag-pill` with `white-space: nowrap !important; font-size: 0.62rem !important; padding: 3px 8px !important; line-height: 1.2 !important; max-width: none !important; flex-shrink: 0 !important;` so tags are crisp, legible, and never truncated.
+- **Refined Price Tag**: Reduced font size to `0.75rem` Space Mono, eliminated nested pill backgrounds/borders across `.price-block`, `.price`, `.price__container`, etc., and enforced the zero-glow mandate (no drop-shadows, glow halos, or layered blur effects).
+- **Removed `!` Buttons**: Hidden product preview exclamation badges (`.sonarline-card-info-badge { display: none !important; }`) from cards.
+
 ### [2026-09-21 - Release 8]
 - **Added:** 3D Hardware-Accelerated Perspective Tilt on Card Hover (`init3DCardTilt`) with dynamic specular glare highlight effect, mouse tracking, and smooth transform resets.
 - **Added:** Global Sticky Bottom Audio Deck (`#sonarline-bottom-deck`) with continuous persistent playback when preview modal is closed, synchronized audio engine controls, timeline scrubber, volume slider, quick modal expand button, and close deck button.

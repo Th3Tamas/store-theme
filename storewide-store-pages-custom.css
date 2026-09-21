@@ -1083,8 +1083,8 @@ div.card-wrapper.product-card-wrapper:hover,
 .products-grid > div:hover,
 [class*="products-grid"] > div:hover {
   background-color: #141414 !important;
-  border-color: rgba(255, 255, 255, 0.28) !important;
-  transform: translateY(-2px) !important;
+  border-color: rgba(255, 255, 255, 0.6) !important;
+  transform: translateY(-6px) !important;
   box-shadow: 0 12px 35px rgba(0, 0, 0, 0.75) !important;
 }
 
@@ -1574,7 +1574,7 @@ h4.card__heading,
   margin: 0 !important;
 }
 
-/* 4. Product Prices: Monospace Clean Type Aligned Right (Image 1) */
+/* 4. Product Prices: Monospace Clean Type Aligned Right */
 .sonarline-card-price-wrap,
 .card-wrapper .price,
 .card-wrapper [class*="price"],
@@ -1582,13 +1582,15 @@ h4.card__heading,
 .price,
 .price-item,
 .price__regular,
+.price__container,
+.price-block,
 .product-card .price,
 .product-item .price,
 [data-product-id] .price,
 [class*="product-price"],
 [class*="price"] {
   font-family: var(--font-mono, 'Space Mono', monospace) !important;
-  font-size: 0.88rem !important;
+  font-size: 0.75rem !important;
   font-weight: 700 !important;
   color: #ffffff !important;
   letter-spacing: 0.04em !important;
@@ -1598,6 +1600,9 @@ h4.card__heading,
   border: none !important;
   border-top: none !important;
   box-shadow: none !important;
+  text-shadow: none !important;
+  filter: none !important;
+  backdrop-filter: none !important;
   outline: none !important;
   background: transparent !important;
   text-align: right !important;
@@ -1764,8 +1769,7 @@ html body .card-wrapper .card__inner .media img {
 .card-wrapper > .card > .card__content,
 .card-wrapper .card > .card__content:not(.card__inner .card__content),
 .card-wrapper .card__content:not(.card__inner *),
-.product-card > .card__content,
-.sonarline-card-metadata {
+.product-card > .card__content {
   padding: 16px 18px 18px 18px !important;
   display: flex !important;
   flex-direction: column !important;
@@ -1774,6 +1778,20 @@ html body .card-wrapper .card__inner .media img {
   box-sizing: border-box !important;
   background: transparent !important;
   border: none !important;
+  justify-content: space-between !important;
+}
+
+.sonarline-card-metadata {
+  padding: 0 !important;
+  margin: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+  flex-grow: 1 !important;
+  box-sizing: border-box !important;
+  background: transparent !important;
+  border: none !important;
+  width: 100% !important;
   justify-content: space-between !important;
 }
 
@@ -1800,32 +1818,9 @@ html body .card-wrapper .card__inner .media img {
   white-space: nowrap !important;
 }
 
-/* Circular Info Badge (Upper Right) */
+/* Circular Info Badge (Upper Right) - Hidden for now */
 .sonarline-card-info-badge {
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  width: 20px !important;
-  height: 20px !important;
-  min-width: 20px !important;
-  border-radius: 50% !important;
-  border: 1px solid rgba(255, 255, 255, 0.25) !important;
-  color: rgba(255, 255, 255, 0.6) !important;
-  font-family: var(--font-mono, monospace) !important;
-  font-size: 0.7rem !important;
-  font-weight: 700 !important;
-  font-style: normal !important;
-  line-height: 1 !important;
-  user-select: none !important;
-  cursor: pointer !important;
-  transition: border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease !important;
-  flex: 0 0 20px !important;
-}
-
-.sonarline-card-info-badge:hover {
-  border-color: rgba(255, 255, 255, 0.8) !important;
-  color: #ffffff !important;
-  background-color: rgba(255, 255, 255, 0.08) !important;
+  display: none !important;
 }
 
 /* Lower Row: Category Pill Left + Price Right */
@@ -1843,43 +1838,57 @@ html body .card-wrapper .card__inner .media img {
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
-  padding: 4px 12px !important;
+  padding: 3px 8px !important;
   border-radius: 9999px !important;
   background: rgba(255, 255, 255, 0.05) !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  color: #999999 !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  color: #cccccc !important;
   font-family: var(--font-mono, monospace) !important;
-  font-size: 0.68rem !important;
+  font-size: 0.62rem !important;
   font-weight: 600 !important;
   letter-spacing: 0.08em !important;
   text-transform: uppercase !important;
   line-height: 1.2 !important;
   white-space: nowrap !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-  max-width: 60% !important;
+  max-width: none !important;
+  flex-shrink: 0 !important;
+  box-sizing: border-box !important;
 }
 
 .sonarline-card-tag-pill:empty {
   display: none !important;
 }
 
-/* Price Tag: Clean Monospace Aligned Right (No Red Line / Divider) */
+/* Price Tag: Clean Monospace Aligned Right (Zero Layering / Glow) */
 .sonarline-card-price-wrap {
   display: flex !important;
   align-items: center !important;
   justify-content: flex-end !important;
   margin-left: auto !important;
   flex: 0 0 auto !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
 }
 
-.card-wrapper .price-block {
+.sonarline-card-price-wrap *,
+.card-wrapper .price-block,
+.card-wrapper .price,
+.card-wrapper .price__container,
+.card-wrapper .price__regular,
+.card-wrapper .price-item {
   margin: 0 !important;
   padding: 0 !important;
   border: none !important;
   border-top: none !important;
   box-shadow: none !important;
+  text-shadow: none !important;
+  filter: none !important;
+  backdrop-filter: none !important;
   background: transparent !important;
+  border-radius: 0 !important;
+  font-size: 0.75rem !important;
 }
 
 /* 7. Native Marquee Ticker Hairline Divider Accents (Cascade Winner) */
@@ -2535,39 +2544,14 @@ body.sonarline-modal-open {
   padding: 0 0 8px !important;
   overflow: clip !important;
 }
-[data-sl-rail="done"] .sl-rail-header {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: space-between !important;
-  gap: 12px !important;
-  padding: 12px 24px !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
-  font-family: 'Space Mono', monospace !important;
-  user-select: none !important;
-}
-[data-sl-rail="done"] .sl-rail-label {
-  display: inline-flex !important;
-  align-items: center !important;
-  gap: 8px !important;
-  color: #FF2A2A !important;
-  font-size: 0.72rem !important;
-  font-weight: 700 !important;
-  letter-spacing: 0.22em !important;
-  text-transform: uppercase !important;
-  white-space: nowrap !important;
-}
-[data-sl-rail="done"] .sl-rail-label .sl-rail-dot {
-  width: 6px !important;
-  height: 6px !important;
-  border-radius: 50% !important;
-  background: #FF2A2A !important;
-  display: inline-block !important;
-}
-[data-sl-rail="done"] .sl-rail-count {
-  color: #666666 !important;
-  font-size: 0.72rem !important;
-  letter-spacing: 0.14em !important;
-  white-space: nowrap !important;
+[data-sl-rail="done"] .sl-rail-header,
+.sl-rail-header,
+.collection-title,
+.collection-products-count,
+[class*="collection-title"],
+[class*="products-count"],
+.collection-header {
+  display: none !important;
 }
 [data-sl-rail="done"] .sl-rail-viewport {
   position: relative !important;
@@ -2654,17 +2638,24 @@ body.sonarline-modal-open {
   font-weight: 700 !important;
   letter-spacing: 0.1em !important;
 }
+[data-sl-rail="done"] .sonarline-card-price-wrap,
 [data-sl-rail="done"] .sonarline-card-price-wrap .price,
 [data-sl-rail="done"] .sonarline-card-price-wrap .price-block,
 [data-sl-rail="done"] .sonarline-card-price-wrap [class*="price"] {
   display: inline-flex !important;
   align-items: center !important;
-  padding: 4px 12px !important;
-  border-radius: 9999px !important;
-  background: rgba(255, 255, 255, 0.05) !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  justify-content: flex-end !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+  filter: none !important;
+  backdrop-filter: none !important;
   color: #ffffff !important;
-  font-size: 0.68rem !important;
+  font-family: var(--font-mono, 'Space Mono', monospace) !important;
+  font-size: 0.75rem !important;
   white-space: nowrap !important;
 }
 @media (max-width: 640px) {
@@ -2819,30 +2810,43 @@ body.sonarline-modal-open {
 }
 
 /* --------------------------------------------------------------------------
-   13. 3D Hardware-Accelerated Perspective Tilt on Card Hover
+   13. Card Hover Lift & Stronger Border (Replaces 3D Tilt)
    -------------------------------------------------------------------------- */
-@media (hover: hover) and (pointer: fine) {
-  .card-wrapper,
-  .product-card {
-    perspective: 1000px !important;
-    transform-style: preserve-3d !important;
-    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease !important;
-    will-change: transform !important;
-  }
-  .card-wrapper.is-tilting,
-  .product-card.is-tilting {
-    transition: transform 0.06s ease-out, box-shadow 0.2s ease !important;
-  }
-  .card-wrapper.is-tilting .card__inner,
-  .product-card.is-tilting .card__inner {
-    transform: translateZ(8px) !important;
-    transition: transform 0.06s ease-out !important;
-  }
-  .card-wrapper.is-tilting .sonarline-card-metadata,
-  .product-card.is-tilting .sonarline-card-metadata {
-    transform: translateZ(14px) !important;
-    transition: transform 0.06s ease-out !important;
-  }
+.card-wrapper,
+.product-card,
+[data-sl-rail="done"] .card-wrapper,
+[data-sl-rail="done"] .product-card {
+  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease !important;
+}
+
+.card-wrapper:hover,
+.product-card:hover,
+[data-sl-rail="done"] .card-wrapper:hover,
+[data-sl-rail="done"] .product-card:hover {
+  transform: translateY(-6px) !important;
+  border-color: rgba(255, 255, 255, 0.6) !important;
+}
+
+/* Single Product Centered Constraint (Prevents 1200px stretching) */
+.grid-list:has(> .card-wrapper:only-of-type) .card-wrapper,
+.grid-list:has(> .product-card:only-of-type) .product-card,
+.grid-list > .card-wrapper:only-of-type,
+.grid-list > .product-card:only-of-type,
+[data-single-product="true"] .card-wrapper,
+[data-single-product="true"] .product-card,
+.card-wrapper.sl-single-product,
+.product-card.sl-single-product {
+  max-width: 340px !important;
+  width: 100% !important;
+  margin: 40px auto !important;
+  float: none !important;
+}
+.grid-list:has(> .card-wrapper:only-of-type),
+.grid-list:has(> .product-card:only-of-type),
+[data-single-product="true"] .grid-list {
+  display: flex !important;
+  justify-content: center !important;
+  grid-template-columns: none !important;
 }
 
 /* --------------------------------------------------------------------------
