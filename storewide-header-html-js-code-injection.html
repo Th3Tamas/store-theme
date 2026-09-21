@@ -2718,6 +2718,26 @@
     var RAIL_TAG_RE = /\[\[\s*collection[\s\-–—]*rail\s*:\s*(true|false)\s*\]\]/i;
     var RAIL_TAG_RE_G = /\[\[\s*collection[\s\-–—]*rail\s*:\s*(true|false)\s*\]\]/gi;
 
+    // Resolve the Payhip section owning a grid: prefer official collection markers, else the
+    // nearest section wrapper (e.g. div#content-section-XXXX) so the section heading — which may
+    // carry the [[collection-rail]] token as a SIBLING of the grid block — is always in scope.
+    function sonarlineRailSection(grid) {
+      try {
+        if (grid && grid.closest) {
+          var marked = grid.closest('#page-section-collection, [data-section-key="collection"]');
+          if (marked) return marked;
+        }
+        var p = grid ? grid.parentElement : null;
+        while (p && p !== document.body && p !== document.documentElement) {
+          try {
+            if (p.matches && (p.matches('[id^="content-section-"]') || p.hasAttribute('data-section-key') || p.hasAttribute('data-section-type'))) return p;
+          } catch (e) {}
+          p = p.parentElement;
+        }
+      } catch (e) {}
+      return grid ? grid.parentNode : null;
+    }
+
     function sonarlineRailGate(section) {
       var out = { enabled: false, titleEl: null, title: 'MOST POPULAR' };
       try {
@@ -2819,9 +2839,10 @@
     // Gate sync: revert any railed section whose title tag is now missing/false.
     function syncRailGates() {
       try {
-        var sections = document.querySelectorAll('#page-section-collection, [data-section-key="collection"]');
+        var sections = document.querySelectorAll('#page-section-collection, [data-section-key="collection"], [id^="content-section-"]');
         for (var s = 0; s < sections.length; s++) {
           var sec = sections[s];
+          if (!sec.querySelector || !sec.querySelector('.card-wrapper, .product-card')) continue;
           var g = sonarlineRailGate(sec);
           if (!g.enabled) {
             var railed = sec.querySelectorAll('.sl-carousel-track[data-sl-carousel="1"], .grid-list[data-sl-carousel="1"]');
@@ -2837,6 +2858,10 @@
             }
           } else {
             sec.removeAttribute('data-sl-rail-off');
+            var strays = sec.querySelectorAll('[data-sl-rail-off]');
+            for (var x = 0; x < strays.length; x++) {
+              if (strays[x] !== sec) strays[x].removeAttribute('data-sl-rail-off');
+            }
           }
         }
       } catch (e) {}
@@ -2857,7 +2882,7 @@
       });
       if (originalCards.length === 0) return;
 
-      var section = grid.closest('#page-section-collection, [data-section-key="collection"]') || grid.parentNode;
+      var section = sonarlineRailSection(grid);
 
       // [[collection-rail]] gate: without an explicit true token, revert to the default static grid.
       var gate = sonarlineRailGate(section);
@@ -2865,7 +2890,15 @@
         teardownRail(grid, section, gate.titleEl);
         return null;
       }
-      if (section) section.removeAttribute('data-sl-rail-off');
+      if (section) {
+        section.removeAttribute('data-sl-rail-off');
+        // Clear stale off-markers left on intermediate wrappers by earlier revisions.
+        var anc = grid.parentElement;
+        while (anc && anc !== section && anc !== document.body) {
+          try { anc.removeAttribute('data-sl-rail-off'); } catch (e) {}
+          anc = anc.parentElement;
+        }
+      }
 
       // Handle single product constraint
       if (originalCards.length === 1) {
@@ -3256,7 +3289,7 @@
       try {
         // Revert sections whose [[collection-rail]] tag is missing/false before (re)building.
         try { syncRailGates(); } catch (e) {}
-        var candidates = document.querySelectorAll('.grid-list, .collection-products, [data-section-key="collection"] [class*="grid"], #page-section-collection [class*="grid"], .products-wrapper');
+        var candidates = document.querySelectorAll('.grid-list, .grid-block, .collection-products, [data-section-key="collection"] [class*="grid"], #page-section-collection [class*="grid"], .products-wrapper, [id^="content-section-"] [class*="grid"]');
         for (var i = 0; i < candidates.length; i++) {
           try {
             var el = candidates[i];
@@ -3301,8 +3334,8 @@
           for (var j = 0; added && j < added.length; j++) {
             var n = added[j];
             if (n.nodeType !== 1) continue;
-            var isGrid = n.classList && (n.classList.contains('grid-list') || n.classList.contains('card-wrapper') || n.classList.contains('product-card'));
-            var hasGrid = n.querySelector && (n.querySelector('.grid-list') || n.querySelector('.card-wrapper'));
+            var isGrid = n.classList && (n.classList.contains('grid-list') || n.classList.contains('grid-block') || n.classList.contains('card-wrapper') || n.classList.contains('product-card'));
+            var hasGrid = n.querySelector && (n.querySelector('.grid-list') || n.querySelector('.grid-block') || n.querySelector('.card-wrapper'));
             if (isGrid || hasGrid) {
               if (n.hasAttribute && (n.hasAttribute('data-sl-carousel') || n.classList.contains('sl-carousel-viewport'))) continue;
               carouselObsKick();
