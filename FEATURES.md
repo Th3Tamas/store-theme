@@ -200,23 +200,23 @@
 
 - `[ ]` **Product Detail Page Brutalist Theme:**
   - Extend custom dark wireframe styling, Space Grotesk typography, and embedded Backblaze audio preview player directly to `/b/...` and `/p/...` product pages.
-- `[ ]` **Audio Waveform Visualizer:**
-  - Replace the standard progress scrubber in the modal with a custom retro waveform / canvas audio visualizer.
-- `[ ]` **Product Category Filter Bar:**
-  - Client-side tag filtering (e.g. `ALL`, `DRUM KITS`, `SAMPLE PACKS`, `MULTI-KITS`) to filter the homepage card grid without page reloads.
+- `[x]` **Audio Waveform Visualizer:**
+  - Interactive `<canvas>` oscilloscope and dynamic frequency bars inside the preview modal with seek-on-click support.
+- `[x]` **Product Category Filter Bar:**
+  - Real-time tag filtering HUD (`ARCHIVE // [ ALL ] [ DRUM KIT ] ...`) above the collection grid with zero page reload.
 - `[ ]` **Cart Drawer & Checkout Styling Alignment:**
   - Style Payhip's native slide-out cart drawer with matching wireframe borders, dark background, and monospace font hierarchy.
-- `[ ]` **Audio Volume Persistence:**
-  - Save user volume preferences in `localStorage` across page visits.
-- `[ ]` **Keyboard Accessibility for Audio Player:**
-  - Add spacebar (play/pause), arrow keys (seek), and escape (close modal) shortcut listeners.
+- `[x]` **Audio Volume Persistence:**
+  - Save user volume preferences in `localStorage` (`sonarline_audio_vol`) across page visits.
+- `[x]` **Keyboard Accessibility for Audio Player:**
+  - Full keyboard shortcuts: `Space` (play/pause), `ArrowLeft`/`ArrowRight` (seek +/- 5s), `ArrowUp`/`ArrowDown` (volume +/- 10%), `Escape` (close modal).
 - `[ ]` **Global Sticky Bottom Audio Deck:** Persistent playback when modal is closed or during page navigation.
-- `[ ]` **Card Quick-Listen Trigger:** Instant play/pause overlay on card media hover.
+- `[x]` **Card Quick-Listen Trigger:** Instant 1-click play/pause overlay on card artwork hover with animated soundwave indicator.
 - `[ ]` **Audio Stem / Layer Selector in Preview Modal:** Multi-track demo auditioning via `[[audio:stem:url]]`.
 - `[ ]` **Multi-Sample Directory Tree:** `[[contents: ...]]` formatted into an ASCII tree breakdown inside modals.
 - `[ ]` **Instant In-Page Search & Live Card Filter HUD:** Real-time counter readouts and instant filtering.
 - `[ ]` **3D Hardware-Accelerated Perspective Tilt on Card Hover:** Subtle perspective mouse tracking.
-- `[ ]` **Monospace Text Scramble / Character Decryption Effect on Hover:** Cyberpunk text reveal animation.
+- `[x]` **Monospace Text Scramble / Character Decryption Effect on Hover:** Cyberpunk text reveal animation on card title hover.
 - `[ ]` **Dynamic Web Audio API Oscilloscope / Reactive Scanline Pulse:** Real-time visualizer canvas.
 - `[ ]` **Brutalist Terms of Service & Sample Clearance Drawer:** Dedicated slide-over modal for licensing.
 - `[ ]` **Floating HUD Cart Counter & Order Total Pill:** Minimalist sticky indicator for cart status.
@@ -224,6 +224,15 @@
 ---
 
 ## 10. Changelog & Revision History
+
+### [2026-09-21 - Release 7]
+- **Fixed:** Desktop Drag-Selection Box (`#sl-selection-box`) — resolved CSS specificity issue (`display: none !important` was blocking JS inline display assignment); added `#sl-selection-box.is-active { display: block !important; }`; removed `pointer: coarse` false-positive check that suppressed selection box on touchscreen/hybrid devices; added `.sl-rail-viewport, .sl-rail-header, .sonarline-filter-hud` to ignore targets.
+- **Fixed:** Product Rail ("MOST POPULAR" marquee) — resolved CSS specificity collision where `#page-section-collection .grid-list` with `!important` was overriding the rail track flex styling; added `:not(.sl-rail-track)` to all grid declarations; removed `prefers-reduced-motion` early return from the rail IIFE and handled reduced motion gracefully by pausing auto-scroll while keeping manual drag/swipe active.
+- **Added:** Retro Audio Waveform Visualizer inside `#sonarline-product-modal` with click-to-seek and dynamic frequency bar animation.
+- **Added:** Audio Player Keyboard Accessibility (`Space`, `ArrowLeft`/`ArrowRight`, `ArrowUp`/`ArrowDown`, `Escape`) + `localStorage` volume persistence.
+- **Added:** Card Quick-Listen Trigger on card artwork hover with glowing audio pulse animation.
+- **Added:** Cyberpunk Text Scramble Decryption effect on product card title hover.
+- **Added:** Product Category Filter HUD Bar (`ARCHIVE // [ ALL ] [ DRUM KIT ] ...`) with live tag aggregation and card filtering without page reloads.
 
 ### [2026-09-20 - Release 6]
 - **Fixed:** Ticker-over-navbar stacking — padding is now applied to every `.content-main-wrapper, #page-wrap` node (was first-match only, could hit a wrong node and leave the ticker unpadded over the navbar); ticker `z-index` lowered to `1` with navbar forced to `50`; ticker enforcement moved out of the scroll path into one-time `enforceTickerStatic()`.
