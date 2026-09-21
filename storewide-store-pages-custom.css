@@ -1649,6 +1649,7 @@ select:focus {
   font-size: 0.75rem !important;
   text-shadow: none !important;
   display: inline-block !important;
+  vertical-align: middle !important;
   margin: 0 1.25rem !important;
   line-height: 1 !important;
 }
@@ -1669,6 +1670,7 @@ select:focus {
   margin: 0 1.25rem !important;
   font-size: 0.75rem !important;
   display: inline-block !important;
+  vertical-align: middle !important;
 }
 
 @keyframes ticker-slide {

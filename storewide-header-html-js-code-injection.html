@@ -4665,6 +4665,7 @@
           '  font-size: 0.75rem !important;',
           '  text-shadow: none !important;',
           '  display: inline-block !important;',
+          '  vertical-align: middle !important;',
           '  margin: 0 1.25rem !important;',
           '  line-height: 1 !important;',
           '}',
@@ -4683,6 +4684,7 @@
           '  margin: 0 1.25rem !important;',
           '  font-size: 0.75rem !important;',
           '  display: inline-block !important;',
+          '  vertical-align: middle !important;',
           '}'
         ].join('\n');
         (document.head || document.documentElement).appendChild(styleTag);
@@ -4701,16 +4703,17 @@
       'ONE-SHOTS'
     ];
 
-    function formatTickerString(str, hasNextSep) {
-      if (!str || typeof str !== 'string') return str;
+    // Split a raw ticker string into clean phrases (shared by text + HTML formatters).
+    function splitTickerPhrases(str) {
+      var phrases = [];
+      if (!str || typeof str !== 'string') return phrases;
       var s = str.trim();
-      if (!s) return str;
+      if (!s) return phrases;
 
       // Delimiters: bullets, symbols, HTML entities, slashes, or dashes WITH spaces (not hyphens inside words like MULTI-KITS)
       var delim = /\s*(?:[•·●■*|◦✦★]|&bull;|&#8226;|\s+[-–—]\s+|\s*\/\s*|\s{2,})\s*/;
       var rawPhrases = s.split(delim);
 
-      var phrases = [];
       for (var i = 0; i < rawPhrases.length; i++) {
         var p = rawPhrases[i].trim();
         if (p.length > 0 && !/^[•·●■*|◦✦★/–—\-]+$/.test(p)) {
@@ -4748,13 +4751,33 @@
           }
         }
       }
+      return phrases;
+    }
 
+    function escapeTickerHtml(str) {
+      return String(str == null ? '' : str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function formatTickerString(str, hasNextSep) {
+      if (!str || typeof str !== 'string') return str;
+      var phrases = splitTickerPhrases(str);
       if (phrases.length === 0) return str;
       if (hasNextSep) {
         return phrases.join(' \u2022 ');
       } else {
         return phrases.join(' \u2022 ') + ' \u2022 ';
       }
+    }
+
+    // HTML path: wrap every separator in a vertically-centered bullet span so CSS
+    // (vertical-align: middle) can center dots that raw text nodes never could.
+    function formatTickerHTML(str, hasNextSep) {
+      var phrases = splitTickerPhrases(str);
+      if (phrases.length === 0) return null;
+      var sep = '<span class="sonarline-ticker-bullet" data-ticker-formatted="true">\u2022</span>';
+      var html = phrases.map(function(p) { return escapeTickerHtml(p); }).join(sep);
+      if (!hasNextSep) html += sep;
+      return html;
     }
 
     function formatTickerElements() {
@@ -4789,6 +4812,7 @@
             sep.textContent = '\u2022';
             sep.style.setProperty('margin', '0 1.25rem', 'important');
             sep.style.setProperty('display', 'inline-block', 'important');
+            sep.style.setProperty('vertical-align', 'middle', 'important');
           }
           sep.style.setProperty('color', '#FF2A2A', 'important');
           sep.style.setProperty('fill', '#FF2A2A', 'important');
@@ -4824,6 +4848,7 @@
               el.textContent = '\u2022';
               el.style.setProperty('margin', '0 1.25rem', 'important');
               el.style.setProperty('display', 'inline-block', 'important');
+              el.style.setProperty('vertical-align', 'middle', 'important');
             }
             el.style.setProperty('color', '#FF2A2A', 'important');
             el.style.setProperty('fill', '#FF2A2A', 'important');
@@ -4850,12 +4875,17 @@
             sib = sib.nextSibling;
           }
 
-          var formatted = formatTickerString(original, hasNextSep);
-          if (formatted && formatted !== original) {
-            el.textContent = formatted;
-          }
           if (isSvgEl) {
+            var formatted = formatTickerString(original, hasNextSep);
+            if (formatted && formatted !== original) {
+              el.textContent = formatted;
+            }
             el.setAttribute('xml:space', 'preserve');
+          } else {
+            var bulletHtml = formatTickerHTML(original, hasNextSep);
+            if (bulletHtml) {
+              el.innerHTML = bulletHtml;
+            }
           }
           el.setAttribute('data-ticker-formatted', 'true');
           el.style.setProperty('color', '#FF2A2A', 'important');
