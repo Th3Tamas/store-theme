@@ -2519,6 +2519,11 @@
       }
 
       var activeTag = existingHud.getAttribute('data-active-filter') || 'ALL';
+      // Skip redundant rewrites: identical tag sets re-rendering innerHTML every pass
+      // churn the DOM (and retrigger observers) for zero visual change.
+      var filterSig = '';
+      try { filterSig = JSON.stringify({ t: tags, c: tagCounts, a: activeTag }); } catch (e) {}
+      if (filterSig && existingHud.getAttribute('data-filter-sig') === filterSig) return;
       var hudHtml = '<span class="sonarline-filter-label">ARCHIVE //</span>' +
         '<button type="button" class="sonarline-filter-pill' + (activeTag === 'ALL' ? ' active' : '') + '" data-filter-tag="ALL">ALL <span class="sonarline-filter-count">(' + total + ')</span></button>';
 
@@ -2527,6 +2532,9 @@
         hudHtml += '<button type="button" class="sonarline-filter-pill' + (activeTag === tg ? ' active' : '') + '" data-filter-tag="' + tg + '">' + tg + ' <span class="sonarline-filter-count">(' + tagCounts[tg] + ')</span></button>';
       }
       existingHud.innerHTML = hudHtml;
+      if (filterSig) {
+        try { existingHud.setAttribute('data-filter-sig', filterSig); } catch (e) {}
+      }
 
       var pills = existingHud.querySelectorAll('.sonarline-filter-pill');
       for (var p = 0; p < pills.length; p++) {
@@ -2588,7 +2596,8 @@
           var tgt = mut.target;
           if (tgt && tgt.closest) {
             try {
-              if (tgt.closest('.sonarline-card-metadata, #sonarline-product-modal, #sl-cursor-dot, #sl-cursor-circle, #sl-selection-box, #sonarline-scroll-progress')) continue;
+              // Own live regions must never retrigger full passes (feedback loop = periodic freezes).
+              if (tgt.closest('.sonarline-card-metadata, #sonarline-product-modal, #sonarline-bottom-deck, #sl-cursor-dot, #sl-cursor-circle, #sl-selection-box, #sonarline-scroll-progress, .sonarline-filter-hud, .sl-carousel-header, [data-section-key="ticker"]')) continue;
             } catch (e) {}
           }
           if (mut.type === 'attributes') {
@@ -5780,7 +5789,9 @@
               var n = mutation.addedNodes[a];
               if (n && n.closest) {
                 try {
-                  if (n.closest('[data-shortcode-parsed], .sonarline-terminal-prompt, .sonarline-status-pill, .sonarline-status-clock, #sonarline-product-modal, #sonarline-preloader, #sonarline-hud-preloader')) continue;
+                  // Own ambient/live regions (hero glitch ticks, HUD, deck, modal) must
+                  // never trigger full-body sweeps — that was a periodic freeze source.
+                  if (n.closest('[data-shortcode-parsed], .sonarline-terminal-prompt, .sonarline-status-pill, .sonarline-status-clock, #sonarline-product-modal, #sonarline-bottom-deck, #sonarline-preloader, #sonarline-hud-preloader, .sonarline-filter-hud, h1, .heading-text')) continue;
                 } catch (e) {}
               }
               pendingShortcodeNodes.push(n);
@@ -5790,7 +5801,7 @@
             var t = mutation.target;
             if (t && t.parentNode && t.parentNode.closest) {
               try {
-                if (t.parentNode.closest('[data-shortcode-parsed], .sonarline-terminal-prompt, .sonarline-status-pill, .sonarline-status-clock')) continue;
+                if (t.parentNode.closest('[data-shortcode-parsed], .sonarline-terminal-prompt, .sonarline-status-pill, .sonarline-status-clock, .sonarline-filter-hud, #sonarline-bottom-deck, h1, .heading-text')) continue;
               } catch (e) {}
             }
             pendingShortcodeNodes.push(t);
@@ -5829,7 +5840,7 @@
       });
     }
 
-    // Live clock ticker for any parsed status pill clocks
+    // Live clock ticker for any parsed status pill clocks (writes only on change).
     function updateClocks() {
       try {
         var clocks = document.querySelectorAll('.sonarline-status-clock, #sonarline-native-clock');
@@ -5837,7 +5848,7 @@
           var now = new Date();
           var timeStr = now.toTimeString().split(' ')[0];
           for (var c = 0; c < clocks.length; c++) {
-            clocks[c].textContent = timeStr;
+            if (clocks[c].textContent !== timeStr) clocks[c].textContent = timeStr;
           }
         }
       } catch (e) {
