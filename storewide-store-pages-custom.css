@@ -2771,6 +2771,17 @@ h2.section-title,
 .section-collection .collection-products,
 .products-wrapper,
 .sl-carousel-track,
+[data-sl-rail="done"] .sl-carousel-track {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  grid-template-columns: none !important;
+  align-items: stretch !important;
+  width: max-content !important;
+  min-width: 100% !important;
+}
+
+.sl-carousel-track,
 [data-sl-rail="done"] .sl-carousel-track,
 #page-section-collection[data-sl-rail="done"] .grid-list.js-grid-list.sl-rail-track,
 #page-section-collection[data-sl-rail="done"] .grid-list.sl-rail-track,
@@ -2842,6 +2853,14 @@ div.card-wrapper.product-card-wrapper.sonarline-card--highlighted,
   border: 1px solid #FF3B30 !important;
   border-color: #FF3B30 !important;
   box-shadow: 0 0 12px rgba(255, 59, 48, 0.3) !important;
+}
+
+.card-wrapper.sonarline-card--highlighted:hover,
+.product-card.sonarline-card--highlighted:hover,
+[data-highlighted="true"]:hover,
+[data-sl-rail="done"] .card-wrapper.sonarline-card--highlighted:hover,
+[data-sl-rail="done"] .product-card.sonarline-card--highlighted:hover {
+  border-color: #FF3B30 !important;
 }
 [data-sl-rail="done"] .card-wrapper .card__inner,
 [data-sl-rail="done"] .product-card .card__inner {

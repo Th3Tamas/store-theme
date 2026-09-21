@@ -1770,7 +1770,7 @@
         if (t) out.tag = (t[1] || '').trim();
         var a = htmlText.match(/\[\[audio:\s*([\s\S]*?)\]\]/i);
         if (a) out.audio = (a[1] || '').trim();
-        var h = htmlText.match(/\[\[highlighted:\s*(true|false)\]\]/i);
+        var h = htmlText.match(/\[\[highlighted:\s*(true|false)\s*\]\]/i);
         if (h) out.highlighted = (h[1].toLowerCase() === 'true');
       } catch (e) {}
       return out;
@@ -1878,7 +1878,7 @@
               node.nodeValue = node.nodeValue
                 .replace(/\[\[tag:\s*[\s\S]*?\]\]/gi, '')
                 .replace(/\[\[audio:\s*[\s\S]*?\]\]/gi, '')
-                .replace(/\[\[highlighted:\s*(true|false)\]\]/gi, '')
+                .replace(/\[\[highlighted:\s*(true|false)\s*\]\]/gi, '')
                 .trim();
             }
           }
@@ -1927,7 +1927,42 @@
           imgs[m].style.setProperty('border-radius', '7px 7px 0 0', 'important');
         }
 
-        // 5. Two-Row Metadata Layout, [[tag: ...]] & [[audio: ...]] Shortcode Engine
+        // 5. Robust [[highlighted: true/false]] Detection & Deep Token Cleanup (Card-level, works across all browsers)
+        var textHl = card.textContent || '';
+        var htmlHl = card.innerHTML || '';
+        var isHl = /\[\[highlighted:\s*true\s*\]\]/i.test(textHl) || /\[\[highlighted:\s*true\s*\]\]/i.test(htmlHl);
+        var isFalse = /\[\[highlighted:\s*false\s*\]\]/i.test(textHl) || /\[\[highlighted:\s*false\s*\]\]/i.test(htmlHl);
+
+        if (isHl) {
+          card.setAttribute('data-highlighted', 'true');
+          card.setAttribute('data-sl-highlighted', 'true');
+          card.classList.add('sonarline-card--highlighted');
+        } else if (isFalse) {
+          card.setAttribute('data-highlighted', 'false');
+          card.setAttribute('data-sl-highlighted', 'false');
+          card.classList.remove('sonarline-card--highlighted');
+        } else if (card.getAttribute('data-highlighted') === 'true' || card.classList.contains('sonarline-card--highlighted')) {
+          card.setAttribute('data-highlighted', 'true');
+          card.setAttribute('data-sl-highlighted', 'true');
+          card.classList.add('sonarline-card--highlighted');
+        }
+
+        // Deep Token Cleanup: Strip [[highlighted: true]] and [[highlighted: false]] cleanly without breaking HTML tags
+        var hlWalker = document.createTreeWalker(card, NodeFilter.SHOW_TEXT, null, false);
+        var hlNode;
+        while ((hlNode = hlWalker.nextNode())) {
+          if (hlNode.nodeValue && /\[\[highlighted:\s*(true|false)\s*\]\]/i.test(hlNode.nodeValue)) {
+            hlNode.nodeValue = hlNode.nodeValue.replace(/\[\[highlighted:\s*(true|false)\s*\]\]/gi, '').trim();
+          }
+        }
+        var hlLeafs = card.querySelectorAll('a, h2, h3, h4, .card__heading, .product-title, .product-name');
+        hlLeafs.forEach(function(hlEl) {
+          if (hlEl.children.length === 0 && hlEl.textContent && /\[\[highlighted:\s*(true|false)\s*\]\]/i.test(hlEl.textContent)) {
+            hlEl.textContent = hlEl.textContent.replace(/\[\[highlighted:\s*(true|false)\s*\]\]/gi, '').trim();
+          }
+        });
+
+        // 6. Two-Row Metadata Layout, [[tag: ...]] & [[audio: ...]] Shortcode Engine
         var content = card.querySelector('.card > .card__content, .card__content:not(.card__inner *)');
         if (content) {
           var titleEl = content.querySelector('.card__heading, .font-section-collection-productName, h3, h4, .product-title, .product-name');
@@ -1986,47 +2021,6 @@
                   tn.nodeValue = tn.nodeValue.replace(/\[\[tag:\s*([\s\S]*?)\]\]/gi, '').trim();
                 }
               }
-            }
-          }
-
-          // Parse [[highlighted: true/false]] shortcode (robust textContent and innerHTML check)
-          var textHl = (titleEl ? (titleEl.textContent || titleEl.innerText || '') : '') + ' ' + (card.textContent || '');
-          var htmlHl = (titleEl ? (titleEl.innerHTML || '') : '') + ' ' + (card.innerHTML || '');
-          var isHl = /\[\[highlighted:\s*true\]\]/i.test(textHl) || /\[\[highlighted:\s*true\]\]/i.test(htmlHl);
-          var isFalse = /\[\[highlighted:\s*false\]\]/i.test(textHl) || /\[\[highlighted:\s*false\]\]/i.test(htmlHl);
-
-          if (isHl) {
-            card.setAttribute('data-highlighted', 'true');
-            card.setAttribute('data-sl-highlighted', 'true');
-            card.classList.add('sonarline-card--highlighted');
-          } else if (isFalse) {
-            card.setAttribute('data-highlighted', 'false');
-            card.setAttribute('data-sl-highlighted', 'false');
-            card.classList.remove('sonarline-card--highlighted');
-          } else if (card.getAttribute('data-highlighted') === 'true' || card.classList.contains('sonarline-card--highlighted')) {
-            card.setAttribute('data-highlighted', 'true');
-            card.setAttribute('data-sl-highlighted', 'true');
-            card.classList.add('sonarline-card--highlighted');
-          }
-
-          // Deep Token Cleanup: Strip [[highlighted: true]] and [[highlighted: false]] cleanly from visible nodes without breaking HTML tags
-          var hlWalker = document.createTreeWalker(card, NodeFilter.SHOW_TEXT, null, false);
-          var hlNode;
-          while ((hlNode = hlWalker.nextNode())) {
-            if (hlNode.nodeValue && /\[\[highlighted:\s*(true|false)\]\]/i.test(hlNode.nodeValue)) {
-              hlNode.nodeValue = hlNode.nodeValue.replace(/\[\[highlighted:\s*(true|false)\]\]/gi, '').trim();
-            }
-          }
-          if (titleEl) {
-            var hlLinks = titleEl.querySelectorAll('a');
-            if (hlLinks.length > 0) {
-              hlLinks.forEach(function(hlLink) {
-                if (hlLink.textContent && /\[\[highlighted:\s*(true|false)\]\]/i.test(hlLink.textContent)) {
-                  hlLink.textContent = hlLink.textContent.replace(/\[\[highlighted:\s*(true|false)\]\]/gi, '').trim();
-                }
-              });
-            } else {
-              titleEl.textContent = (titleEl.textContent || '').replace(/\[\[highlighted:\s*(true|false)\]\]/gi, '').trim();
             }
           }
 
@@ -2290,13 +2284,16 @@
       '.sl-carousel-body { position: relative !important; width: 100% !important; overflow: hidden !important; }',
       '@keyframes sonarlineInfiniteRail { 0% { transform: translate3d(0, 0, 0); } 100% { transform: translate3d(-50%, 0, 0); } }',
       'h2.heading-text, .heading-text.js-builder-heading-text, .heading-text, .js-builder-heading-text, h2.section-title, .collection-title, [class*="collection-title"], .collection-header h2, .section-collection > h2, .section-collection > .container > h2, .section-contents > h2.heading-text, [data-sl-rail="done"] .sl-rail-header, .sl-rail-header, .collection-products-count, [class*="products-count"], .collection-header { display: none !important; }',
-      '.section-collection .collection-products, .products-wrapper, .sl-carousel-track, [data-sl-rail="done"] .sl-carousel-track, #page-section-collection[data-sl-rail="done"] .grid-list.js-grid-list.sl-rail-track, #page-section-collection[data-sl-rail="done"] .grid-list.sl-rail-track, #page-section-collection .grid-list.sl-rail-track, [data-section-key="collection"] .grid-list.sl-rail-track, [data-sl-rail="done"] .grid-list.js-grid-list.sl-rail-track, [data-sl-rail="done"] .grid-list.sl-rail-track { display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important; grid-template-columns: none !important; align-items: stretch !important; width: max-content !important; min-width: 100% !important; animation: sonarlineInfiniteRail 35s linear infinite !important; will-change: transform !important; gap: 16px !important; padding: 28px 0 !important; margin: 0 !important; box-sizing: border-box !important; cursor: grab !important; user-select: none !important; -webkit-user-select: none !important; }',
+      '/* Target both the Payhip native collection container and custom wrapper */',
+      '.section-collection .collection-products, .products-wrapper, .sl-carousel-track, [data-sl-rail="done"] .sl-carousel-track { display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important; grid-template-columns: none !important; align-items: stretch !important; width: max-content !important; min-width: 100% !important; }',
+      '.sl-carousel-track, [data-sl-rail="done"] .sl-carousel-track, #page-section-collection[data-sl-rail="done"] .grid-list.js-grid-list.sl-rail-track, #page-section-collection[data-sl-rail="done"] .grid-list.sl-rail-track, #page-section-collection .grid-list.sl-rail-track, [data-section-key="collection"] .grid-list.sl-rail-track, [data-sl-rail="done"] .grid-list.js-grid-list.sl-rail-track, [data-sl-rail="done"] .grid-list.sl-rail-track { display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important; grid-template-columns: none !important; align-items: stretch !important; width: max-content !important; min-width: 100% !important; animation: sonarlineInfiniteRail 35s linear infinite !important; will-change: transform !important; gap: 16px !important; padding: 28px 0 !important; margin: 0 !important; box-sizing: border-box !important; cursor: grab !important; user-select: none !important; -webkit-user-select: none !important; }',
       '.sl-carousel-track:hover, .sl-carousel-track.is-hovered { animation-play-state: paused !important; }',
       '.sl-carousel-track:active, .sl-carousel-track.is-dragging { cursor: grabbing !important; animation-play-state: paused !important; }',
       '.sl-carousel-track::-webkit-scrollbar, [data-sl-rail="done"] .grid-list::-webkit-scrollbar, .grid-list::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; }',
       '.sl-carousel-track > div, .sl-carousel-track .card-wrapper, .sl-carousel-track .product-card, [data-sl-rail="done"] .card-wrapper.product-card-wrapper, [data-sl-rail="done"] .card-wrapper, [data-sl-rail="done"] .product-card, .card-wrapper, .product-card { flex: 0 0 280px !important; width: 280px !important; min-width: 280px !important; max-width: 280px !important; display: flex !important; flex-direction: column !important; background: #0f0f0f !important; border: 1px solid rgba(255,255,255,0.08) !important; border-radius: 8px !important; overflow: hidden !important; transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease !important; }',
       '[data-sl-rail="done"] .card-wrapper:hover, [data-sl-rail="done"] .product-card:hover, .card-wrapper:hover, .product-card:hover { transform: translateY(-6px) !important; border-color: rgba(255, 255, 255, 0.6) !important; }',
       '.card-wrapper.sonarline-card--highlighted, .product-card.sonarline-card--highlighted, [data-highlighted="true"], [data-sl-rail="done"] .card-wrapper.product-card-wrapper.sonarline-card--highlighted, [data-sl-rail="done"] .card-wrapper.sonarline-card--highlighted, [data-sl-rail="done"] .product-card.sonarline-card--highlighted, [data-sl-rail="done"] [data-sl-highlighted="true"], [data-sl-rail="done"] [data-highlighted="true"], div.card-wrapper.product-card-wrapper.sonarline-card--highlighted, .card-wrapper.product-card-wrapper.sonarline-card--highlighted, [data-sl-highlighted="true"], .sonarline-card--highlighted { border: 1px solid #FF3B30 !important; border-color: #FF3B30 !important; box-shadow: 0 0 12px rgba(255, 59, 48, 0.3) !important; }',
+      '.card-wrapper.sonarline-card--highlighted:hover, .product-card.sonarline-card--highlighted:hover, [data-highlighted="true"]:hover, [data-sl-rail="done"] .card-wrapper.sonarline-card--highlighted:hover, [data-sl-rail="done"] .product-card.sonarline-card--highlighted:hover { border-color: #FF3B30 !important; }',
       '.sonarline-card-metadata { padding: 0 !important; margin: 0 !important; display: flex !important; flex-direction: column !important; gap: 10px !important; flex-grow: 1 !important; box-sizing: border-box !important; background: transparent !important; border: none !important; width: 100% !important; justify-content: space-between !important; }',
       '.sonarline-card-info-badge { display: none !important; }',
       '.sonarline-card-tag-pill { display: inline-flex !important; align-items: center !important; justify-content: center !important; padding: 3px 8px !important; border-radius: 9999px !important; background: rgba(255, 255, 255, 0.06) !important; border: 1px solid rgba(255, 255, 255, 0.18) !important; color: #ffffff !important; font-family: var(--font-mono, \'Space Mono\', monospace) !important; font-size: 0.7rem !important; font-weight: 700 !important; letter-spacing: 0.08em !important; text-transform: uppercase !important; line-height: 1.2 !important; white-space: nowrap !important; max-width: none !important; flex-shrink: 0 !important; box-sizing: border-box !important; }',
@@ -2344,8 +2341,8 @@
       originalCards.forEach(function(card) {
         var text = card.textContent || '';
         var html = card.innerHTML || '';
-        var isHl = /\[\[highlighted:\s*true\]\]/i.test(text) || /\[\[highlighted:\s*true\]\]/i.test(html);
-        var isFalse = /\[\[highlighted:\s*false\]\]/i.test(text) || /\[\[highlighted:\s*false\]\]/i.test(html);
+        var isHl = /\[\[highlighted:\s*true\s*\]\]/i.test(text) || /\[\[highlighted:\s*true\s*\]\]/i.test(html);
+        var isFalse = /\[\[highlighted:\s*false\s*\]\]/i.test(text) || /\[\[highlighted:\s*false\s*\]\]/i.test(html);
 
         if (isHl) {
           card.setAttribute('data-highlighted', 'true');
@@ -2365,14 +2362,14 @@
         var walker = document.createTreeWalker(card, NodeFilter.SHOW_TEXT, null, false);
         var tNode;
         while ((tNode = walker.nextNode())) {
-          if (tNode.nodeValue && /\[\[highlighted:\s*(true|false)\]\]/i.test(tNode.nodeValue)) {
-            tNode.nodeValue = tNode.nodeValue.replace(/\[\[highlighted:\s*(true|false)\]\]/gi, '').trim();
+          if (tNode.nodeValue && /\[\[highlighted:\s*(true|false)\s*\]\]/i.test(tNode.nodeValue)) {
+            tNode.nodeValue = tNode.nodeValue.replace(/\[\[highlighted:\s*(true|false)\s*\]\]/gi, '').trim();
           }
         }
         var links = card.querySelectorAll('a, h2, h3, h4, .card__heading, .product-title');
         links.forEach(function(el) {
-          if (el.children.length === 0 && el.textContent && /\[\[highlighted:\s*(true|false)\]\]/i.test(el.textContent)) {
-            el.textContent = el.textContent.replace(/\[\[highlighted:\s*(true|false)\]\]/gi, '').trim();
+          if (el.children.length === 0 && el.textContent && /\[\[highlighted:\s*(true|false)\s*\]\]/i.test(el.textContent)) {
+            el.textContent = el.textContent.replace(/\[\[highlighted:\s*(true|false)\s*\]\]/gi, '').trim();
           }
         });
       });
@@ -3396,6 +3393,13 @@
           '  border-color: #FF3B30 !important;',
           '  box-shadow: 0 0 12px rgba(255, 59, 48, 0.3) !important;',
           '}',
+          '.card-wrapper.sonarline-card--highlighted:hover,',
+          '.product-card.sonarline-card--highlighted:hover,',
+          '[data-highlighted="true"]:hover,',
+          '[data-sl-rail="done"] .card-wrapper.sonarline-card--highlighted:hover,',
+          '[data-sl-rail="done"] .product-card.sonarline-card--highlighted:hover {',
+          '  border-color: #FF3B30 !important;',
+          '}',
           '/* Target both the Payhip native collection container and custom wrapper */',
           '.section-collection .collection-products,',
           '.products-wrapper,',
@@ -4285,7 +4289,7 @@
 
       // Strip ghost lines and concentric background fills from all card price inner elements
       var priceChildren = document.querySelectorAll(
-        '.card-wrapper .price, .card-wrapper .price__container, .card-wrapper .price__regular, .card-wrapper .price-item, .card-wrapper [class*="price"]:not(.price-block), .sonarline-card-price-wrap *'
+        '.card-wrapper .price, .card-wrapper .price__container, .card-wrapper .price__regular, .card-wrapper .price-item, .card-wrapper [class*="price"]:not(.price-block), .sonarline-card-price-wrap, .sonarline-card-price-wrap *'
       );
       for (var pc = 0; pc < priceChildren.length; pc++) {
         priceChildren[pc].style.setProperty('border', 'none', 'important');
