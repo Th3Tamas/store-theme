@@ -1013,37 +1013,37 @@ h3.title {
 }
 
 /* Firefox & Chrome Layout Parity: prevent flex/grid item collapse */
-#page-section-collection .card-wrapper,
-[data-section-key="collection"] .card-wrapper,
-div.card-wrapper.product-card-wrapper,
-.card-wrapper.product-card-wrapper,
-.product-card-wrapper,
-.card-wrapper,
-.product-item,
-.payhip-collection-product-item,
-.payhip-product-item,
-.product-card,
-.product-wrap,
-.product-holder,
-.payhip-product,
-.payhip-item,
-.display-product,
-.theme-product,
-.theme-card,
-[data-product-id],
-[data-item-id],
-[class*="product-item"],
-[class*="product-card"],
-[class*="product-holder"],
-.product-grid > div,
-.products-grid > div,
-.product-list > div,
-.products-list > div,
+#page-section-collection .card-wrapper:not(.sl-carousel-track *):not([data-sl-rail="done"] *),
+[data-section-key="collection"] .card-wrapper:not(.sl-carousel-track *):not([data-sl-rail="done"] *),
+div.card-wrapper.product-card-wrapper:not(.sl-carousel-track *):not([data-sl-rail="done"] *),
+.card-wrapper.product-card-wrapper:not(.sl-carousel-track *):not([data-sl-rail="done"] *),
+.product-card-wrapper:not(.sl-carousel-track *):not([data-sl-rail="done"] *),
+.card-wrapper:not(.sl-carousel-track *):not([data-sl-rail="done"] *),
+.product-item:not(.sl-carousel-track *):not([data-sl-rail="done"] *),
+.payhip-collection-product-item:not(.sl-carousel-track *):not([data-sl-rail="done"] *),
+.payhip-product-item:not(.sl-carousel-track *):not([data-sl-rail="done"] *),
+.product-card:not(.sl-carousel-track *):not([data-sl-rail="done"] *),
+.product-wrap:not(.sl-carousel-track *):not([data-sl-rail="done"] *),
+.product-holder:not(.sl-carousel-track *):not([data-sl-rail="done"] *),
+.payhip-product:not(.sl-carousel-track *):not([data-sl-rail="done"] *),
+.payhip-item:not(.sl-carousel-track *):not([data-sl-rail="done"] *),
+.display-product:not(.sl-carousel-track *):not([data-sl-rail="done"] *),
+.theme-product:not(.sl-carousel-track *):not([data-sl-rail="done"] *),
+.theme-card:not(.sl-carousel-track *):not([data-sl-rail="done"] *),
+[data-product-id]:not(.sl-carousel-track *):not([data-sl-rail="done"] *),
+[data-item-id]:not(.sl-carousel-track *):not([data-sl-rail="done"] *),
+[class*="product-item"]:not(.sl-carousel-track *):not([data-sl-rail="done"] *),
+[class*="product-card"]:not(.sl-carousel-track *):not([data-sl-rail="done"] *),
+[class*="product-holder"]:not(.sl-carousel-track *):not([data-sl-rail="done"] *),
+.product-grid > div:not(.sl-carousel-track *):not([data-sl-rail="done"] *),
+.products-grid > div:not(.sl-carousel-track *):not([data-sl-rail="done"] *),
+.product-list > div:not(.sl-carousel-track *):not([data-sl-rail="done"] *),
+.products-list > div:not(.sl-carousel-track *):not([data-sl-rail="done"] *),
 .collection-products > div:not(.card-wrapper):not(.product-card):not(.sl-carousel-track):not(.sl-carousel-viewport):not(.sl-carousel-body):not([data-sl-rail="done"] *),
 .theme-tusk .grid > div:not(.card-wrapper):not(.product-card):not(.sl-carousel-track):not(.sl-carousel-viewport):not(.sl-carousel-body):not([data-sl-rail="done"] *),
 .theme-tusk .collection-products > div:not(.card-wrapper):not(.product-card):not(.sl-carousel-track):not(.sl-carousel-viewport):not(.sl-carousel-body):not([data-sl-rail="done"] *),
-[class*="products-grid"] > div,
-[class*="product-grid"] > div {
+[class*="products-grid"] > div:not(.sl-carousel-track *):not([data-sl-rail="done"] *),
+[class*="product-grid"] > div:not(.sl-carousel-track *):not([data-sl-rail="done"] *) {
   width: 100% !important;
   min-width: 0 !important;
   max-width: 100% !important;
@@ -1088,6 +1088,7 @@ div.card-wrapper.product-card-wrapper,
 .collection-products .card-wrapper,
 .grid-list .card-wrapper {
   flex: 0 0 280px !important;
+  width: 280px !important;
   min-width: 280px !important;
   max-width: 280px !important;
   scroll-snap-align: start !important;
@@ -2237,10 +2238,10 @@ html, body, a, button, input, select, textarea, [role="button"], * {
     justify-items: center !important;
   }
 
-  div.card-wrapper.product-card-wrapper,
-  .card-wrapper.product-card-wrapper,
-  .product-card-wrapper,
-  .product-card {
+  div.card-wrapper.product-card-wrapper:not(.sl-carousel-track *):not([data-sl-rail="done"] *),
+  .card-wrapper.product-card-wrapper:not(.sl-carousel-track *):not([data-sl-rail="done"] *),
+  .product-card-wrapper:not(.sl-carousel-track *):not([data-sl-rail="done"] *),
+  .product-card:not(.sl-carousel-track *):not([data-sl-rail="done"] *) {
     width: 100% !important;
     max-width: 100% !important;
     margin: 0 auto !important;
@@ -2853,6 +2854,7 @@ h2.section-title,
   align-items: stretch !important;
   width: max-content !important;
   min-width: 100% !important;
+  flex-shrink: 0 !important;
   animation: sonarlineInfiniteRail 35s linear infinite !important;
   will-change: transform !important;
   gap: 16px !important;
@@ -2895,7 +2897,15 @@ h2.section-title,
 .theme-tusk .sl-carousel-track > *,
 .theme-tusk .sl-carousel-track .card-wrapper,
 .theme-tusk .sl-carousel-track .product-card,
-.theme-tusk .collection-products > * {
+.theme-tusk .collection-products > *,
+#page-section-collection .sl-carousel-track div.card-wrapper.product-card-wrapper,
+[data-section-key="collection"] .sl-carousel-track div.card-wrapper.product-card-wrapper,
+.sl-carousel-track div.card-wrapper.product-card-wrapper,
+.sl-carousel-track .card-wrapper.product-card-wrapper,
+.sl-carousel-track .product-card-wrapper,
+[data-sl-rail="done"] div.card-wrapper.product-card-wrapper,
+[data-sl-rail="done"] .card-wrapper.product-card-wrapper,
+[data-sl-rail="done"] .product-card-wrapper {
   flex: 0 0 280px !important;
   width: 280px !important;
   min-width: 280px !important;
