@@ -3499,69 +3499,6 @@ div.card-wrapper.product-card-wrapper.sonarline-card--highlighted,
   font-size: 0.6rem !important;
   opacity: 0.7 !important;
 }
-.sonarline-filter-search-wrap {
-  display: inline-flex !important;
-  align-items: center !important;
-  gap: 2px !important;
-  padding: 2px 4px 2px 12px !important;
-  border-radius: 4px !important;
-  background: rgba(255, 255, 255, 0.03) !important;
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
-  transition: border-color 0.18s ease !important;
-  box-sizing: border-box !important;
-}
-.sonarline-filter-search-wrap:focus-within {
-  border-color: #FF2A2A !important;
-}
-.sonarline-filter-search {
-  background: transparent !important;
-  border: none !important;
-  outline: none !important;
-  box-shadow: none !important;
-  color: #ffffff !important;
-  font-family: 'Space Mono', monospace !important;
-  font-size: 0.68rem !important;
-  font-weight: 700 !important;
-  letter-spacing: 0.1em !important;
-  text-transform: uppercase !important;
-  width: 170px !important;
-  max-width: 44vw !important;
-  padding: 5px 4px !important;
-  margin: 0 !important;
-}
-.sonarline-filter-search::placeholder {
-  color: #555555 !important;
-  opacity: 1 !important;
-}
-.sonarline-filter-clear {
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  width: 22px !important;
-  height: 22px !important;
-  background: transparent !important;
-  border: none !important;
-  color: #666666 !important;
-  font-size: 0.9rem !important;
-  line-height: 1 !important;
-  cursor: none !important;
-  padding: 0 !important;
-  transition: color 0.15s ease !important;
-}
-.sonarline-filter-clear:hover {
-  color: #FF2A2A !important;
-}
-.sonarline-filter-readout {
-  color: #666666 !important;
-  font-size: 0.62rem !important;
-  letter-spacing: 0.14em !important;
-  text-transform: uppercase !important;
-  white-space: nowrap !important;
-  margin-left: 8px !important;
-}
-.sonarline-filter-readout.is-empty {
-  color: #FF2A2A !important;
-}
 .card-wrapper.is-filtered-out,
 .product-card.is-filtered-out {
   display: none !important;
