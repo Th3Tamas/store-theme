@@ -247,6 +247,13 @@
 - **Refined Price Tag**: Reduced font size to `0.72rem` Space Mono, eliminated nested pill backgrounds/borders across `.price-block`, `.price`, `.price__container`, etc., enforced the zero-glow mandate (no drop-shadows, glow halos, or layered blur effects), and isolated right-aligned flexbox to the `.sonarline-card-price-wrap` container so nested price text/sale items retain natural layout.
 - **Removed `!` Buttons**: Completely removed product preview exclamation badges (`.sonarline-card-info-badge { display: none !important; }` and purged all instances from DOM).
 
+### [2026-09-21 - Release 16]
+- **Firefox Gecko Single-Row Track Hard-Override & Unification**:
+  - Scoped all 28 global card selectors in CSS lines 1016–1046 (`#page-section-collection .card-wrapper`, `div.card-wrapper.product-card-wrapper`, `.product-card-wrapper`, etc.) and mobile 480px media queries with `:not(.sl-carousel-track *):not([data-sl-rail="done"] *)`, permanently stopping `width: 100% !important` and `flex: 1 1 auto !important` leaks into carousel cards.
+  - Added `flex-shrink: 0 !important;` to `.sl-carousel-track` in both stylesheets and dynamic injection to prevent Gecko flex-item shrinking.
+  - Implemented script-level track unification in `buildCarousel()`: filters top-level cards (preventing nested card detachment) and unwraps any intermediate Payhip `.grid-list` or row wrappers so that all cards (original and cloned) are guaranteed direct siblings of `.sl-carousel-track`.
+  - Added high-specificity dimension locks (`div.card-wrapper.product-card-wrapper`, `width: 280px !important`, `flex: 0 0 280px !important`) to ensure cards never wrap into a 4-column multi-row grid on Firefox.
+
 ### [2026-09-21 - Release 15]
 - **Removed Product Image Hover Zoom**: Completely removed `transform: scale(1.03)` and animation on card hover across `storewide-store-pages-custom.css`, `CAROUSEL_CSS`, and `injectImmediateStyles()` in `storewide-header-html-js-code-injection.html`. Enforced `transform: none !important;` across all product card image selectors, ensuring product images remain completely static when hovered while the whole card lift (`translateY(-6px)`) and border enhancement remain active.
 
