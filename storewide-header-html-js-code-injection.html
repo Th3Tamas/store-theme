@@ -855,7 +855,7 @@
             'align-items: center !important;' +
             'justify-content: center !important;' +
             'font-size: 0.8rem !important;' +
-            'cursor: pointer !important;' +
+            'cursor: none !important;' +
             'flex-shrink: 0 !important;' +
             'transition: transform 0.15s ease, background-color 0.15s ease !important;' +
           '}' +
@@ -877,7 +877,7 @@
             'background: rgba(255, 255, 255, 0.1) !important;' +
             'border-radius: 2px !important;' +
             'position: relative !important;' +
-            'cursor: pointer !important;' +
+            'cursor: none !important;' +
             'overflow: hidden !important;' +
           '}' +
           '.sonarline-deck-scrub-fill {' +
@@ -899,7 +899,7 @@
           '.sonarline-deck-vol {' +
             'width: 70px !important;' +
             'accent-color: #FF3B30 !important;' +
-            'cursor: pointer !important;' +
+            'cursor: none !important;' +
             'height: 4px !important;' +
           '}' +
           '.sonarline-deck-expand {' +
@@ -911,7 +911,7 @@
             'font-size: 0.64rem !important;' +
             'font-weight: 700 !important;' +
             'padding: 4px 10px !important;' +
-            'cursor: pointer !important;' +
+            'cursor: none !important;' +
             'letter-spacing: 0.08em !important;' +
             'text-transform: uppercase !important;' +
             'transition: all 0.15s ease !important;' +
@@ -927,7 +927,7 @@
             'color: #666666 !important;' +
             'font-size: 1.2rem !important;' +
             'line-height: 1 !important;' +
-            'cursor: pointer !important;' +
+            'cursor: none !important;' +
             'padding: 4px !important;' +
             'display: flex !important;' +
             'align-items: center !important;' +
@@ -1134,7 +1134,7 @@
             'align-items: center !important;' +
             'justify-content: center !important;' +
             'font-size: 0.8rem !important;' +
-            'cursor: pointer !important;' +
+            'cursor: none !important;' +
             'flex-shrink: 0 !important;' +
             'transition: transform 0.15s ease, background-color 0.15s ease !important;' +
           '}' +
@@ -1156,7 +1156,7 @@
             'background: rgba(255, 255, 255, 0.1) !important;' +
             'border-radius: 2px !important;' +
             'position: relative !important;' +
-            'cursor: pointer !important;' +
+            'cursor: none !important;' +
             'overflow: hidden !important;' +
           '}' +
           '.sonarline-deck-scrub-fill {' +
@@ -1178,7 +1178,7 @@
           '.sonarline-deck-vol {' +
             'width: 70px !important;' +
             'accent-color: #FF3B30 !important;' +
-            'cursor: pointer !important;' +
+            'cursor: none !important;' +
             'height: 4px !important;' +
           '}' +
           '.sonarline-deck-expand {' +
@@ -1190,7 +1190,7 @@
             'font-size: 0.64rem !important;' +
             'font-weight: 700 !important;' +
             'padding: 4px 10px !important;' +
-            'cursor: pointer !important;' +
+            'cursor: none !important;' +
             'letter-spacing: 0.08em !important;' +
             'text-transform: uppercase !important;' +
             'transition: all 0.15s ease !important;' +
@@ -1206,7 +1206,7 @@
             'color: #666666 !important;' +
             'font-size: 1.2rem !important;' +
             'line-height: 1 !important;' +
-            'cursor: pointer !important;' +
+            'cursor: none !important;' +
             'padding: 4px !important;' +
             'display: flex !important;' +
             'align-items: center !important;' +
@@ -2645,25 +2645,30 @@
     var CAROUSEL_CSS = [
       '.section-collection, [data-section-key="collection"], #page-section-collection, .sl-carousel-wrapper, [data-sl-rail="done"] { position: relative !important; width: 100vw !important; max-width: 100vw !important; left: 50% !important; right: 50% !important; margin-left: -50vw !important; margin-right: -50vw !important; background: #0a0a0a !important; box-sizing: border-box !important; padding: 0 !important; border-top: 1px solid rgba(255,255,255,0.08) !important; border-bottom: 1px solid rgba(255,255,255,0.08) !important; overflow: clip !important; }',
       '.sl-carousel-viewport, [data-sl-rail="done"] .sl-rail-viewport { position: relative !important; width: 100% !important; max-width: 100vw !important; overflow: hidden !important; mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent) !important; -webkit-mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent) !important; touch-action: pan-y !important; user-select: none !important; -webkit-user-select: none !important; }',
-      '.sonarline-carousel-header, .sl-carousel-header { background: #121212 !important; border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important; padding: 12px 48px !important; width: 100% !important; max-width: 100% !important; margin: 0 !important; display: flex !important; justify-content: space-between !important; align-items: center !important; box-sizing: border-box !important; cursor: pointer !important; user-select: none !important; -webkit-user-select: none !important; }',
+      '.sonarline-carousel-header, .sl-carousel-header { background: #121212 !important; border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important; padding: 12px 48px !important; width: 100% !important; max-width: 100% !important; margin: 0 !important; display: flex !important; justify-content: space-between !important; align-items: center !important; box-sizing: border-box !important; cursor: none !important; user-select: none !important; -webkit-user-select: none !important; }',
       '.sl-carousel-header.is-collapsed { opacity: 0.85 !important; }',
-      '[data-sl-collapsed="true"] .sl-carousel-body { display: none !important; }',
+      '.sl-collapse-glyph { display: inline-flex !important; align-items: center !important; justify-content: center !important; margin-left: 10px !important; font-size: 0.8rem !important; color: rgba(255, 255, 255, 0.6) !important; transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1) !important; }',
+      '.sl-carousel-header.is-collapsed .sl-collapse-glyph { transform: rotate(-90deg) !important; }',
       '.sl-dot, .sl-carousel-header-left .sl-dot { display: inline-block !important; width: 6px !important; height: 6px !important; background: #FF2A2A !important; border-radius: 50% !important; box-shadow: 0 0 8px #FF2A2A !important; margin-right: 8px !important; flex-shrink: 0 !important; vertical-align: middle !important; animation: slSlowBlink 2.5s ease-in-out infinite !important; }',
       '.sonarline-carousel-title .sl-dot, .sl-carousel-header-left .sl-dot { width: 6px !important; height: 6px !important; background: #FF2A2A !important; border-radius: 50% !important; animation: slSlowBlink 2.5s ease-in-out infinite !important; }',
       '@keyframes slSlowBlink { 0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 10px #FF2A2A; } 50% { opacity: 0.35; transform: scale(0.92); box-shadow: 0 0 2px #FF2A2A; } }',
       '@keyframes slRadarSweep { 0% { transform: scale(1); opacity: 0.9; } 100% { transform: scale(3.5); opacity: 0; } }',
       '.sonarline-carousel-title, .sl-carousel-header-left { font-family: var(--font-mono, \'Space Mono\', monospace) !important; font-size: 11px !important; letter-spacing: 0.15em !important; text-transform: uppercase !important; color: #FF2A2A !important; text-shadow: 0 0 8px rgba(255, 42, 42, 0.45) !important; font-weight: 700 !important; display: inline-flex !important; align-items: center !important; gap: 8px !important; }',
       '.sl-carousel-header-right { display: inline-flex !important; align-items: center !important; font-family: var(--font-mono, \'Space Mono\', monospace) !important; font-size: 11px !important; color: rgba(255, 255, 255, 0.6) !important; letter-spacing: 0.12em !important; text-transform: uppercase !important; }',
-      '.sl-carousel-body { position: relative !important; width: 100% !important; overflow: hidden !important; }',
+      '.sl-carousel-body { position: relative !important; width: 100% !important; overflow: hidden !important; max-height: 1600px !important; opacity: 1 !important; transition: max-height 0.55s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease !important; }',
+      '.sl-carousel-body.is-collapsed { max-height: 0 !important; opacity: 0 !important; }',
+      '.sl-carousel-body.is-collapsed .sl-carousel-track { animation-play-state: paused !important; }',
+      '#page-section-collection[data-sl-rail-off="true"] .grid-list, [data-section-key="collection"][data-sl-rail-off="true"] .grid-list, #page-section-collection[data-sl-rail-off="true"] .collection-products, [data-section-key="collection"][data-sl-rail-off="true"] .collection-products, #page-section-collection[data-sl-rail-off="true"] .products-wrapper, [data-section-key="collection"][data-sl-rail-off="true"] .products-wrapper { flex-wrap: wrap !important; width: 100% !important; max-width: 100% !important; overflow-x: visible !important; }',
+      '#page-section-collection[data-sl-rail-off="true"] [class*="product-list"], [data-section-key="collection"][data-sl-rail-off="true"] [class*="product-list"], #page-section-collection[data-sl-rail-off="true"] [class*="products-grid"], [data-section-key="collection"][data-sl-rail-off="true"] [class*="products-grid"], #page-section-collection[data-sl-rail-off="true"] [class*="product-grid"], [data-section-key="collection"][data-sl-rail-off="true"] [class*="product-grid"] { flex-wrap: wrap !important; width: 100% !important; max-width: 100% !important; overflow-x: visible !important; }',
       '@keyframes sonarlineInfiniteRail { 0% { transform: translate3d(0, 0, 0); } 100% { transform: translate3d(-50%, 0, 0); } }',
       'h2.heading-text, .heading-text.js-builder-heading-text, .heading-text, .js-builder-heading-text, h2.section-title, .collection-title, [class*="collection-title"], .collection-header h2, .section-collection > h2, .section-collection > .container > h2, .section-contents > h2.heading-text, [data-sl-rail="done"] .sl-rail-header, .sl-rail-header, .collection-products-count, [class*="products-count"], .collection-header { display: none !important; }',
       '/* Kill all grid rules and forced wrapping on the carousel track and wrappers */',
       '.section-collection .collection-products, .section-collection [class*="grid"], .sl-carousel-viewport, .sl-carousel-track, [data-sl-rail="done"] .collection-products, [data-sl-rail="done"] .sl-carousel-track, #page-section-collection .collection-products, #page-section-collection [class*="grid"], #page-section-collection .grid-list, #page-section-collection .grid, #page-section-collection .sl-carousel-viewport, #page-section-collection .sl-carousel-track, #page-section-collection[data-sl-rail="done"] .collection-products, #page-section-collection[data-sl-rail="done"] .sl-carousel-track, [data-section-key="collection"] .collection-products, [data-section-key="collection"] [class*="grid"], [data-section-key="collection"] .grid-list, [data-section-key="collection"] .grid, [data-section-key="collection"] .sl-carousel-viewport, [data-section-key="collection"] .sl-carousel-track, [data-section-key="collection"][data-sl-rail="done"] .collection-products, [data-section-key="collection"][data-sl-rail="done"] .sl-carousel-track, .theme-tusk .collection-products, .theme-tusk [class*="grid"], .theme-tusk .grid, .theme-tusk .grid-list, .theme-tusk .sl-carousel-track { display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important; grid-template-columns: none !important; grid-auto-flow: column !important; width: max-content !important; max-width: none !important; overflow-x: visible !important; }',
       '/* Force the outer viewport to clip and maintain full screen width */',
       '.sl-carousel-viewport, #page-section-collection .sl-carousel-viewport, [data-section-key="collection"] .sl-carousel-viewport, [data-sl-rail="done"] .sl-carousel-viewport { width: 100% !important; max-width: 100vw !important; overflow: hidden !important; position: relative !important; }',
-      '.sl-carousel-track, [data-sl-rail="done"] .sl-carousel-track, #page-section-collection[data-sl-rail="done"] .grid-list.js-grid-list.sl-rail-track, #page-section-collection[data-sl-rail="done"] .grid-list.sl-rail-track, #page-section-collection[data-sl-rail="done"] .sl-carousel-track, #page-section-collection .grid-list.sl-rail-track, #page-section-collection .sl-carousel-track, [data-section-key="collection"] .grid-list.sl-rail-track, [data-section-key="collection"] .sl-carousel-track, [data-sl-rail="done"] .grid-list.js-grid-list.sl-rail-track, [data-sl-rail="done"] .grid-list.sl-rail-track { display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important; grid-template-columns: none !important; grid-auto-flow: column !important; align-items: stretch !important; width: max-content !important; min-width: 100% !important; flex-shrink: 0 !important; animation-name: sonarlineInfiniteRail !important; animation-duration: 35s !important; animation-timing-function: linear !important; animation-iteration-count: infinite !important; will-change: transform !important; gap: 16px !important; padding: 28px 0 !important; margin: 0 !important; box-sizing: border-box !important; cursor: grab !important; user-select: none !important; -webkit-user-select: none !important; }',
+      '.sl-carousel-track, [data-sl-rail="done"] .sl-carousel-track, #page-section-collection[data-sl-rail="done"] .grid-list.js-grid-list.sl-rail-track, #page-section-collection[data-sl-rail="done"] .grid-list.sl-rail-track, #page-section-collection[data-sl-rail="done"] .sl-carousel-track, #page-section-collection .grid-list.sl-rail-track, #page-section-collection .sl-carousel-track, [data-section-key="collection"] .grid-list.sl-rail-track, [data-section-key="collection"] .sl-carousel-track, [data-sl-rail="done"] .grid-list.js-grid-list.sl-rail-track, [data-sl-rail="done"] .grid-list.sl-rail-track { display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important; grid-template-columns: none !important; grid-auto-flow: column !important; align-items: stretch !important; width: max-content !important; min-width: 100% !important; flex-shrink: 0 !important; animation-name: sonarlineInfiniteRail !important; animation-duration: 35s !important; animation-timing-function: linear !important; animation-iteration-count: infinite !important; will-change: transform !important; gap: 16px !important; padding: 28px 0 !important; margin: 0 !important; box-sizing: border-box !important; cursor: none !important; user-select: none !important; -webkit-user-select: none !important; }',
       '#page-section-collection .sl-carousel-track:hover, #page-section-collection:hover .sl-carousel-track, [data-section-key="collection"] .sl-carousel-track:hover, [data-section-key="collection"]:hover .sl-carousel-track, [data-sl-rail="done"] .sl-carousel-track:hover, [data-sl-rail="done"]:hover .sl-carousel-track, .sl-carousel-viewport:hover .sl-carousel-track, .sl-carousel-body:hover .sl-carousel-track, .sl-carousel-viewport:has(:hover) .sl-carousel-track, .sl-carousel-body:has(:hover) .sl-carousel-track, .sl-carousel-track:hover, .sl-carousel-track.is-hovered, .sl-carousel-track:has(:hover), .sl-carousel-track:has(.card-wrapper:hover), .sl-carousel-track:has(.product-card:hover) { animation-play-state: paused !important; }',
-      '.sl-carousel-track:active, .sl-carousel-track.is-dragging { cursor: grabbing !important; animation-play-state: paused !important; }',
+      '.sl-carousel-track:active, .sl-carousel-track.is-dragging { cursor: none !important; animation-play-state: paused !important; }',
       '.sl-carousel-track::-webkit-scrollbar, [data-sl-rail="done"] .grid-list::-webkit-scrollbar, .grid-list::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; }',
       '/* Lock each card\'s dimensions so Firefox never pushes them to a new line */',
       '.sl-carousel-track > *, .sl-carousel-track .card-wrapper, .sl-carousel-track .product-card, .collection-products > *, #page-section-collection .sl-carousel-track > *, #page-section-collection .sl-carousel-track .card-wrapper, #page-section-collection .sl-carousel-track .product-card, #page-section-collection .collection-products > *, #page-section-collection .card-wrapper, #page-section-collection .product-card, [data-section-key="collection"] .sl-carousel-track > *, [data-section-key="collection"] .sl-carousel-track .card-wrapper, [data-section-key="collection"] .sl-carousel-track .product-card, [data-section-key="collection"] .collection-products > *, [data-section-key="collection"] .card-wrapper, [data-section-key="collection"] .product-card, .theme-tusk .sl-carousel-track > *, .theme-tusk .sl-carousel-track .card-wrapper, .theme-tusk .sl-carousel-track .product-card, .theme-tusk .collection-products > *, #page-section-collection .sl-carousel-track div.card-wrapper.product-card-wrapper, [data-section-key="collection"] .sl-carousel-track div.card-wrapper.product-card-wrapper, .sl-carousel-track div.card-wrapper.product-card-wrapper, .sl-carousel-track .card-wrapper.product-card-wrapper, .sl-carousel-track .product-card-wrapper, [data-sl-rail="done"] div.card-wrapper.product-card-wrapper, [data-sl-rail="done"] .card-wrapper.product-card-wrapper, [data-sl-rail="done"] .product-card-wrapper { flex: 0 0 280px !important; width: 280px !important; min-width: 280px !important; max-width: 280px !important; display: flex !important; flex-direction: column !important; margin: 0 !important; }',
@@ -2706,6 +2711,117 @@
 
     var carousels = [];
 
+    // [[collection-rail: true]] gate: the infinite looping rail (+ header bar) applies ONLY when
+    // the section title carries an explicit true token (e.g. MOST WANTED [[collection-rail: true]]).
+    // Missing token or explicit false reverts the section to the default static grid (cards keep
+    // their Sonarline styling via cleanProductCards). Token is always stripped from visible text.
+    var RAIL_TAG_RE = /\[\[collection-rail:\s*(true|false)\s*\]\]/i;
+    var RAIL_TAG_RE_G = /\[\[collection-rail:\s*(true|false)\s*\]\]/gi;
+
+    function sonarlineRailGate(section) {
+      var out = { enabled: false, titleEl: null, title: 'MOST POPULAR' };
+      try {
+        if (!section) return out;
+        var t = section.querySelector('h2.heading-text, .js-builder-heading-text, .heading-text, h2.section-title, .collection-title, [class*="collection-title"], .collection-header h2');
+        if (!t) return out;
+        out.titleEl = t;
+        var raw = t.textContent || '';
+        var m = raw.match(RAIL_TAG_RE);
+        out.enabled = !!(m && m[1] && m[1].toLowerCase() === 'true');
+        var w = document.createTreeWalker(t, NodeFilter.SHOW_TEXT, null, false);
+        var n;
+        while ((n = w.nextNode())) {
+          if (n.nodeValue && RAIL_TAG_RE.test(n.nodeValue)) {
+            n.nodeValue = n.nodeValue.replace(RAIL_TAG_RE_G, '').trim();
+          }
+        }
+        var leafs = t.querySelectorAll('a, span');
+        for (var li = 0; li < leafs.length; li++) {
+          if (leafs[li].children.length === 0 && leafs[li].textContent && RAIL_TAG_RE.test(leafs[li].textContent)) {
+            leafs[li].textContent = leafs[li].textContent.replace(RAIL_TAG_RE_G, '').trim();
+          }
+        }
+        var cleaned = (t.textContent || '').trim();
+        out.title = cleaned ? cleaned.toUpperCase() : 'MOST POPULAR';
+      } catch (e) {}
+      return out;
+    }
+
+    // Teardown: restore a railed grid to the default static layout.
+    function teardownRail(grid, section, titleEl) {
+      try {
+        if (!grid) return;
+        var clones = grid.querySelectorAll('[data-sl-clone]');
+        for (var i = 0; i < clones.length; i++) {
+          if (clones[i].parentNode) clones[i].parentNode.removeChild(clones[i]);
+        }
+        var viewport = (grid.closest) ? grid.closest('.sl-carousel-viewport') : null;
+        var body = (grid.closest) ? grid.closest('.sl-carousel-body') : null;
+        if (viewport && viewport.parentNode) {
+          viewport.parentNode.insertBefore(grid, viewport);
+          if (viewport.parentNode) viewport.parentNode.removeChild(viewport);
+        }
+        if (body && body.parentNode && body.parentNode.contains(grid) === false) {
+          if (body.parentNode) body.parentNode.removeChild(body);
+        } else if (body && body.parentNode && grid.parentNode === body) {
+          body.parentNode.insertBefore(grid, body);
+          if (body.parentNode) body.parentNode.removeChild(body);
+        }
+        if (section) {
+          var header = section.querySelector('.sl-carousel-header, .sl-rail-header');
+          if (header && header.parentNode) header.parentNode.removeChild(header);
+        }
+        grid.removeAttribute('data-sl-carousel');
+        grid.classList.remove('sl-carousel-track', 'sl-rail-track');
+        var props = ['flex-direction', 'flex-wrap', 'grid-template-columns', 'grid-auto-flow', 'max-width', 'overflow-x', 'flex-shrink', 'animation', 'animation-name', 'animation-duration', 'animation-timing-function', 'animation-iteration-count', 'animation-delay', 'animation-play-state', 'transform', 'cursor', 'gap', 'will-change'];
+        for (var pi = 0; pi < props.length; pi++) {
+          try { grid.style.removeProperty(props[pi]); } catch (e) {}
+        }
+        grid.style.setProperty('display', 'flex', 'important');
+        grid.style.setProperty('width', '100%', 'important');
+        if (section) {
+          section.removeAttribute('data-sl-rail');
+          section.removeAttribute('data-sl-collapsed');
+          section.setAttribute('data-sl-rail-off', 'true');
+        }
+        // Reveal the native heading again for default grid mode (rail CSS hides it).
+        var nt = titleEl || (section ? section.querySelector('h2.heading-text, .js-builder-heading-text, .heading-text, h2.section-title, .collection-title, [class*="collection-title"], .collection-header h2') : null);
+        if (nt) {
+          try { nt.style.setProperty('display', 'block', 'important'); } catch (e) {}
+        }
+        // Drop stale carousel registry entries for this grid.
+        for (var c = carousels.length - 1; c >= 0; c--) {
+          if (carousels[c] && carousels[c].grid === grid) carousels.splice(c, 1);
+        }
+      } catch (e) {}
+    }
+
+    // Gate sync: revert any railed section whose title tag is now missing/false.
+    function syncRailGates() {
+      try {
+        var sections = document.querySelectorAll('#page-section-collection, [data-section-key="collection"]');
+        for (var s = 0; s < sections.length; s++) {
+          var sec = sections[s];
+          var g = sonarlineRailGate(sec);
+          if (!g.enabled) {
+            var railed = sec.querySelectorAll('.sl-carousel-track[data-sl-carousel="1"], .grid-list[data-sl-carousel="1"]');
+            for (var r = 0; r < railed.length; r++) {
+              teardownRail(railed[r], sec, g.titleEl);
+            }
+            // Reveal the native heading for default grid mode (rail CSS hides it).
+            if (g.titleEl) {
+              try { g.titleEl.style.setProperty('display', 'block', 'important'); } catch (e) {}
+            }
+            if (!sec.querySelector('.sl-carousel-track')) {
+              sec.setAttribute('data-sl-rail-off', 'true');
+            }
+          } else {
+            sec.removeAttribute('data-sl-rail-off');
+          }
+        }
+      } catch (e) {}
+    }
+
     function buildCarousel(grid) {
       if (!grid || grid.getAttribute('data-sl-carousel') === '1' || grid.closest('.sl-carousel-viewport') || grid.querySelector('.sl-carousel-viewport')) return;
       var rawCards = Array.from(grid.querySelectorAll('.card-wrapper:not([data-sl-clone]), .product-card:not([data-sl-clone])'));
@@ -2722,6 +2838,14 @@
       if (originalCards.length === 0) return;
 
       var section = grid.closest('#page-section-collection, [data-section-key="collection"]') || grid.parentNode;
+
+      // [[collection-rail]] gate: without an explicit true token, revert to the default static grid.
+      var gate = sonarlineRailGate(section);
+      if (!gate.enabled) {
+        teardownRail(grid, section, gate.titleEl);
+        return null;
+      }
+      if (section) section.removeAttribute('data-sl-rail-off');
 
       // Handle single product constraint
       if (originalCards.length === 1) {
@@ -2922,17 +3046,16 @@
       var oldHeader = section ? section.querySelector('.sl-carousel-header, .sl-rail-header') : null;
       if (oldHeader && oldHeader.parentNode) oldHeader.parentNode.removeChild(oldHeader);
 
-      var nativeTitleEl = section ? section.querySelector('h2.heading-text, .js-builder-heading-text, .heading-text, h2.section-title, .collection-title, [class*="collection-title"], .collection-header h2') : null;
-      var sectionTitle = 'MOST POPULAR';
-      if (nativeTitleEl && nativeTitleEl.textContent && nativeTitleEl.textContent.trim()) {
-        sectionTitle = nativeTitleEl.textContent.trim().toUpperCase();
+      var sectionTitle = (gate && gate.title) ? gate.title : 'MOST POPULAR';
+      if (gate && gate.titleEl) {
+        try { gate.titleEl.style.removeProperty('display'); } catch (e) {}
       }
 
       var header = document.createElement('div');
       header.className = 'sl-carousel-header';
-      header.innerHTML = 
+      header.innerHTML =
         '<div class="sl-carousel-header-left"><span class="sl-dot"></span><span class="sonarline-carousel-title">' + sectionTitle + '</span></div>' +
-        '<div class="sl-carousel-header-right"><span class="sl-carousel-count">' + originalCards.length + '</span>&nbsp;PRODUCTS</div>';
+        '<div class="sl-carousel-header-right"><span class="sl-carousel-count">' + originalCards.length + '</span>&nbsp;PRODUCTS<span class="sl-collapse-glyph">&#9662;</span></div>';
 
       // 3. Build Carousel Body with Viewport (Edge Fade Masks) - NO CHEVRONS
       var body = document.createElement('div');
@@ -2978,27 +3101,28 @@
         body.parentNode.insertBefore(header, body);
       }
 
-      // Collapsible rail: click (or Enter/Space) on the title bar toggles the track.
-      // Open by default; closes and reopens on demand.
+      // Collapsible rail: click (or Enter/Space) on the title bar smoothly collapses/expands the track.
+      // Open by default; the max-height/opacity transition in CSS provides the animation.
       try {
-        header.style.setProperty('cursor', 'pointer', 'important');
+        header.style.setProperty('cursor', 'none', 'important');
         header.setAttribute('role', 'button');
         header.setAttribute('tabindex', '0');
         header.setAttribute('aria-expanded', 'true');
         header.setAttribute('title', 'Toggle products');
         if (section) section.removeAttribute('data-sl-collapsed');
-        body.style.removeProperty('display');
+        body.classList.remove('is-collapsed');
+        header.classList.remove('is-collapsed');
         header.addEventListener('click', function() {
-          var isHidden = (body.style.display === 'none');
-          if (isHidden) {
-            body.style.removeProperty('display');
-            header.setAttribute('aria-expanded', 'true');
+          var collapsed = body.classList.contains('is-collapsed');
+          if (collapsed) {
+            body.classList.remove('is-collapsed');
             header.classList.remove('is-collapsed');
+            header.setAttribute('aria-expanded', 'true');
             if (section) section.removeAttribute('data-sl-collapsed');
           } else {
-            body.style.setProperty('display', 'none', 'important');
-            header.setAttribute('aria-expanded', 'false');
+            body.classList.add('is-collapsed');
             header.classList.add('is-collapsed');
+            header.setAttribute('aria-expanded', 'false');
             if (section) section.setAttribute('data-sl-collapsed', 'true');
           }
         });
@@ -3110,6 +3234,8 @@
 
     function initCarousel() {
       try {
+        // Revert sections whose [[collection-rail]] tag is missing/false before (re)building.
+        try { syncRailGates(); } catch (e) {}
         var candidates = document.querySelectorAll('.grid-list, .collection-products, [data-section-key="collection"] [class*="grid"], #page-section-collection [class*="grid"], .products-wrapper');
         for (var i = 0; i < candidates.length; i++) {
           try {
@@ -3272,7 +3398,7 @@
           '.hero-title,',
           '.title,',
           '#sonarline-glitch-title {',
-          '  cursor: default !important;',
+          '  cursor: none !important;',
           '}',
           '/* Base Layout Reset: Restore Collapsed DOM & Unblock Main Content */',
           '.content-main-wrapper {',
@@ -3698,7 +3824,7 @@
           '  color: #ffffff !important;',
           '  font-size: 1.2rem !important;',
           '  line-height: 1 !important;',
-          '  cursor: pointer !important;',
+          '  cursor: none !important;',
           '  display: flex !important;',
           '  align-items: center !important;',
           '  justify-content: center !important;',
@@ -3722,7 +3848,7 @@
           '  border: 1px solid rgba(255, 255, 255, 0.2) !important;',
           '  color: #ffffff !important;',
           '  font-size: 1.1rem !important;',
-          '  cursor: pointer !important;',
+          '  cursor: none !important;',
           '  display: flex !important;',
           '  align-items: center !important;',
           '  justify-content: center !important;',
@@ -3885,7 +4011,7 @@
           '  font-size: 0.72rem !important;',
           '  font-weight: 700 !important;',
           '  letter-spacing: 0.08em !important;',
-          '  cursor: pointer !important;',
+          '  cursor: none !important;',
           '  transition: background 0.15s ease, transform 0.1s ease !important;',
           '}',
           '.sonarline-audio-play-btn:hover {',
@@ -3908,13 +4034,13 @@
           '.sonarline-audio-volume {',
           '  width: 70px !important;',
           '  accent-color: #FF3B30 !important;',
-          '  cursor: pointer !important;',
+          '  cursor: none !important;',
           '}',
           '.sonarline-audio-track-wrap {',
           '  position: relative !important;',
           '  width: 100% !important;',
           '  height: 6px !important;',
-          '  cursor: pointer !important;',
+          '  cursor: none !important;',
           '}',
           '.sonarline-audio-track-bg {',
           '  position: absolute !important;',
@@ -3939,7 +4065,7 @@
           '  width: 100% !important;',
           '  height: 16px !important;',
           '  opacity: 0 !important;',
-          '  cursor: pointer !important;',
+          '  cursor: none !important;',
           '  margin: 0 !important;',
           '}',
           '.sonarline-modal-action-row {',
@@ -4367,7 +4493,7 @@
           '  margin: 0 auto !important;',
           '  border-radius: 9999px !important;',
           '  position: relative !important;',
-          '  cursor: pointer !important;',
+          '  cursor: none !important;',
           '}',
           '.sonarline-status-pill .sonarline-status-dot {',
           '  width: 7px !important;',
@@ -4386,7 +4512,7 @@
           '  display: inline-flex !important;',
           '  align-items: center !important;',
           '  gap: 10px !important;',
-          '  cursor: pointer !important;',
+          '  cursor: none !important;',
           '}',
           '@keyframes slSlowBlink {',
           '  0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 10px #FF2A2A; }',
@@ -5255,7 +5381,7 @@
     var initialized = false;
     var isHovered = false;
 
-    var interactiveSelector = 'a, button, input, textarea, select, [role="button"], [role="link"], [role="tab"], .sonarline-card-info-badge, .sonarline-card-quickplay, .sonarline-filter-pill, .sonarline-deck-scrub-wrap, .sonarline-deck-playbtn, .sonarline-deck-expand, .sonarline-deck-close, .card-wrapper, .product-card, .payhip-btn, .btn, .theme-btn, .clickable, [onclick], [data-filter-tag], label[for], .close, .modal-close';
+    var interactiveSelector = 'a, button, input, textarea, select, [role="button"], [role="link"], [role="tab"], .sonarline-card-info-badge, .sonarline-card-quickplay, .sonarline-filter-pill, .sonarline-deck-scrub-wrap, .sonarline-deck-playbtn, .sonarline-deck-expand, .sonarline-deck-close, .card-wrapper, .product-card, .payhip-btn, .btn, .theme-btn, .clickable, [onclick], [data-filter-tag], label[for], .close, .modal-close, .sl-carousel-header, .sl-carousel-track, .sonarline-modal-close, .sonarline-modal-nav, .sonarline-modal-cta, .sonarline-audio-play-btn';
 
     window.addEventListener('mousemove', function(e) {
       mouseX = e.clientX;

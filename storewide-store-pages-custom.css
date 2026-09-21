@@ -366,7 +366,7 @@ img[src*="mountain"],
   order: 1 !important;
   border-radius: 9999px !important;
   position: relative !important;
-  cursor: pointer !important;
+  cursor: none !important;
 }
 
 .sonarline-status-pill .sonarline-status-dot {
@@ -394,7 +394,7 @@ img[src*="mountain"],
   display: inline-flex !important;
   align-items: center !important;
   gap: 10px !important;
-  cursor: pointer !important;
+  cursor: none !important;
 }
 
 @keyframes slSlowBlink {
@@ -1515,7 +1515,7 @@ a.button:not(header *):not(.header *):not(.site-header *):not([data-section-key=
   letter-spacing: 0.12em !important;
   border-radius: 0px !important;
   padding: 12px 26px !important;
-  cursor: pointer !important;
+  cursor: none !important;
   transition: all 0.2s var(--ease-brutal) !important;
   text-decoration: none !important;
   outline: none !important;
@@ -2523,7 +2523,7 @@ body.sonarline-modal-open {
   color: #ffffff !important;
   font-size: 1.2rem !important;
   line-height: 1 !important;
-  cursor: pointer !important;
+  cursor: none !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
@@ -2549,7 +2549,7 @@ body.sonarline-modal-open {
   border: 1px solid rgba(255, 255, 255, 0.2) !important;
   color: #ffffff !important;
   font-size: 1.1rem !important;
-  cursor: pointer !important;
+  cursor: none !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
@@ -2737,7 +2737,7 @@ body.sonarline-modal-open {
   font-size: 0.72rem !important;
   font-weight: 700 !important;
   letter-spacing: 0.08em !important;
-  cursor: pointer !important;
+  cursor: none !important;
   transition: background 0.15s ease, transform 0.1s ease !important;
 }
 
@@ -2765,14 +2765,14 @@ body.sonarline-modal-open {
 .sonarline-audio-volume {
   width: 70px !important;
   accent-color: #FF3B30 !important;
-  cursor: pointer !important;
+  cursor: none !important;
 }
 
 .sonarline-audio-track-wrap {
   position: relative !important;
   width: 100% !important;
   height: 6px !important;
-  cursor: pointer !important;
+  cursor: none !important;
 }
 
 .sonarline-audio-track-bg {
@@ -2800,7 +2800,7 @@ body.sonarline-modal-open {
   width: 100% !important;
   height: 16px !important;
   opacity: 0 !important;
-  cursor: pointer !important;
+  cursor: none !important;
   margin: 0 !important;
 }
 
@@ -2918,7 +2918,7 @@ body.sonarline-modal-open {
   justify-content: space-between !important;
   align-items: center !important;
   box-sizing: border-box !important;
-  cursor: pointer !important;
+  cursor: none !important;
   user-select: none !important;
   -webkit-user-select: none !important;
 }
@@ -2996,11 +2996,60 @@ h2.section-title,
   display: none !important;
 }
 
-/* Infinite Looping Marquee Rail */
+/* Infinite Looping Marquee Rail (smooth collapsible via max-height/opacity) */
 .sl-carousel-body {
   position: relative !important;
   width: 100% !important;
   overflow: hidden !important;
+  max-height: 1600px !important;
+  opacity: 1 !important;
+  transition: max-height 0.55s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease !important;
+}
+
+.sl-carousel-body.is-collapsed {
+  max-height: 0 !important;
+  opacity: 0 !important;
+}
+
+.sl-carousel-body.is-collapsed .sl-carousel-track {
+  animation-play-state: paused !important;
+}
+
+.sl-carousel-header.is-collapsed {
+  opacity: 0.85 !important;
+}
+
+.sl-collapse-glyph {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin-left: 10px !important;
+  font-size: 0.8rem !important;
+  color: rgba(255, 255, 255, 0.6) !important;
+  transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.sl-carousel-header.is-collapsed .sl-collapse-glyph {
+  transform: rotate(-90deg) !important;
+}
+
+/* Rail-off default grid: static wrapped layout */
+#page-section-collection[data-sl-rail-off="true"] .grid-list,
+[data-section-key="collection"][data-sl-rail-off="true"] .grid-list,
+#page-section-collection[data-sl-rail-off="true"] .collection-products,
+[data-section-key="collection"][data-sl-rail-off="true"] .collection-products,
+#page-section-collection[data-sl-rail-off="true"] .products-wrapper,
+[data-section-key="collection"][data-sl-rail-off="true"] .products-wrapper,
+#page-section-collection[data-sl-rail-off="true"] [class*="product-list"],
+[data-section-key="collection"][data-sl-rail-off="true"] [class*="product-list"],
+#page-section-collection[data-sl-rail-off="true"] [class*="products-grid"],
+[data-section-key="collection"][data-sl-rail-off="true"] [class*="products-grid"],
+#page-section-collection[data-sl-rail-off="true"] [class*="product-grid"],
+[data-section-key="collection"][data-sl-rail-off="true"] [class*="product-grid"] {
+  flex-wrap: wrap !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow-x: visible !important;
 }
 
 @keyframes sonarlineInfiniteRail {
@@ -3086,7 +3135,7 @@ h2.section-title,
   padding: 28px 0 !important;
   margin: 0 !important;
   box-sizing: border-box !important;
-  cursor: grab !important;
+  cursor: none !important;
   user-select: none !important;
   -webkit-user-select: none !important;
 }
@@ -3111,7 +3160,7 @@ h2.section-title,
 
 .sl-carousel-track:active,
 .sl-carousel-track.is-dragging {
-  cursor: grabbing !important;
+  cursor: none !important;
   animation-play-state: paused !important;
 }
 
@@ -3332,7 +3381,7 @@ div.card-wrapper.product-card-wrapper.sonarline-card--highlighted,
   border-radius: 4px !important;
   overflow: hidden !important;
   margin-bottom: 6px !important;
-  cursor: pointer !important;
+  cursor: none !important;
 }
 .sonarline-waveform-canvas {
   width: 100% !important;
@@ -3357,7 +3406,7 @@ div.card-wrapper.product-card-wrapper.sonarline-card--highlighted,
   align-items: center !important;
   justify-content: center !important;
   font-size: 0.85rem !important;
-  cursor: pointer !important;
+  cursor: none !important;
   z-index: 15 !important;
   opacity: 0 !important;
   transform: scale(0.85) !important;
@@ -3425,7 +3474,7 @@ div.card-wrapper.product-card-wrapper.sonarline-card--highlighted,
   font-weight: 700 !important;
   letter-spacing: 0.1em !important;
   text-transform: uppercase !important;
-  cursor: pointer !important;
+  cursor: none !important;
   transition: all 0.18s ease !important;
   user-select: none !important;
 }
@@ -3573,7 +3622,7 @@ div.card-wrapper.product-card-wrapper.sonarline-card--highlighted,
   align-items: center !important;
   justify-content: center !important;
   font-size: 0.8rem !important;
-  cursor: pointer !important;
+  cursor: none !important;
   flex-shrink: 0 !important;
   transition: transform 0.15s ease, background-color 0.15s ease !important;
 }
@@ -3595,7 +3644,7 @@ div.card-wrapper.product-card-wrapper.sonarline-card--highlighted,
   background: rgba(255, 255, 255, 0.1) !important;
   border-radius: 2px !important;
   position: relative !important;
-  cursor: pointer !important;
+  cursor: none !important;
   overflow: hidden !important;
 }
 .sonarline-deck-scrub-fill {
@@ -3617,7 +3666,7 @@ div.card-wrapper.product-card-wrapper.sonarline-card--highlighted,
 .sonarline-deck-vol {
   width: 70px !important;
   accent-color: #FF3B30 !important;
-  cursor: pointer !important;
+  cursor: none !important;
   height: 4px !important;
 }
 .sonarline-deck-expand {
@@ -3629,7 +3678,7 @@ div.card-wrapper.product-card-wrapper.sonarline-card--highlighted,
   font-size: 0.64rem !important;
   font-weight: 700 !important;
   padding: 4px 10px !important;
-  cursor: pointer !important;
+  cursor: none !important;
   letter-spacing: 0.08em !important;
   text-transform: uppercase !important;
   transition: all 0.15s ease !important;
@@ -3645,7 +3694,7 @@ div.card-wrapper.product-card-wrapper.sonarline-card--highlighted,
   color: #666666 !important;
   font-size: 1.2rem !important;
   line-height: 1 !important;
-  cursor: pointer !important;
+  cursor: none !important;
   padding: 4px !important;
   display: flex !important;
   align-items: center !important;
