@@ -2715,34 +2715,54 @@
     // the section title carries an explicit true token (e.g. MOST WANTED [[collection-rail: true]]).
     // Missing token or explicit false reverts the section to the default static grid (cards keep
     // their Sonarline styling via cleanProductCards). Token is always stripped from visible text.
-    var RAIL_TAG_RE = /\[\[collection-rail:\s*(true|false)\s*\]\]/i;
-    var RAIL_TAG_RE_G = /\[\[collection-rail:\s*(true|false)\s*\]\]/gi;
+    var RAIL_TAG_RE = /\[\[\s*collection[\s\-–—]*rail\s*:\s*(true|false)\s*\]\]/i;
+    var RAIL_TAG_RE_G = /\[\[\s*collection[\s\-–—]*rail\s*:\s*(true|false)\s*\]\]/gi;
 
     function sonarlineRailGate(section) {
       var out = { enabled: false, titleEl: null, title: 'MOST POPULAR' };
       try {
         if (!section) return out;
         var t = section.querySelector('h2.heading-text, .js-builder-heading-text, .heading-text, h2.section-title, .collection-title, [class*="collection-title"], .collection-header h2');
+        if (!t) {
+          // Fallback: any heading-ish element outside cards carrying the token.
+          var cands = section.querySelectorAll('h1, h2, h3, .heading-text, [class*="title"]');
+          for (var ci = 0; ci < cands.length; ci++) {
+            var cand = cands[ci];
+            if (cand.closest && cand.closest('.card-wrapper, .product-card, .sl-carousel-track')) continue;
+            if (RAIL_TAG_RE.test(cand.textContent || '')) { t = cand; break; }
+          }
+        }
         if (!t) return out;
         out.titleEl = t;
         var raw = t.textContent || '';
         var m = raw.match(RAIL_TAG_RE);
-        out.enabled = !!(m && m[1] && m[1].toLowerCase() === 'true');
-        var w = document.createTreeWalker(t, NodeFilter.SHOW_TEXT, null, false);
-        var n;
-        while ((n = w.nextNode())) {
-          if (n.nodeValue && RAIL_TAG_RE.test(n.nodeValue)) {
-            n.nodeValue = n.nodeValue.replace(RAIL_TAG_RE_G, '').trim();
+        if (m && m[1] && m[1].toLowerCase() === 'true') {
+          // Rail ON. The native title stays CSS-hidden in rail mode, so the token MUST stay
+          // in the DOM as the persistent signal — stripping it here would make the next
+          // evaluation read "absent" and tear the rail back down. Only use a cleaned copy.
+          out.enabled = true;
+          var cleaned = raw.replace(RAIL_TAG_RE_G, '').trim();
+          out.title = cleaned ? cleaned.toUpperCase() : 'MOST POPULAR';
+        } else {
+          // Rail OFF (explicit false or absent): scrub the token so it never shows visibly
+          // in the revealed native heading, then report the cleaned title.
+          out.enabled = false;
+          var w = document.createTreeWalker(t, NodeFilter.SHOW_TEXT, null, false);
+          var n;
+          while ((n = w.nextNode())) {
+            if (n.nodeValue && RAIL_TAG_RE.test(n.nodeValue)) {
+              n.nodeValue = n.nodeValue.replace(RAIL_TAG_RE_G, '').trim();
+            }
           }
-        }
-        var leafs = t.querySelectorAll('a, span');
-        for (var li = 0; li < leafs.length; li++) {
-          if (leafs[li].children.length === 0 && leafs[li].textContent && RAIL_TAG_RE.test(leafs[li].textContent)) {
-            leafs[li].textContent = leafs[li].textContent.replace(RAIL_TAG_RE_G, '').trim();
+          var leafs = t.querySelectorAll('a, span');
+          for (var li = 0; li < leafs.length; li++) {
+            if (leafs[li].children.length === 0 && leafs[li].textContent && RAIL_TAG_RE.test(leafs[li].textContent)) {
+              leafs[li].textContent = leafs[li].textContent.replace(RAIL_TAG_RE_G, '').trim();
+            }
           }
+          var cleanedOff = (t.textContent || '').trim();
+          out.title = cleanedOff ? cleanedOff.toUpperCase() : 'MOST POPULAR';
         }
-        var cleaned = (t.textContent || '').trim();
-        out.title = cleaned ? cleaned.toUpperCase() : 'MOST POPULAR';
       } catch (e) {}
       return out;
     }
