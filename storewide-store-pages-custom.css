@@ -1575,7 +1575,20 @@ h4.card__heading,
 }
 
 /* 4. Product Prices: Monospace Clean Type Aligned Right */
-.sonarline-card-price-wrap,
+.sonarline-card-price-wrap {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  margin-left: auto !important;
+  flex: 0 0 auto !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  white-space: nowrap !important;
+}
+
+.sonarline-card-price-wrap *,
 .card-wrapper .price,
 .card-wrapper [class*="price"],
 .product-price,
@@ -1590,7 +1603,7 @@ h4.card__heading,
 [class*="product-price"],
 [class*="price"] {
   font-family: var(--font-mono, 'Space Mono', monospace) !important;
-  font-size: 0.75rem !important;
+  font-size: 0.72rem !important;
   font-weight: 700 !important;
   color: #ffffff !important;
   letter-spacing: 0.04em !important;
@@ -1606,6 +1619,8 @@ h4.card__heading,
   outline: none !important;
   background: transparent !important;
   text-align: right !important;
+  line-height: 1.2 !important;
+  white-space: nowrap !important;
 }
 
 .price__sale,
@@ -1840,12 +1855,12 @@ html body .card-wrapper .card__inner .media img {
   justify-content: center !important;
   padding: 3px 8px !important;
   border-radius: 9999px !important;
-  background: rgba(255, 255, 255, 0.05) !important;
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
-  color: #cccccc !important;
-  font-family: var(--font-mono, monospace) !important;
-  font-size: 0.62rem !important;
-  font-weight: 600 !important;
+  background: rgba(255, 255, 255, 0.06) !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  color: #ffffff !important;
+  font-family: var(--font-mono, 'Space Mono', monospace) !important;
+  font-size: 0.7rem !important;
+  font-weight: 700 !important;
   letter-spacing: 0.08em !important;
   text-transform: uppercase !important;
   line-height: 1.2 !important;
@@ -1861,7 +1876,7 @@ html body .card-wrapper .card__inner .media img {
 
 /* Price Tag: Clean Monospace Aligned Right (Zero Layering / Glow) */
 .sonarline-card-price-wrap {
-  display: flex !important;
+  display: inline-flex !important;
   align-items: center !important;
   justify-content: flex-end !important;
   margin-left: auto !important;
@@ -1870,6 +1885,7 @@ html body .card-wrapper .card__inner .media img {
   border: none !important;
   box-shadow: none !important;
   padding: 0 !important;
+  white-space: nowrap !important;
 }
 
 .sonarline-card-price-wrap *,
@@ -1888,7 +1904,14 @@ html body .card-wrapper .card__inner .media img {
   backdrop-filter: none !important;
   background: transparent !important;
   border-radius: 0 !important;
-  font-size: 0.75rem !important;
+  font-family: var(--font-mono, 'Space Mono', monospace) !important;
+  font-size: 0.72rem !important;
+  font-weight: 700 !important;
+  color: #ffffff !important;
+  letter-spacing: 0.04em !important;
+  text-transform: uppercase !important;
+  line-height: 1.2 !important;
+  white-space: nowrap !important;
 }
 
 /* 7. Native Marquee Ticker Hairline Divider Accents (Cascade Winner) */
@@ -2638,13 +2661,22 @@ body.sonarline-modal-open {
   font-weight: 700 !important;
   letter-spacing: 0.1em !important;
 }
-[data-sl-rail="done"] .sonarline-card-price-wrap,
-[data-sl-rail="done"] .sonarline-card-price-wrap .price,
-[data-sl-rail="done"] .sonarline-card-price-wrap .price-block,
-[data-sl-rail="done"] .sonarline-card-price-wrap [class*="price"] {
+[data-sl-rail="done"] .sonarline-card-price-wrap {
   display: inline-flex !important;
   align-items: center !important;
   justify-content: flex-end !important;
+  margin-left: auto !important;
+  flex: 0 0 auto !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  white-space: nowrap !important;
+}
+[data-sl-rail="done"] .sonarline-card-price-wrap *,
+[data-sl-rail="done"] .sonarline-card-price-wrap .price,
+[data-sl-rail="done"] .sonarline-card-price-wrap .price-block,
+[data-sl-rail="done"] .sonarline-card-price-wrap [class*="price"] {
   padding: 0 !important;
   border-radius: 0 !important;
   background: transparent !important;
@@ -2655,7 +2687,11 @@ body.sonarline-modal-open {
   backdrop-filter: none !important;
   color: #ffffff !important;
   font-family: var(--font-mono, 'Space Mono', monospace) !important;
-  font-size: 0.75rem !important;
+  font-size: 0.72rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.04em !important;
+  text-transform: uppercase !important;
+  line-height: 1.2 !important;
   white-space: nowrap !important;
 }
 @media (max-width: 640px) {
