@@ -2323,7 +2323,7 @@ html, body, a, button, input, select, textarea, [role="button"], * {
   border-radius: 50% !important;
   pointer-events: none !important;
   z-index: 2147483646 !important;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.55) !important;
+  mix-blend-mode: difference !important;
   transform: translate3d(-100px, -100px, 0);
   transition: width 0.22s cubic-bezier(0.16, 1, 0.3, 1), height 0.22s cubic-bezier(0.16, 1, 0.3, 1), margin 0.22s cubic-bezier(0.16, 1, 0.3, 1) !important;
   will-change: transform, width, height, margin !important;
@@ -2350,7 +2350,7 @@ html, body, a, button, input, select, textarea, [role="button"], * {
   border-radius: 50% !important;
   pointer-events: none !important;
   z-index: 2147483645 !important;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35) !important;
+  mix-blend-mode: difference !important;
   transform: translate3d(-100px, -100px, 0);
   transition: width 0.22s cubic-bezier(0.16, 1, 0.3, 1), height 0.22s cubic-bezier(0.16, 1, 0.3, 1), margin 0.22s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease, transform 0.04s linear !important;
   will-change: transform, width, height, margin !important;
@@ -2917,11 +2917,26 @@ body.sonarline-modal-open {
   width: 100% !important;
   max-width: 100vw !important;
   overflow: hidden !important;
-  mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent) !important;
-  -webkit-mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent) !important;
   touch-action: pan-y !important;
   user-select: none !important;
   -webkit-user-select: none !important;
+}
+
+.sl-carousel-fade {
+  position: absolute !important;
+  top: 0 !important;
+  bottom: 0 !important;
+  width: 96px !important;
+  z-index: 5 !important;
+  pointer-events: none !important;
+}
+.sl-carousel-fade-left {
+  left: 0 !important;
+  background: linear-gradient(to right, #0a0a0a 0%, rgba(10, 10, 10, 0) 100%) !important;
+}
+.sl-carousel-fade-right {
+  right: 0 !important;
+  background: linear-gradient(to left, #0a0a0a 0%, rgba(10, 10, 10, 0) 100%) !important;
 }
 
 /* Two-Tone Section Header Strip (click toggles the rail below; open by default) */
@@ -3173,13 +3188,6 @@ h2.section-title,
 .sl-carousel-track.is-dragging {
   cursor: none !important;
   animation-play-state: paused !important;
-}
-
-/* Offscreen rail cards skip rendering (progressive enhancement; ignored where unsupported) */
-.sl-carousel-track > .card-wrapper,
-.sl-carousel-track > .product-card {
-  content-visibility: auto !important;
-  contain-intrinsic-size: 280px 430px !important;
 }
 
 /* Lock each card's dimensions so Firefox never pushes them to a new line */
