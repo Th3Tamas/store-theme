@@ -364,18 +364,95 @@ img[src*="mountain"],
   border: 1px solid rgba(255, 59, 48, 0.45) !important;
   padding: 5px 16px !important;
   order: 1 !important;
+  border-radius: 9999px !important;
+  position: relative !important;
+  cursor: pointer !important;
 }
 
 .sonarline-status-pill .sonarline-status-dot {
   display: inline-block !important;
-  width: 6px !important;
-  height: 6px !important;
-  background: #ff3b30 !important;
-  box-shadow: 0 0 10px #ff3b30 !important;
+  width: 7px !important;
+  height: 7px !important;
+  background: #FF2A2A !important;
+  border-radius: 50% !important;
+  box-shadow: 0 0 10px #FF2A2A !important;
+  animation: slSlowBlink 2.5s ease-in-out infinite !important;
+  position: relative !important;
 }
 
 .sonarline-status-pill .sonarline-status-sep {
   color: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* HUD Status Badge: rounded pill, slow blink dot + hover radar sweep */
+.hero-terminal-status,
+.sl-hud-badge,
+[class*="status-box"] {
+  border-radius: 9999px !important;
+  padding: 6px 18px !important;
+  position: relative !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  cursor: pointer !important;
+}
+
+@keyframes slSlowBlink {
+  0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 10px #FF2A2A; }
+  50% { opacity: 0.35; transform: scale(0.92); box-shadow: 0 0 2px #FF2A2A; }
+}
+
+.sl-hud-dot {
+  width: 7px !important;
+  height: 7px !important;
+  background: #FF2A2A !important;
+  border-radius: 50% !important;
+  animation: slSlowBlink 2.5s ease-in-out infinite !important;
+  position: relative !important;
+}
+
+.sl-hud-dot::after {
+  content: '' !important;
+  position: absolute !important;
+  inset: -2px !important;
+  border: 1.5px solid #FF2A2A !important;
+  border-radius: 50% !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+@keyframes slRadarSweep {
+  0% { transform: scale(1); opacity: 0.9; }
+  100% { transform: scale(3.5); opacity: 0; }
+}
+
+.hero-terminal-status:hover .sl-hud-dot::after,
+.sl-hud-badge:hover .sl-hud-dot::after {
+  animation: slRadarSweep 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) infinite !important;
+}
+
+.sonarline-status-pill:hover .sonarline-status-dot::after {
+  animation: slRadarSweep 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) infinite !important;
+}
+
+.sonarline-status-pill .sonarline-status-dot::after {
+  content: '' !important;
+  position: absolute !important;
+  inset: -2px !important;
+  border: 1.5px solid #FF2A2A !important;
+  border-radius: 50% !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Purged hero hoist containers: never render above title */
+.sl-hero-tags,
+.hero-top-tags {
+  display: none !important;
+  visibility: hidden !important;
+  height: 0 !important;
+  overflow: hidden !important;
+  pointer-events: none !important;
 }
 
 /* Native Title: Space Grotesk, Clamp size, Bold, Uppercase */
@@ -2838,6 +2915,16 @@ body.sonarline-modal-open {
   margin-right: 8px !important;
   flex-shrink: 0 !important;
   vertical-align: middle !important;
+  animation: slSlowBlink 2.5s ease-in-out infinite !important;
+}
+
+.sonarline-carousel-title .sl-dot,
+.sl-carousel-header-left .sl-dot {
+  width: 6px !important;
+  height: 6px !important;
+  background: #FF2A2A !important;
+  border-radius: 50% !important;
+  animation: slSlowBlink 2.5s ease-in-out infinite !important;
 }
 
 /* Dynamic Header Title: Crimson Red with subtle glow */
