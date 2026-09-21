@@ -227,6 +227,16 @@
 
 ## 10. Changelog & Revision History
 
+### [2026-09-21 - Release 10]
+- **Horizontal Carousel Conversion**: Transformed the static collection grid into an interactive, brutalist horizontal slider/carousel matching the Atrum Lab reference design. Converted track to a single-row flex container (`overflow-x: auto; scroll-snap-type: x mandatory; gap: 16px; padding: 24px 48px;`) with WebKit scrollbars hidden.
+- **Fixed Card Widths & Edge Peek**: Constrained collection cards to `flex: 0 0 280px !important; min-width: 280px !important; max-width: 280px !important; scroll-snap-align: start !important;` ensuring adjacent cards peek gracefully from screen edges.
+- **Dynamic Highlight Shortcode (`[[highlighted: true/false]]`)**: Removed all hardcoded active card border rules and automated center-detection (`highlightCenter`). Added dynamic CMS shortcode parser: cards containing `[[highlighted: true]]` receive `.sonarline-card--highlighted` with electric red border (`#FF3B30`) and glow (`0 0 12px rgba(255, 59, 48, 0.25)`), while cards with `false` or omitted tokens retain subtle wireframe borders (`rgba(255, 255, 255, 0.08)`). Tokens are scrubbed from visible titles, links, and descriptions.
+- **Edge Fade Masks**: Applied CSS linear-gradient masks to `.sl-carousel-viewport` (`mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);`) for smooth card fading at viewport boundaries.
+- **Brutalist Chevrons & Scroll Triggers**: Injected sleek circular `<` and `>` chevron buttons flanking the carousel track with smooth scroll increments (`grid.scrollBy({ left: direction * 300, behavior: 'smooth' })`) and boundary auto-dimming.
+- **Kinetic Mouse Dragging**: Implemented mouse click-and-drag scrolling with momentum physics, kinetic deceleration friction (`velocity *= 0.92`), temporary scroll-snap suspension during drag, and accidental click suppression.
+- **Wheel Scrolling Support**: Mapped vertical wheel events over the carousel track to horizontal scrolling with boundary passthrough so normal page scroll resumes once edges are reached.
+- **Technical Section Header**: Injected technical header above the carousel displaying `:: MOST POPULAR` (with crimson red `::`) and dynamic real-time product counter (e.g. `X PRODUCTS`).
+
 ### [2026-09-21 - Release 9]
 - **Fixed Single Product Layout**: Constrained single product cards to `max-width: 340px !important; margin: 40px auto !important;` with centered flex container, preventing single products from stretching across the full 1200px container into massive squares.
 - **Removed Native Collection Header**: Hidden Payhip's native collection title and product count text (`.collection-title, .collection-products-count, [class*="collection-title"], [class*="products-count"], .collection-header, .sl-rail-header`) to eliminate "MOST POPULAR2 products" clutter.

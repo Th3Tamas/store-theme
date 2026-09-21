@@ -1763,13 +1763,15 @@
     }
 
     function sonarlineParseShortcodes(htmlText) {
-      var out = { tag: '', audio: '' };
+      var out = { tag: '', audio: '', highlighted: null };
       if (!htmlText) return out;
       try {
         var t = htmlText.match(/\[\[tag:\s*([\s\S]*?)\]\]/i);
         if (t) out.tag = (t[1] || '').trim();
         var a = htmlText.match(/\[\[audio:\s*([\s\S]*?)\]\]/i);
         if (a) out.audio = (a[1] || '').trim();
+        var h = htmlText.match(/\[\[highlighted:\s*(true|false)\]\]/i);
+        if (h) out.highlighted = (h[1].toLowerCase() === 'true');
       } catch (e) {}
       return out;
     }
@@ -1785,6 +1787,14 @@
           if (pill && !pill.textContent.trim()) {
             pill.textContent = data.tag;
             pill.style.setProperty('display', 'inline-flex', 'important');
+          }
+        }
+        if (typeof data.highlighted === 'boolean') {
+          card.setAttribute('data-highlighted', data.highlighted ? 'true' : 'false');
+          if (data.highlighted) {
+            card.classList.add('sonarline-card--highlighted');
+          } else {
+            card.classList.remove('sonarline-card--highlighted');
           }
         }
       } catch (e) {}
@@ -1835,7 +1845,7 @@
       } catch (e) {}
     }
 
-    // Product pages (Issue 3): strip raw [[tag:]] / [[audio:]] tokens from
+    // Product pages (Issue 3): strip raw [[tag:]] / [[audio:]] / [[highlighted:]] tokens from
     // .product-description so CMS shortcodes never render as plain text.
     function sonarlineScrubProductDescriptions() {
       try {
@@ -1844,8 +1854,12 @@
           var walker = document.createTreeWalker(descs[d], NodeFilter.SHOW_TEXT, null, false);
           var node;
           while ((node = walker.nextNode())) {
-            if (node.nodeValue && /\[\[(tag|audio):/i.test(node.nodeValue)) {
-              node.nodeValue = node.nodeValue.replace(/\[\[tag:\s*[\s\S]*?\]\]/gi, '').replace(/\[\[audio:\s*[\s\S]*?\]\]/gi, '').trim();
+            if (node.nodeValue && /\[\[(tag|audio|highlighted):/i.test(node.nodeValue)) {
+              node.nodeValue = node.nodeValue
+                .replace(/\[\[tag:\s*[\s\S]*?\]\]/gi, '')
+                .replace(/\[\[audio:\s*[\s\S]*?\]\]/gi, '')
+                .replace(/\[\[highlighted:\s*(true|false)\]\]/gi, '')
+                .trim();
             }
           }
         }
@@ -1954,6 +1968,51 @@
                 }
               }
             }
+          }
+
+          // Parse [[highlighted: true/false]] shortcode
+          var isHighlighted = null;
+          // 1. Check title for [[highlighted: true/false]]
+          if (titleEl) {
+            var rawTitleHl = titleEl.textContent || titleEl.innerText || '';
+            var hlMatch = rawTitleHl.match(/\[\[highlighted:\s*(true|false)\]\]/i);
+            if (hlMatch) {
+              isHighlighted = (hlMatch[1].toLowerCase() === 'true');
+              card.setAttribute('data-highlighted', isHighlighted ? 'true' : 'false');
+              var hlLinks = titleEl.querySelectorAll('a');
+              if (hlLinks.length > 0) {
+                for (var hl = 0; hl < hlLinks.length; hl++) {
+                  hlLinks[hl].textContent = (hlLinks[hl].textContent || '').replace(/\[\[highlighted:\s*(true|false)\]\]/gi, '').trim();
+                }
+              } else {
+                titleEl.textContent = (titleEl.textContent || '').replace(/\[\[highlighted:\s*(true|false)\]\]/gi, '').trim();
+              }
+            }
+          }
+
+          // 2. Check card body if not in title
+          if (isHighlighted === null) {
+            var cardRawHl = card.textContent || '';
+            var hlMatch2 = cardRawHl.match(/\[\[highlighted:\s*(true|false)\]\]/i);
+            if (hlMatch2) {
+              isHighlighted = (hlMatch2[1].toLowerCase() === 'true');
+              card.setAttribute('data-highlighted', isHighlighted ? 'true' : 'false');
+              var hlWalker = document.createTreeWalker(card, NodeFilter.SHOW_TEXT, null, false);
+              var hlNode;
+              while ((hlNode = hlWalker.nextNode())) {
+                if (hlNode.nodeValue && /\[\[highlighted:/i.test(hlNode.nodeValue)) {
+                  hlNode.nodeValue = hlNode.nodeValue.replace(/\[\[highlighted:\s*(true|false)\]\]/gi, '').trim();
+                }
+              }
+            }
+          }
+
+          // 3. Apply or remove highlighted class
+          var curHl = card.getAttribute('data-highlighted');
+          if (curHl === 'true') {
+            card.classList.add('sonarline-card--highlighted');
+          } else {
+            card.classList.remove('sonarline-card--highlighted');
           }
 
           // Build or update two-row metadata container
@@ -2238,31 +2297,31 @@
   })();
 
   // ==========================================================================
-  // Product Rail ("Most Popular" looping marquee)
-  // All collection grids sitewide. Right-to-left auto-scroll (rAF) +
-  // manual drag/swipe. Scoped via [data-sl-rail="done"] so each converted
-  // grid is wrapped exactly once.
-  // NOTE: pushing to git is not enough — paste this whole file into
-  // Payhip's storewide header injection slot for the JS to go live.
+  // Interactive Brutalist Horizontal Carousel Slider Engine
+  // Transforms collection grids into an interactive horizontal slider/carousel
+  // with edge fade masks, brutalist chevrons (< and >), kinetic drag physics,
+  // dynamic technical section header, and [[highlighted: true/false]] support.
   // ==========================================================================
   (function() {
-    var RAIL_CSS = [
-      '#page-section-collection[data-sl-rail="done"] .grid-list.js-grid-list.sl-rail-track,',
-      '#page-section-collection[data-sl-rail="done"] .grid-list.sl-rail-track,',
-      '#page-section-collection .grid-list.sl-rail-track,',
-      '[data-section-key="collection"] .grid-list.sl-rail-track,',
-      '[data-sl-rail="done"] .grid-list.js-grid-list.sl-rail-track,',
-      '[data-sl-rail="done"] .grid-list.sl-rail-track { display: flex !important; flex-wrap: nowrap !important; align-items: stretch !important; gap: 20px !important; grid-template-columns: none !important; width: max-content !important; max-width: none !important; margin: 0 !important; padding: 4px 24px 4px 0 !important; box-sizing: border-box !important; will-change: transform !important; }',
-      '[data-sl-rail="done"] { max-width: none !important; background: #080808 !important; border-top: 1px solid rgba(255,255,255,0.08) !important; border-bottom: 1px solid rgba(255,255,255,0.08) !important; padding: 0 0 8px !important; overflow: clip !important; }',
+    var CAROUSEL_CSS = [
+      '.sl-carousel-wrapper, [data-sl-rail="done"] { position: relative !important; width: 100% !important; box-sizing: border-box !important; padding: 16px 0 32px 0 !important; background: #080808 !important; border-top: 1px solid rgba(255,255,255,0.08) !important; border-bottom: 1px solid rgba(255,255,255,0.08) !important; overflow: clip !important; }',
+      '.sl-carousel-viewport, [data-sl-rail="done"] .sl-rail-viewport { position: relative !important; width: 100% !important; max-width: 100vw !important; overflow: hidden !important; mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent) !important; -webkit-mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent) !important; touch-action: pan-y !important; user-select: none !important; -webkit-user-select: none !important; }',
+      '.sl-carousel-header { display: flex !important; justify-content: space-between !important; align-items: center !important; width: 100% !important; max-width: 1200px !important; margin: 0 auto 12px auto !important; padding: 0 48px !important; box-sizing: border-box !important; font-family: var(--font-mono, \'Space Mono\', monospace) !important; font-size: 0.8rem !important; font-weight: 700 !important; letter-spacing: 0.1em !important; text-transform: uppercase !important; color: #ffffff !important; }',
+      '.sl-carousel-header-left { display: inline-flex !important; align-items: center !important; gap: 4px !important; color: #ffffff !important; }',
+      '.sl-carousel-header-left .sl-carousel-colon { color: #FF3B30 !important; margin-right: 4px !important; font-weight: 700 !important; }',
+      '.sl-carousel-header-right { display: inline-flex !important; align-items: center !important; font-size: 0.72rem !important; color: rgba(255, 255, 255, 0.6) !important; letter-spacing: 0.08em !important; text-transform: uppercase !important; }',
+      '.sl-carousel-body { position: relative !important; width: 100% !important; }',
+      '.sl-carousel-chevron { position: absolute !important; top: 50% !important; transform: translateY(-50%) !important; z-index: 20 !important; width: 42px !important; height: 42px !important; background: rgba(12, 12, 12, 0.85) !important; backdrop-filter: blur(8px) !important; -webkit-backdrop-filter: blur(8px) !important; border: 1px solid rgba(255, 255, 255, 0.15) !important; border-radius: 50% !important; color: #ffffff !important; font-family: var(--font-mono, \'Space Mono\', monospace) !important; font-size: 1.1rem !important; font-weight: 700 !important; display: flex !important; align-items: center !important; justify-content: center !important; cursor: pointer !important; transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease, transform 0.2s ease, opacity 0.2s ease !important; user-select: none !important; -webkit-user-select: none !important; outline: none !important; padding: 0 !important; line-height: 1 !important; }',
+      '.sl-carousel-chevron:hover { border-color: #FF3B30 !important; color: #FF3B30 !important; background: rgba(20, 20, 20, 0.95) !important; transform: translateY(-50%) scale(1.08) !important; }',
+      '.sl-carousel-chevron.sl-carousel-prev { left: 16px !important; }',
+      '.sl-carousel-chevron.sl-carousel-next { right: 16px !important; }',
+      '.sl-carousel-chevron.is-disabled { opacity: 0.25 !important; pointer-events: none !important; border-color: rgba(255, 255, 255, 0.05) !important; }',
       '[data-sl-rail="done"] .sl-rail-header, .sl-rail-header, .collection-title, .collection-products-count, [class*="collection-title"], [class*="products-count"], .collection-header { display: none !important; }',
-      '[data-sl-rail="done"] .sl-rail-viewport { position: relative !important; overflow: hidden !important; width: 100% !important; max-width: 100vw !important; padding: 24px 24px 32px !important; box-sizing: border-box !important; touch-action: pan-y !important; user-select: none !important; -webkit-user-select: none !important; }',
-      '[data-sl-rail="done"] .sl-rail-viewport.sl-rail-dragging { touch-action: none !important; }',
-      '[data-sl-rail="done"] .sl-rail-viewport::before, [data-sl-rail="done"] .sl-rail-viewport::after { content: \'\' !important; position: absolute !important; top: 0 !important; bottom: 0 !important; width: 72px !important; z-index: 3 !important; pointer-events: none !important; }',
-      '[data-sl-rail="done"] .sl-rail-viewport::before { left: 0 !important; background: linear-gradient(to right, #080808 0%, rgba(8,8,8,0) 100%) !important; }',
-      '[data-sl-rail="done"] .sl-rail-viewport::after { right: 0 !important; background: linear-gradient(to left, #080808 0%, rgba(8,8,8,0) 100%) !important; }',
-      '[data-sl-rail="done"] .card-wrapper.product-card-wrapper, [data-sl-rail="done"] .card-wrapper, [data-sl-rail="done"] .product-card, .card-wrapper, .product-card { flex: 0 0 auto !important; width: 280px !important; min-width: 280px !important; max-width: 280px !important; background: #0f0f0f !important; border: 1px solid rgba(255,255,255,0.08) !important; border-radius: 8px !important; overflow: hidden !important; transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease !important; }',
+      '#page-section-collection[data-sl-rail="done"] .grid-list.js-grid-list.sl-rail-track, #page-section-collection[data-sl-rail="done"] .grid-list.sl-rail-track, #page-section-collection .grid-list.sl-rail-track, [data-section-key="collection"] .grid-list.sl-rail-track, [data-sl-rail="done"] .grid-list.js-grid-list.sl-rail-track, [data-sl-rail="done"] .grid-list.sl-rail-track, .sl-carousel-track { display: flex !important; flex-wrap: nowrap !important; overflow-x: auto !important; scroll-snap-type: x mandatory !important; gap: 16px !important; scrollbar-width: none !important; -ms-overflow-style: none !important; padding: 24px 48px !important; box-sizing: border-box !important; width: 100% !important; margin: 0 !important; scroll-behavior: smooth !important; -webkit-overflow-scrolling: touch !important; }',
+      '.sl-carousel-track::-webkit-scrollbar, [data-sl-rail="done"] .grid-list::-webkit-scrollbar, .grid-list::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; }',
+      '[data-sl-rail="done"] .card-wrapper.product-card-wrapper, [data-sl-rail="done"] .card-wrapper, [data-sl-rail="done"] .product-card, .card-wrapper, .product-card { flex: 0 0 280px !important; width: 280px !important; min-width: 280px !important; max-width: 280px !important; scroll-snap-align: start !important; background: #0f0f0f !important; border: 1px solid rgba(255,255,255,0.08) !important; border-radius: 8px !important; overflow: hidden !important; transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease !important; }',
       '[data-sl-rail="done"] .card-wrapper:hover, [data-sl-rail="done"] .product-card:hover, .card-wrapper:hover, .product-card:hover { transform: translateY(-6px) !important; border-color: rgba(255, 255, 255, 0.6) !important; }',
-      '[data-sl-rail="done"] .card-wrapper.product-card-wrapper.is-active { border-color: rgba(255,42,42,0.9) !important; box-shadow: 0 0 24px rgba(255,42,42,0.35), 0 12px 35px rgba(0,0,0,0.6) !important; }',
+      '[data-sl-rail="done"] .card-wrapper.product-card-wrapper.sonarline-card--highlighted, [data-sl-rail="done"] .card-wrapper.sonarline-card--highlighted, [data-sl-rail="done"] .product-card.sonarline-card--highlighted, div.card-wrapper.product-card-wrapper.sonarline-card--highlighted, .card-wrapper.product-card-wrapper.sonarline-card--highlighted, .card-wrapper.sonarline-card--highlighted, .product-card.sonarline-card--highlighted, .sonarline-card--highlighted { border: 1px solid #FF3B30 !important; border-color: #FF3B30 !important; box-shadow: 0 0 12px rgba(255, 59, 48, 0.25) !important; }',
       '.sonarline-card-metadata { padding: 0 !important; margin: 0 !important; display: flex !important; flex-direction: column !important; gap: 10px !important; flex-grow: 1 !important; box-sizing: border-box !important; background: transparent !important; border: none !important; width: 100% !important; justify-content: space-between !important; }',
       '.sonarline-card-info-badge { display: none !important; }',
       '.sonarline-card-tag-pill { display: inline-flex !important; align-items: center !important; justify-content: center !important; padding: 3px 8px !important; border-radius: 9999px !important; background: rgba(255, 255, 255, 0.06) !important; border: 1px solid rgba(255, 255, 255, 0.18) !important; color: #ffffff !important; font-family: var(--font-mono, \'Space Mono\', monospace) !important; font-size: 0.7rem !important; font-weight: 700 !important; letter-spacing: 0.08em !important; text-transform: uppercase !important; line-height: 1.2 !important; white-space: nowrap !important; max-width: none !important; flex-shrink: 0 !important; box-sizing: border-box !important; }',
@@ -2270,66 +2329,29 @@
       '.sonarline-card-price-wrap *, [data-sl-rail="done"] .sonarline-card-price-wrap * { font-family: var(--font-mono, \'Space Mono\', monospace) !important; font-size: 0.72rem !important; font-weight: 700 !important; color: #ffffff !important; letter-spacing: 0.04em !important; text-transform: uppercase !important; margin: 0 !important; padding: 0 !important; border: none !important; box-shadow: none !important; text-shadow: none !important; filter: none !important; backdrop-filter: none !important; background: transparent !important; border-radius: 0 !important; white-space: nowrap !important; line-height: 1.2 !important; }',
       '.grid-list:has(> .card-wrapper:only-of-type) .card-wrapper, .grid-list:has(> .product-card:only-of-type) .product-card, .grid-list > .card-wrapper:only-of-type, .grid-list > .product-card:only-of-type, [data-single-product="true"] .card-wrapper, [data-single-product="true"] .product-card, .card-wrapper.sl-single-product, .product-card.sl-single-product { max-width: 340px !important; width: 100% !important; margin: 40px auto !important; float: none !important; }',
       '.grid-list:has(> .card-wrapper:only-of-type), .grid-list:has(> .product-card:only-of-type), [data-single-product="true"] .grid-list { display: flex !important; justify-content: center !important; grid-template-columns: none !important; }',
-      '@media (max-width: 640px) { [data-sl-rail="done"] .card-wrapper.product-card-wrapper, [data-sl-rail="done"] .card-wrapper, [data-sl-rail="done"] .product-card { width: 220px !important; min-width: 220px !important; max-width: 220px !important; } #page-section-collection .grid-list.sl-rail-track, [data-sl-rail="done"] .grid-list.js-grid-list.sl-rail-track, [data-sl-rail="done"] .grid-list.sl-rail-track { gap: 14px !important; } }'
+      '@media (max-width: 640px) { [data-sl-rail="done"] .card-wrapper.product-card-wrapper, [data-sl-rail="done"] .card-wrapper, [data-sl-rail="done"] .product-card { width: 220px !important; min-width: 220px !important; max-width: 220px !important; } #page-section-collection .grid-list.sl-rail-track, [data-sl-rail="done"] .grid-list.js-grid-list.sl-rail-track, [data-sl-rail="done"] .grid-list.sl-rail-track, .sl-carousel-track { gap: 14px !important; padding: 16px 20px !important; } .sl-carousel-header { padding: 0 20px !important; } .sl-carousel-chevron { width: 34px !important; height: 34px !important; font-size: 0.95rem !important; } .sl-carousel-chevron.sl-carousel-prev { left: 6px !important; } .sl-carousel-chevron.sl-carousel-next { right: 6px !important; } }'
     ].join('\n');
 
-    function ensureRailCss() {
-      if (document.getElementById('sl-rail-styles')) return;
+    function ensureCarouselCss() {
+      if (document.getElementById('sl-carousel-styles')) return;
       var st = document.createElement('style');
-      st.id = 'sl-rail-styles';
-      st.textContent = RAIL_CSS;
+      st.id = 'sl-carousel-styles';
+      st.textContent = CAROUSEL_CSS;
       (document.head || document.documentElement).appendChild(st);
     }
 
-    var rails = [];
+    var carousels = [];
 
-    function mirrorClones(rail) {
-      try {
-        for (var i = 0; i < rail.clones.length; i++) {
-          var cl = rail.clones[i];
-          var src = rail.originals[cl.getAttribute('data-sl-clone-index') % rail.originals.length];
-          if (!src) continue;
-          if (cl.getAttribute('data-sonarline-sync') !== 'queued') cl.setAttribute('data-sonarline-sync', 'queued');
-          var srcAudio = src.getAttribute('data-audio-src');
-          if (srcAudio && cl.getAttribute('data-audio-src') !== srcAudio) cl.setAttribute('data-audio-src', srcAudio);
-          var srcPill = src.querySelector('.sonarline-card-tag-pill');
-          var clPill = cl.querySelector('.sonarline-card-tag-pill');
-          if (srcPill && clPill && clPill.textContent !== srcPill.textContent) {
-            clPill.textContent = srcPill.textContent;
-            clPill.style.setProperty('display', srcPill.textContent.trim() ? 'inline-flex' : 'none', 'important');
-          }
-        }
-      } catch (e) {}
-    }
+    function buildCarousel(grid) {
+      if (!grid || grid.getAttribute('data-sl-carousel') === '1') return;
+      var cards = grid.querySelectorAll('.card-wrapper, .product-card');
+      if (cards.length === 0) return;
 
-    function highlightCenter(rail) {
-      try {
-        var vpRect = rail.viewport.getBoundingClientRect();
-        var center = vpRect.left + vpRect.width / 2;
-        var best = null, bestDist = Infinity;
-        var cards = rail.track.querySelectorAll('.card-wrapper, .product-card');
-        for (var i = 0; i < cards.length; i++) {
-          var r = cards[i].getBoundingClientRect();
-          var d = Math.abs((r.left + r.width / 2) - center);
-          if (d < bestDist) { bestDist = d; best = cards[i]; }
-        }
-        if (best && best !== rail.active) {
-          if (rail.active) rail.active.classList.remove('is-active');
-          best.classList.add('is-active');
-          rail.active = best;
-        }
-      } catch (e) {}
-    }
+      var section = grid.closest('#page-section-collection, [data-section-key="collection"]') || grid.parentNode;
 
-    function buildRail(grid) {
-      if (!grid || grid.getAttribute('data-sl-rail-track') === '1') return;
-      var originals = [];
-      var all = grid.querySelectorAll('.card-wrapper, .product-card');
-      for (var i = 0; i < all.length; i++) {
-        if (!all[i].hasAttribute('data-sl-clone')) originals.push(all[i]);
-      }
-      if (originals.length === 1) {
-        var singleCard = originals[0];
+      // Handle single product constraint
+      if (cards.length === 1) {
+        var singleCard = cards[0];
         singleCard.classList.add('sl-single-product');
         singleCard.style.setProperty('max-width', '340px', 'important');
         singleCard.style.setProperty('margin', '40px auto', 'important');
@@ -2338,165 +2360,212 @@
           p.style.setProperty('display', 'flex', 'important');
           p.style.setProperty('justify-content', 'center', 'important');
         }
-        var sec = grid.closest('#page-section-collection, [data-section-key="collection"]') || grid.parentNode;
-        if (sec) sec.setAttribute('data-single-product', 'true');
+        if (section) section.setAttribute('data-single-product', 'true');
         return;
       }
-      if (originals.length < 2) return;
-      var section = grid.closest('#page-section-collection, [data-section-key="collection"]') || grid.parentNode;
-      if (section.hasAttribute('data-sl-rail')) return;
 
-      ensureRailCss();
-      section.setAttribute('data-sl-rail', 'done');
-      grid.setAttribute('data-sl-rail-track', '1');
-      grid.classList.add('sl-rail-track');
+      ensureCarouselCss();
+      if (section) section.setAttribute('data-sl-rail', 'done');
+      grid.setAttribute('data-sl-carousel', '1');
+      grid.classList.add('sl-carousel-track');
 
-      var oldHeader = document.querySelector('.sl-rail-header');
+      // 1. Build Technical Section Header (Left: :: MOST POPULAR | Right: Dynamic Counter)
+      var oldHeader = section ? section.querySelector('.sl-carousel-header, .sl-rail-header') : null;
       if (oldHeader && oldHeader.parentNode) oldHeader.parentNode.removeChild(oldHeader);
 
+      var header = document.createElement('div');
+      header.className = 'sl-carousel-header';
+      header.innerHTML = 
+        '<div class="sl-carousel-header-left"><span class="sl-carousel-colon">::</span>MOST POPULAR</div>' +
+        '<div class="sl-carousel-header-right"><span class="sl-carousel-count">' + cards.length + '</span>&nbsp;PRODUCTS</div>';
+
+      // 2. Build Carousel Body with Viewport (Edge Fade Masks) and Brutalist Chevrons
+      var body = document.createElement('div');
+      body.className = 'sl-carousel-body';
+
+      var prevBtn = document.createElement('button');
+      prevBtn.type = 'button';
+      prevBtn.className = 'sl-carousel-chevron sl-carousel-prev';
+      prevBtn.setAttribute('aria-label', 'Previous products');
+      prevBtn.innerHTML = '&lt;';
+
+      var nextBtn = document.createElement('button');
+      nextBtn.type = 'button';
+      nextBtn.className = 'sl-carousel-chevron sl-carousel-next';
+      nextBtn.setAttribute('aria-label', 'Next products');
+      nextBtn.innerHTML = '&gt;';
+
       var viewport = document.createElement('div');
-      viewport.className = 'sl-rail-viewport';
-      grid.parentNode.insertBefore(viewport, grid);
+      viewport.className = 'sl-carousel-viewport';
+
+      // Assemble DOM hierarchy
+      grid.parentNode.insertBefore(body, grid);
+      body.appendChild(prevBtn);
+      body.appendChild(viewport);
+      body.appendChild(nextBtn);
       viewport.appendChild(grid);
 
-      var sets = originals.length < 4 ? 3 : 1;
-      var clones = [];
-      for (var s = 0; s < sets; s++) {
-        for (var c = 0; c < originals.length; c++) {
-          var cl = originals[c].cloneNode(true);
-          cl.setAttribute('data-sl-clone', '1');
-          cl.setAttribute('data-sl-clone-index', String(c));
-          cl.setAttribute('data-sonarline-sync', 'queued');
-          cl.setAttribute('aria-hidden', 'true');
-          var ids = cl.querySelectorAll('[id]');
-          for (var k = 0; k < ids.length; k++) ids[k].removeAttribute('id');
-          cl.removeAttribute('id');
-          grid.appendChild(cl);
-          clones.push(cl);
-        }
+      if (body.parentNode) {
+        body.parentNode.insertBefore(header, body);
       }
 
-      var rail = {
-        grid: grid, track: grid, viewport: viewport, section: section,
-        originals: originals, clones: clones, sets: sets + 1,
-        x: 0, setWidth: 0, dragging: false, hovering: false,
-        dragStartX: 0, dragStartScroll: 0, moved: false, resumeAt: 0, active: null
-      };
+      // 3. Chevron Scroll Triggers
+      prevBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        grid.scrollBy({ left: -300, behavior: 'smooth' });
+      });
 
-      function measure() {
+      nextBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        grid.scrollBy({ left: 300, behavior: 'smooth' });
+      });
+
+      // 4. Update Arrow Disabled States
+      function updateArrows() {
         try {
-          var total = rail.track.scrollWidth;
-          rail.setWidth = total / rail.sets;
+          var maxScroll = grid.scrollWidth - grid.clientWidth;
+          if (maxScroll <= 5) {
+            prevBtn.classList.add('is-disabled');
+            nextBtn.classList.add('is-disabled');
+            return;
+          }
+          prevBtn.classList.toggle('is-disabled', grid.scrollLeft <= 5);
+          nextBtn.classList.toggle('is-disabled', grid.scrollLeft >= maxScroll - 5);
         } catch (e) {}
       }
-      rail.measure = measure;
-      measure();
 
+      grid.addEventListener('scroll', updateArrows, { passive: true });
+      window.addEventListener('resize', updateArrows, { passive: true });
+      updateArrows();
+
+      // 5. Click-and-Drag Mouse Scrolling with Kinetic Deceleration
+      var isDown = false;
+      var startX = 0;
+      var scrollLeftStart = 0;
+      var velocity = 0;
+      var lastX = 0;
+      var lastTime = 0;
+      var rafId = null;
+      var hasMoved = false;
+
+      grid.addEventListener('mousedown', function(e) {
+        if (e.button !== 0) return;
+        isDown = true;
+        hasMoved = false;
+        startX = e.pageX - grid.offsetLeft;
+        scrollLeftStart = grid.scrollLeft;
+        lastX = e.pageX;
+        lastTime = performance.now();
+        velocity = 0;
+        if (rafId) cancelAnimationFrame(rafId);
+        grid.classList.add('is-dragging');
+        grid.style.setProperty('scroll-snap-type', 'none', 'important');
+        grid.style.setProperty('scroll-behavior', 'auto', 'important');
+      });
+
+      window.addEventListener('mousemove', function(e) {
+        if (!isDown) return;
+        var x = e.pageX - grid.offsetLeft;
+        var walk = x - startX;
+        if (Math.abs(walk) > 4) {
+          hasMoved = true;
+        }
+        grid.scrollLeft = scrollLeftStart - walk;
+
+        var now = performance.now();
+        var dt = now - lastTime;
+        if (dt > 0) {
+          velocity = (lastX - e.pageX) / dt;
+        }
+        lastX = e.pageX;
+        lastTime = now;
+      });
+
+      function endDrag() {
+        if (!isDown) return;
+        isDown = false;
+        grid.classList.remove('is-dragging');
+
+        function applyMomentum() {
+          if (Math.abs(velocity) > 0.05) {
+            grid.scrollLeft += velocity * 16;
+            velocity *= 0.92;
+            rafId = requestAnimationFrame(applyMomentum);
+          } else {
+            grid.style.setProperty('scroll-snap-type', 'x mandatory', 'important');
+            grid.style.setProperty('scroll-behavior', 'smooth', 'important');
+            updateArrows();
+          }
+        }
+        applyMomentum();
+      }
+
+      window.addEventListener('mouseup', endDrag);
+
+      // Prevent accidental card navigation click after active drag
       grid.addEventListener('click', function(e) {
-        var badge = e.target.closest ? e.target.closest('.sonarline-card-info-badge') : null;
-        if (!badge) return;
-        var card = badge.closest ? badge.closest('.card-wrapper, .product-card') : null;
-        if (card && card.hasAttribute('data-sl-clone')) {
+        if (hasMoved) {
           e.preventDefault();
           e.stopPropagation();
-          if (typeof window.openProductModal === 'function') window.openProductModal(card);
+          hasMoved = false;
         }
-      });
-
-      viewport.addEventListener('pointerdown', function(e) {
-        if (e.button !== undefined && e.button !== 0) return;
-        rail.dragging = true;
-        rail.moved = false;
-        rail.dragStartX = e.clientX;
-        rail.dragStartScroll = rail.x;
-        viewport.classList.add('sl-rail-dragging');
-        try { viewport.setPointerCapture(e.pointerId); } catch (err) {}
-      });
-      viewport.addEventListener('pointermove', function(e) {
-        if (!rail.dragging) return;
-        var dx = e.clientX - rail.dragStartX;
-        if (Math.abs(dx) > 6) rail.moved = true;
-        rail.x = rail.dragStartScroll - dx;
-        if (rail.setWidth > 0) rail.x = ((rail.x % rail.setWidth) + rail.setWidth) % rail.setWidth;
-        rail.track.style.transform = 'translate3d(' + (-rail.x) + 'px, 0, 0)';
-      }, { passive: true });
-      function endDrag() {
-        if (!rail.dragging) return;
-        rail.dragging = false;
-        rail.resumeAt = Date.now() + 2000;
-        viewport.classList.remove('sl-rail-dragging');
-      }
-      viewport.addEventListener('pointerup', endDrag);
-      viewport.addEventListener('pointercancel', endDrag);
-      viewport.addEventListener('mouseenter', function() { rail.hovering = true; });
-      viewport.addEventListener('mouseleave', function() { rail.hovering = false; endDrag(); });
-      viewport.addEventListener('pointerenter', function() { rail.hovering = true; });
-      viewport.addEventListener('pointerleave', function() { rail.hovering = false; endDrag(); });
-      grid.addEventListener('mouseenter', function() { rail.hovering = true; });
-      grid.addEventListener('mouseleave', function() { rail.hovering = false; });
-      viewport.addEventListener('click', function(e) {
-        if (rail.moved) { e.preventDefault(); e.stopPropagation(); rail.moved = false; }
       }, true);
 
-      rails.push(rail);
-      mirrorClones(rail);
-      highlightCenter(rail);
-      return rail;
+      // 6. Wheel Scrolling: Map vertical wheel over carousel track to horizontal scroll
+      grid.addEventListener('wheel', function(e) {
+        if (e.deltaX) return;
+        var maxScroll = grid.scrollWidth - grid.clientWidth;
+        if (maxScroll <= 0) return;
+        var canScrollRight = e.deltaY > 0 && grid.scrollLeft < maxScroll - 2;
+        var canScrollLeft = e.deltaY < 0 && grid.scrollLeft > 2;
+        if (canScrollRight || canScrollLeft) {
+          grid.scrollLeft += e.deltaY;
+          e.preventDefault();
+        }
+      }, { passive: false });
+
+      carousels.push({
+        grid: grid,
+        header: header,
+        updateArrows: updateArrows
+      });
+
+      return header;
     }
 
-    function initRail() {
+    function initCarousel() {
       try {
         var grids = document.querySelectorAll('.grid-list');
         for (var i = 0; i < grids.length; i++) {
           try {
             if (!grids[i].querySelector('.card-wrapper, .product-card')) continue;
-            buildRail(grids[i]);
+            buildCarousel(grids[i]);
           } catch (e) {}
         }
-        for (var r = 0; r < rails.length; r++) {
-          try { rails[r].measure(); mirrorClones(rails[r]); } catch (e) {}
+        // Update counters on existing carousels (e.g. if category filter applied)
+        for (var c = 0; c < carousels.length; c++) {
+          var item = carousels[c];
+          if (item && item.grid && item.header) {
+            var visible = item.grid.querySelectorAll('.card-wrapper:not(.is-filtered-out), .product-card:not(.is-filtered-out)');
+            var countEl = item.header.querySelector('.sl-carousel-count');
+            if (countEl) countEl.textContent = String(visible.length);
+            if (item.updateArrows) item.updateArrows();
+          }
         }
       } catch (e) {}
     }
 
-    var lastT = 0, lastHi = 0;
-    function tick(t) {
-      try {
-        if (!document.hidden && rails.length) {
-          var dt = Math.min((t - lastT) / 1000, 0.1);
-          var isReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-          for (var i = 0; i < rails.length; i++) {
-            var rail = rails[i];
-            if (rail.setWidth <= 0) rail.measure();
-            var paused = rail.dragging || rail.hovering || Date.now() < rail.resumeAt || isReducedMotion;
-            if (!paused && rail.setWidth > 0 && dt > 0) {
-              rail.x += 45 * dt;
-              rail.x = rail.x % rail.setWidth;
-              rail.track.style.transform = 'translate3d(' + (-rail.x) + 'px, 0, 0)';
-            }
-          }
-          if (t - lastHi > 200) {
-            lastHi = t;
-            for (var j = 0; j < rails.length; j++) {
-              mirrorClones(rails[j]);
-              highlightCenter(rails[j]);
-            }
-          }
-        }
-      } catch (e) {}
-      lastT = t;
-      window.requestAnimationFrame(tick);
-    }
+    window.slRailInit = initCarousel;
+    window.slCarouselInit = initCarousel;
 
-    window.slRailInit = initRail;
     // Late grids/cards: Payhip lazy-renders grids and streams cards in after load.
-    var railObsT = null;
-    function railObsKick() {
-      if (railObsT) clearTimeout(railObsT);
-      railObsT = setTimeout(initRail, 300);
+    var carouselObsT = null;
+    function carouselObsKick() {
+      if (carouselObsT) clearTimeout(carouselObsT);
+      carouselObsT = setTimeout(initCarousel, 300);
     }
     if (typeof MutationObserver !== 'undefined') {
-      var railObs = new MutationObserver(function(muts) {
+      var carouselObs = new MutationObserver(function(muts) {
         for (var i = 0; i < muts.length; i++) {
           var added = muts[i].addedNodes;
           for (var j = 0; added && j < added.length; j++) {
@@ -2505,42 +2574,30 @@
             var isGrid = n.classList && (n.classList.contains('grid-list') || n.classList.contains('card-wrapper') || n.classList.contains('product-card'));
             var hasGrid = n.querySelector && (n.querySelector('.grid-list') || n.querySelector('.card-wrapper'));
             if (isGrid || hasGrid) {
-              // Ignore our own clones/rail chrome to avoid loops.
-              if (n.hasAttribute && (n.hasAttribute('data-sl-clone') || n.hasAttribute('data-sl-rail-track'))) continue;
-              railObsKick();
+              if (n.hasAttribute && (n.hasAttribute('data-sl-carousel') || n.classList.contains('sl-carousel-viewport'))) continue;
+              carouselObsKick();
               break;
             }
           }
         }
       });
-      try { railObs.observe(document.documentElement, { childList: true, subtree: true }); } catch (e) {}
+      try { carouselObs.observe(document.documentElement, { childList: true, subtree: true }); } catch (e) {}
     }
+
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', function() {
-        ensureRailCss();
-        initRail();
-        window.requestAnimationFrame(tick);
+        ensureCarouselCss();
+        initCarousel();
       });
     } else {
-      ensureRailCss();
-      initRail();
-      window.requestAnimationFrame(tick);
+      ensureCarouselCss();
+      initCarousel();
     }
-    var resizeT = null;
-    window.addEventListener('resize', function() {
-      if (resizeT) clearTimeout(resizeT);
-      resizeT = setTimeout(function() {
-        for (var i = 0; i < rails.length; i++) { try { rails[i].measure(); } catch (e) {} }
-      }, 200);
-    });
-    window.addEventListener('load', function() {
-      initRail();
-      for (var i = 0; i < rails.length; i++) { try { rails[i].measure(); } catch (e) {} }
-    });
-    setTimeout(initRail, 500);
-    setTimeout(initRail, 1500);
-    setTimeout(initRail, 3000);
-    setTimeout(initRail, 6000);
+
+    window.addEventListener('load', initCarousel);
+    setTimeout(initCarousel, 500);
+    setTimeout(initCarousel, 1500);
+    setTimeout(initCarousel, 3000);
   })();
 
   // ==========================================================================
@@ -3242,11 +3299,43 @@
           '  line-height: 1.2 !important;',
           '}',
           '.card-wrapper, .product-card {',
+          '  flex: 0 0 280px !important;',
+          '  min-width: 280px !important;',
+          '  max-width: 280px !important;',
+          '  scroll-snap-align: start !important;',
           '  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease !important;',
           '}',
           '.card-wrapper:hover, .product-card:hover {',
           '  transform: translateY(-6px) !important;',
           '  border-color: rgba(255, 255, 255, 0.6) !important;',
+          '}',
+          '[data-sl-rail="done"] .card-wrapper.product-card-wrapper.sonarline-card--highlighted, [data-sl-rail="done"] .card-wrapper.sonarline-card--highlighted, [data-sl-rail="done"] .product-card.sonarline-card--highlighted, div.card-wrapper.product-card-wrapper.sonarline-card--highlighted, .card-wrapper.product-card-wrapper.sonarline-card--highlighted, .card-wrapper.sonarline-card--highlighted, .product-card.sonarline-card--highlighted, .sonarline-card--highlighted {',
+          '  border: 1px solid #FF3B30 !important;',
+          '  border-color: #FF3B30 !important;',
+          '  box-shadow: 0 0 12px rgba(255, 59, 48, 0.25) !important;',
+          '}',
+          '#page-section-collection .grid-list, [data-section-key="collection"] .grid-list, .grid-list.js-grid-list, .grid-list, .collection-products, .sl-carousel-track {',
+          '  display: flex !important;',
+          '  flex-wrap: nowrap !important;',
+          '  overflow-x: auto !important;',
+          '  scroll-snap-type: x mandatory !important;',
+          '  gap: 16px !important;',
+          '  scrollbar-width: none !important;',
+          '  -ms-overflow-style: none !important;',
+          '  padding: 24px 48px !important;',
+          '  box-sizing: border-box !important;',
+          '  width: 100% !important;',
+          '  scroll-behavior: smooth !important;',
+          '  -webkit-overflow-scrolling: touch !important;',
+          '}',
+          '.sl-carousel-track::-webkit-scrollbar, .grid-list::-webkit-scrollbar, .collection-products::-webkit-scrollbar {',
+          '  display: none !important;',
+          '  width: 0 !important;',
+          '  height: 0 !important;',
+          '}',
+          '.sl-carousel-viewport {',
+          '  mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent) !important;',
+          '  -webkit-mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent) !important;',
           '}',
           '.collection-title, .collection-products-count, [class*="collection-title"], [class*="products-count"], .collection-header, .sl-rail-header {',
           '  display: none !important;',
