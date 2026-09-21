@@ -1691,7 +1691,7 @@
           try { cardTags = JSON.parse(rawTagsAttr); } catch (e) {}
         }
         if (!cardTags || cardTags.length === 0) {
-          var pillEls = card.querySelectorAll('.sonarline-card-tag-pill');
+          var pillEls = card.querySelectorAll('.sonarline-card-tag-pill, .sonarline-tag-pill');
           for (var pt = 0; pt < pillEls.length; pt++) {
             var ptxt = pillEls[pt].textContent.trim();
             if (ptxt && pillEls[pt].style.display !== 'none' && cardTags.indexOf(ptxt) === -1) {
@@ -1824,6 +1824,60 @@
       return tags;
     }
 
+    // FIX TESTBEAT MULTI-TAGS: extract ALL [[tag: ...]] occurrences + comma-split flatten.
+    function sonarlineExtractAllTagMatches(rawText) {
+      var out = [];
+      if (!rawText) return out;
+      try {
+        var tagMatches = [...String(rawText).matchAll(/\[\[tag:\s*([^\]]+)\]\]/gi)].map(function(m) { return (m[1] || '').trim(); });
+        for (var i = 0; i < tagMatches.length; i++) {
+          var parts = String(tagMatches[i]).split(/\s*,\s*/);
+          for (var j = 0; j < parts.length; j++) {
+            var t = (parts[j] || '').replace(/\s+/g, ' ').trim();
+            if (t && out.indexOf(t) === -1) out.push(t);
+          }
+        }
+      } catch (e) {}
+      // Fallback/union with robust extractor (supports [[tags:]], [tag:], ; | // delimiters).
+      try {
+        var robust = sonarlineExtractTags(rawText);
+        for (var k = 0; k < robust.length; k++) {
+          if (out.indexOf(robust[k]) === -1) out.push(robust[k]);
+        }
+      } catch (e) {}
+      return out;
+    }
+
+    // FIX HERO TEXT LEAK: direct in-place replacement, never hoist/prepend pills.
+    function replaceInlineTags(root) {
+      try {
+        root = root || document.body;
+        if (!root) return;
+        var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+          acceptNode: function(node) {
+            if (!node.textContent || !/\[\[tag:\s*[^\]]+\]\]/i.test(node.textContent)) return NodeFilter.FILTER_REJECT;
+            var parent = node.parentElement;
+            if (!parent || ['SCRIPT', 'STYLE', 'TEXTAREA'].includes(parent.tagName)) return NodeFilter.FILTER_REJECT;
+            if (parent.closest('.sonarline-card-info-badge, .sonarline-card-tags-group')) return NodeFilter.FILTER_REJECT;
+            if (parent.closest('.card-wrapper, .product-card, .card__heading, .product-title, .product-name, a')) return NodeFilter.FILTER_REJECT;
+            return NodeFilter.FILTER_ACCEPT;
+          }
+        });
+
+        var nodesToReplace = [];
+        while (walker.nextNode()) nodesToReplace.push(walker.currentNode);
+
+        nodesToReplace.forEach(function(node) {
+          var span = document.createElement('span');
+          span.className = 'sl-inline-tags-wrapper';
+          span.innerHTML = node.textContent.replace(/\[\[tag:\s*([^\]]+)\]\]/gi, function(_, tagText) {
+            return '<span class="sonarline-tag-pill">' + tagText.trim() + '</span>';
+          });
+          node.parentNode.replaceChild(span, node);
+        });
+      } catch (e) {}
+    }
+
     function sonarlineParseShortcodes(htmlText) {
       var out = { tags: [], tag: '', audio: '', highlighted: null };
       if (!htmlText) return out;
@@ -1908,6 +1962,26 @@
                 tagsWrap.appendChild(tp);
               }
               tagsWrap.style.setProperty('display', 'inline-flex', 'important');
+            }
+            var tagsGroup = targetCard.querySelector('.sonarline-card-tags-group');
+            if (!tagsGroup) {
+              tagsGroup = document.createElement('div');
+              tagsGroup.className = 'sonarline-card-tags-group';
+              var rb2 = targetCard.querySelector('.sonarline-card-row-bottom');
+              var pw2 = targetCard.querySelector('.sonarline-card-price-wrap');
+              if (rb2) {
+                if (pw2 && pw2.parentNode === rb2) rb2.insertBefore(tagsGroup, pw2);
+                else rb2.insertBefore(tagsGroup, rb2.firstChild);
+              } else if (tagsWrap && tagsWrap.parentNode) {
+                tagsWrap.parentNode.insertBefore(tagsGroup, tagsWrap.nextSibling);
+              }
+            }
+            if (tagsGroup) {
+              var esc2 = function(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); };
+              tagsGroup.innerHTML = tags
+                .map(function(tag) { return '<span class="sonarline-tag-pill">' + esc2(tag) + '</span>'; })
+                .join('');
+              tagsGroup.style.display = tags.length ? 'flex' : 'none';
             }
           }
           if (typeof data.highlighted === 'boolean') {
@@ -2208,6 +2282,22 @@
             for (var ct = 0; ct < cardTags.length; ct++) {
               if (tags.indexOf(cardTags[ct]) === -1) tags.push(cardTags[ct]);
             }
+            // FIX TESTBEAT MULTI-TAGS: extract ALL [[tag: ...]] occurrences + comma-split flatten.
+            try {
+              var rawText = (titleEl ? (titleEl.textContent || '') : '') + ' ' + cardRaw;
+              var tagMatches = [...rawText.matchAll(/\[\[tag:\s*([^\]]+)\]\]/gi)].map(function(m) { return (m[1] || '').trim(); });
+              var flatTags = [];
+              for (var fm = 0; fm < tagMatches.length; fm++) {
+                var commaParts = String(tagMatches[fm]).split(/\s*,\s*/);
+                for (var fp = 0; fp < commaParts.length; fp++) {
+                  var ftag = (commaParts[fp] || '').replace(/\s+/g, ' ').trim();
+                  if (ftag && flatTags.indexOf(ftag) === -1) flatTags.push(ftag);
+                }
+              }
+              for (var ft = 0; ft < flatTags.length; ft++) {
+                if (tags.indexOf(flatTags[ft]) === -1) tags.push(flatTags[ft]);
+              }
+            } catch (e) {}
             var walker = document.createTreeWalker(card, NodeFilter.SHOW_TEXT, null, false);
             var tn;
             while ((tn = walker.nextNode())) {
@@ -2233,6 +2323,7 @@
               '</div>' +
               '<div class="sonarline-card-row-bottom">' +
                 '<div class="sonarline-card-tags-wrap"></div>' +
+                '<div class="sonarline-card-tags-group"></div>' +
                 '<div class="sonarline-card-price-wrap"></div>' +
               '</div>';
             content.appendChild(metaWrap);
@@ -2278,6 +2369,28 @@
             } else {
               tagsWrap.style.setProperty('display', 'none', 'important');
             }
+          }
+
+          // FIX TESTBEAT MULTI-TAGS: render each tag into .sonarline-card-tags-group.
+          var tagsContainer = metaWrap.querySelector('.sonarline-card-tags-group');
+          if (!tagsContainer) {
+            tagsContainer = document.createElement('div');
+            tagsContainer.className = 'sonarline-card-tags-group';
+            var rb = metaWrap.querySelector('.sonarline-card-row-bottom');
+            var pw = metaWrap.querySelector('.sonarline-card-price-wrap');
+            if (rb) {
+              if (pw && pw.parentNode === rb) rb.insertBefore(tagsContainer, pw);
+              else rb.insertBefore(tagsContainer, rb.firstChild);
+            } else {
+              metaWrap.appendChild(tagsContainer);
+            }
+          }
+          if (tagsContainer) {
+            var esc = function(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); };
+            tagsContainer.innerHTML = tags
+              .map(function(tag) { return '<span class="sonarline-tag-pill">' + esc(tag) + '</span>'; })
+              .join('');
+            tagsContainer.style.display = tags.length ? 'flex' : 'none';
           }
 
           // Place price in row 2 (Target card-level or content-level price, anchor to bottom-right)
@@ -2347,6 +2460,7 @@
           }
         }
       });
+      try { replaceInlineTags(document.body); } catch (e) {}
       try { initProductPageTags(); } catch (e) {}
       try { sonarlineScrubProductDescriptions(); } catch (e) {}
       try { initCategoryFilter(); } catch (e) {}
@@ -2369,7 +2483,7 @@
           try { cardTags = JSON.parse(rawTagsAttr); } catch (e) {}
         }
         if (!cardTags || cardTags.length === 0) {
-          var pills = cards[i].querySelectorAll('.sonarline-card-tag-pill');
+          var pills = cards[i].querySelectorAll('.sonarline-card-tag-pill, .sonarline-tag-pill');
           for (var p = 0; p < pills.length; p++) {
             var txt = pills[p].textContent.trim();
             if (txt && pills[p].style.display !== 'none' && cardTags.indexOf(txt) === -1) {
@@ -2428,7 +2542,7 @@
                 try { cTags = JSON.parse(cRawTags); } catch (e) {}
               }
               if (!cTags || cTags.length === 0) {
-                var cPills = cCard.querySelectorAll('.sonarline-card-tag-pill');
+                var cPills = cCard.querySelectorAll('.sonarline-card-tag-pill, .sonarline-tag-pill');
                 for (var cp = 0; cp < cPills.length; cp++) {
                   var ctxt = cPills[cp].textContent.trim();
                   if (ctxt && cPills[cp].style.display !== 'none' && cTags.indexOf(ctxt) === -1) {
@@ -2549,9 +2663,11 @@
       '.card-wrapper img, .product-card img, .card-wrapper:hover img, .product-card:hover img, .card-wrapper:hover .card__media img, .product-card:hover .card__media img, [data-sl-rail="done"] .card-wrapper:hover img, [data-sl-rail="done"] .product-card:hover img { transform: none !important; }',
       '.sonarline-card-metadata { padding: 0 !important; margin: 0 !important; display: flex !important; flex-direction: column !important; gap: 10px !important; flex-grow: 1 !important; height: 100% !important; box-sizing: border-box !important; background: transparent !important; border: none !important; width: 100% !important; justify-content: space-between !important; }',
       '.sonarline-card-info-badge { display: none !important; }',
-      '.sonarline-card-row-bottom { display: flex !important; align-items: flex-end !important; justify-content: space-between !important; width: 100% !important; gap: 8px !important; margin-top: auto !important; }',
+      '.sonarline-card-row-bottom { display: flex !important; flex-direction: row !important; align-items: center !important; justify-content: space-between !important; width: 100% !important; margin-top: auto !important; gap: 8px !important; }',
       '.sonarline-card-tags-wrap { display: inline-flex !important; flex-wrap: wrap !important; gap: 4px !important; align-items: center !important; flex: 1 1 auto !important; min-width: 0 !important; }',
-      '.sonarline-card-tag-pill { display: inline-flex !important; align-items: center !important; justify-content: center !important; padding: 3px 8px !important; border-radius: 9999px !important; background: rgba(255, 255, 255, 0.06) !important; border: 1px solid rgba(255, 255, 255, 0.18) !important; color: #ffffff !important; font-family: var(--font-mono, \'Space Mono\', monospace) !important; font-size: 0.7rem !important; font-weight: 700 !important; letter-spacing: 0.08em !important; text-transform: uppercase !important; line-height: 1.2 !important; white-space: nowrap !important; max-width: none !important; flex-shrink: 0 !important; box-sizing: border-box !important; }',
+      '.sonarline-card-tags-group { display: flex !important; flex-wrap: wrap !important; gap: 4px !important; flex: 1 1 auto !important; min-width: 0 !important; }',
+      '.sonarline-card-tag-pill, .sonarline-tag-pill { display: inline-flex !important; align-items: center !important; justify-content: center !important; padding: 3px 8px !important; border-radius: 9999px !important; background: rgba(255, 255, 255, 0.06) !important; border: 1px solid rgba(255, 255, 255, 0.18) !important; color: #ffffff !important; font-family: var(--font-mono, \'Space Mono\', monospace) !important; font-size: 0.7rem !important; font-weight: 700 !important; letter-spacing: 0.08em !important; text-transform: uppercase !important; line-height: 1.2 !important; white-space: nowrap !important; max-width: none !important; flex-shrink: 0 !important; box-sizing: border-box !important; }',
+      '.sl-inline-tags-wrapper { display: inline-flex !important; flex-wrap: wrap !important; gap: 4px !important; align-items: center !important; vertical-align: middle !important; }',
       '.sonarline-modal-tags-wrap { display: inline-flex !important; flex-wrap: wrap !important; gap: 6px !important; align-items: center !important; }',
       '.sonarline-product-tags-wrap { display: inline-flex !important; flex-wrap: wrap !important; gap: 6px !important; align-items: center !important; margin-bottom: 12px !important; }',
       '.sonarline-product-tag-pill { display: inline-flex !important; align-items: center !important; justify-content: center !important; padding: 3px 10px !important; border-radius: 9999px !important; background: rgba(255, 255, 255, 0.06) !important; border: 1px solid rgba(255, 255, 255, 0.18) !important; color: #ffffff !important; font-family: var(--font-mono, \'Space Mono\', monospace) !important; font-size: 0.75rem !important; font-weight: 700 !important; letter-spacing: 0.08em !important; text-transform: uppercase !important; line-height: 1.2 !important; }',
@@ -2559,6 +2675,7 @@
       '.sonarline-card-price-wrap, [data-sl-rail="done"] .sonarline-card-price-wrap { background: transparent !important; border: none !important; box-shadow: none !important; color: #ffffff !important; font-family: \'Space Mono\', monospace !important; font-size: 0.88rem !important; font-weight: 700 !important; letter-spacing: 0.05em !important; display: inline-flex !important; align-items: flex-end !important; justify-content: flex-end !important; margin-left: auto !important; flex: 0 0 auto !important; padding: 0 !important; white-space: nowrap !important; text-align: right !important; align-self: flex-end !important; }',
       '.sonarline-card-price-wrap *, [data-sl-rail="done"] .sonarline-card-price-wrap * { font-family: \'Space Mono\', monospace !important; font-size: 0.88rem !important; font-weight: 700 !important; color: #ffffff !important; letter-spacing: 0.05em !important; text-transform: uppercase !important; margin: 0 !important; padding: 0 !important; border-radius: 0 !important; white-space: nowrap !important; line-height: 1.2 !important; background: transparent !important; background-color: transparent !important; box-shadow: none !important; -moz-box-shadow: none !important; border: none !important; filter: none !important; text-align: right !important; }',
       '.sonarline-card-price-wrap .visually-hidden, .sonarline-card-price-wrap .sr-only { display: none !important; }',
+      '.sonarline-card-price-wrap { margin-left: auto !important; flex-shrink: 0 !important; text-align: right !important; white-space: nowrap !important; }',
       '.grid-list:has(> .card-wrapper:only-of-type) .card-wrapper, .grid-list:has(> .product-card:only-of-type) .product-card, .grid-list > .card-wrapper:only-of-type, .grid-list > .product-card:only-of-type, [data-single-product="true"] .card-wrapper, [data-single-product="true"] .product-card, .card-wrapper.sl-single-product, .product-card.sl-single-product { max-width: 340px !important; width: 100% !important; margin: 40px auto !important; float: none !important; }',
       '.grid-list:has(> .card-wrapper:only-of-type), .grid-list:has(> .product-card:only-of-type), [data-single-product="true"] .grid-list { display: flex !important; justify-content: center !important; grid-template-columns: none !important; }',
       '@media (max-width: 640px) { [data-sl-rail="done"] .card-wrapper.product-card-wrapper, [data-sl-rail="done"] .card-wrapper, [data-sl-rail="done"] .product-card, .sl-carousel-track > *, .sl-carousel-track .card-wrapper, .sl-carousel-track .product-card { flex: 0 0 220px !important; width: 220px !important; min-width: 220px !important; max-width: 220px !important; } #page-section-collection .grid-list.sl-rail-track, #page-section-collection .sl-carousel-track, [data-sl-rail="done"] .grid-list.js-grid-list.sl-rail-track, [data-sl-rail="done"] .grid-list.sl-rail-track, [data-sl-rail="done"] .sl-carousel-track, .sl-carousel-track { gap: 14px !important; padding: 16px 0 !important; } .sl-carousel-header { padding: 12px 20px !important; } }'
@@ -3345,7 +3462,8 @@
           '}',
           '.sonarline-card-row-bottom {',
           '  display: flex !important;',
-          '  align-items: flex-end !important;',
+          '  flex-direction: row !important;',
+          '  align-items: center !important;',
           '  justify-content: space-between !important;',
           '  width: 100% !important;',
           '  gap: 8px !important;',
@@ -3359,7 +3477,15 @@
           '  flex: 1 1 auto !important;',
           '  min-width: 0 !important;',
           '}',
-          '.sonarline-card-tag-pill {',
+          '.sonarline-card-tags-group {',
+          '  display: flex !important;',
+          '  flex-wrap: wrap !important;',
+          '  gap: 4px !important;',
+          '  flex: 1 1 auto !important;',
+          '  min-width: 0 !important;',
+          '}',
+          '.sonarline-card-tag-pill,',
+          '.sonarline-tag-pill {',
           '  display: inline-flex !important;',
           '  align-items: center !important;',
           '  justify-content: center !important;',
@@ -3443,8 +3569,22 @@
           '  white-space: nowrap !important;',
           '  text-align: right !important;',
           '}',
-          '.sonarline-card-tag-pill:empty {',
+          '.sonarline-card-tag-pill:empty,',
+          '.sonarline-tag-pill:empty {',
           '  display: none !important;',
+          '}',
+          '.sl-inline-tags-wrapper {',
+          '  display: inline-flex !important;',
+          '  flex-wrap: wrap !important;',
+          '  gap: 4px !important;',
+          '  align-items: center !important;',
+          '  vertical-align: middle !important;',
+          '}',
+          '.sonarline-card-price-wrap {',
+          '  margin-left: auto !important;',
+          '  flex-shrink: 0 !important;',
+          '  text-align: right !important;',
+          '  white-space: nowrap !important;',
           '}',
           '/* Brutalist Product Modal Overlay */',
           'body.sonarline-modal-open {',

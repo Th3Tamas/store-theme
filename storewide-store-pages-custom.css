@@ -1941,11 +1941,12 @@ html body .card-wrapper .card__inner .media img {
 /* Lower Row: Category Pill Left + Price Right */
 .sonarline-card-row-bottom {
   display: flex !important;
-  align-items: flex-end !important;
+  flex-direction: row !important;
+  align-items: center !important;
   justify-content: space-between !important;
   width: 100% !important;
-  gap: 8px !important;
   margin-top: auto !important;
+  gap: 8px !important;
 }
 
 /* Category Tags Container & Pills */
@@ -1958,7 +1959,16 @@ html body .card-wrapper .card__inner .media img {
   min-width: 0 !important;
 }
 
-.sonarline-card-tag-pill {
+.sonarline-card-tags-group {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 4px !important;
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+}
+
+.sonarline-card-tag-pill,
+.sonarline-tag-pill {
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
@@ -2013,8 +2023,24 @@ html body .card-wrapper .card__inner .media img {
   line-height: 1.2 !important;
 }
 
-.sonarline-card-tag-pill:empty {
+.sonarline-card-tag-pill:empty,
+.sonarline-tag-pill:empty {
   display: none !important;
+}
+
+.sl-inline-tags-wrapper {
+  display: inline-flex !important;
+  flex-wrap: wrap !important;
+  gap: 4px !important;
+  align-items: center !important;
+  vertical-align: middle !important;
+}
+
+.sonarline-card-price-wrap {
+  margin-left: auto !important;
+  flex-shrink: 0 !important;
+  text-align: right !important;
+  white-space: nowrap !important;
 }
 
 /* Price Tag: Clean Monospace Aligned Right (Zero Layering / Glow) */
