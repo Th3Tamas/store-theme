@@ -1098,15 +1098,17 @@ div.card-wrapper.product-card-wrapper,
 [data-sl-rail="done"] .card-wrapper.sonarline-card--highlighted,
 [data-sl-rail="done"] .product-card.sonarline-card--highlighted,
 [data-sl-rail="done"] [data-sl-highlighted="true"],
+[data-sl-rail="done"] [data-highlighted="true"],
 div.card-wrapper.product-card-wrapper.sonarline-card--highlighted,
 .card-wrapper.product-card-wrapper.sonarline-card--highlighted,
 .card-wrapper.sonarline-card--highlighted,
 .product-card.sonarline-card--highlighted,
 [data-sl-highlighted="true"],
+[data-highlighted="true"],
 .sonarline-card--highlighted {
   border-color: #FF3B30 !important;
   border: 1px solid #FF3B30 !important;
-  box-shadow: 0 0 12px rgba(255, 59, 48, 0.25) !important;
+  box-shadow: 0 0 12px rgba(255, 59, 48, 0.3) !important;
 }
 
 /* Hover States on Native Product Cards */
@@ -1628,6 +1630,11 @@ h4.card__heading,
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
+  color: #ffffff !important;
+  font-family: 'Space Mono', monospace !important;
+  font-size: 0.88rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.05em !important;
   padding: 0 !important;
   white-space: nowrap !important;
 }
@@ -1646,22 +1653,25 @@ h4.card__heading,
 [data-product-id] .price,
 [class*="product-price"],
 [class*="price"] {
-  font-family: var(--font-mono, 'Space Mono', monospace) !important;
-  font-size: 0.72rem !important;
+  font-family: 'Space Mono', monospace !important;
+  font-size: 0.88rem !important;
   font-weight: 700 !important;
   color: #ffffff !important;
-  letter-spacing: 0.04em !important;
+  letter-spacing: 0.05em !important;
   text-transform: uppercase !important;
   margin: 0 !important;
   padding: 0 !important;
   border: none !important;
   border-top: none !important;
   box-shadow: none !important;
+  -moz-box-shadow: none !important;
   text-shadow: none !important;
   filter: none !important;
   backdrop-filter: none !important;
   outline: none !important;
   background: transparent !important;
+  background-color: transparent !important;
+  border-radius: 0 !important;
   text-align: right !important;
   line-height: 1.2 !important;
   white-space: nowrap !important;
@@ -1928,6 +1938,11 @@ html body .card-wrapper .card__inner .media img {
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
+  color: #ffffff !important;
+  font-family: 'Space Mono', monospace !important;
+  font-size: 0.88rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.05em !important;
   padding: 0 !important;
   white-space: nowrap !important;
 }
@@ -1943,16 +1958,18 @@ html body .card-wrapper .card__inner .media img {
   border: none !important;
   border-top: none !important;
   box-shadow: none !important;
+  -moz-box-shadow: none !important;
   text-shadow: none !important;
   filter: none !important;
   backdrop-filter: none !important;
   background: transparent !important;
+  background-color: transparent !important;
   border-radius: 0 !important;
-  font-family: var(--font-mono, 'Space Mono', monospace) !important;
-  font-size: 0.72rem !important;
+  font-family: 'Space Mono', monospace !important;
+  font-size: 0.88rem !important;
   font-weight: 700 !important;
   color: #ffffff !important;
-  letter-spacing: 0.04em !important;
+  letter-spacing: 0.05em !important;
   text-transform: uppercase !important;
   line-height: 1.2 !important;
   white-space: nowrap !important;
@@ -2750,17 +2767,24 @@ h2.section-title,
   100% { transform: translate3d(-50%, 0, 0); }
 }
 
+/* Target both the Payhip native collection container and custom wrapper */
+.section-collection .collection-products,
+.products-wrapper,
+.sl-carousel-track,
+[data-sl-rail="done"] .sl-carousel-track,
 #page-section-collection[data-sl-rail="done"] .grid-list.js-grid-list.sl-rail-track,
 #page-section-collection[data-sl-rail="done"] .grid-list.sl-rail-track,
 #page-section-collection .grid-list.sl-rail-track,
 [data-section-key="collection"] .grid-list.sl-rail-track,
 [data-sl-rail="done"] .grid-list.js-grid-list.sl-rail-track,
-[data-sl-rail="done"] .grid-list.sl-rail-track,
-.sl-carousel-track {
+[data-sl-rail="done"] .grid-list.sl-rail-track {
   display: flex !important;
   flex-direction: row !important;
   flex-wrap: nowrap !important;
+  grid-template-columns: none !important;
+  align-items: stretch !important;
   width: max-content !important;
+  min-width: 100% !important;
   animation: sonarlineInfiniteRail 35s linear infinite !important;
   will-change: transform !important;
   gap: 16px !important;
@@ -2783,13 +2807,19 @@ h2.section-title,
   animation-play-state: paused !important;
 }
 
+/* Force individual card items to never shrink or expand to wrap */
+.sl-carousel-track > div,
+.sl-carousel-track .card-wrapper,
+.sl-carousel-track .product-card,
 [data-sl-rail="done"] .card-wrapper.product-card-wrapper,
 [data-sl-rail="done"] .card-wrapper,
 [data-sl-rail="done"] .product-card {
   flex: 0 0 280px !important;
-  width: 280px !important;
   min-width: 280px !important;
   max-width: 280px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  width: 280px !important;
   background: #0f0f0f !important;
   border: 1px solid rgba(255, 255, 255, 0.08) !important;
   border-radius: 8px !important;
@@ -2801,14 +2831,17 @@ h2.section-title,
 [data-sl-rail="done"] .card-wrapper.sonarline-card--highlighted,
 [data-sl-rail="done"] .product-card.sonarline-card--highlighted,
 [data-sl-rail="done"] [data-sl-highlighted="true"],
+[data-sl-rail="done"] [data-highlighted="true"],
+div.card-wrapper.product-card-wrapper.sonarline-card--highlighted,
 .card-wrapper.product-card-wrapper.sonarline-card--highlighted,
 .card-wrapper.sonarline-card--highlighted,
 .product-card.sonarline-card--highlighted,
 [data-sl-highlighted="true"],
+[data-highlighted="true"],
 .sonarline-card--highlighted {
   border: 1px solid #FF3B30 !important;
   border-color: #FF3B30 !important;
-  box-shadow: 0 0 12px rgba(255, 59, 48, 0.25) !important;
+  box-shadow: 0 0 12px rgba(255, 59, 48, 0.3) !important;
 }
 [data-sl-rail="done"] .card-wrapper .card__inner,
 [data-sl-rail="done"] .product-card .card__inner {
@@ -2828,13 +2861,14 @@ h2.section-title,
   font-weight: 700 !important;
   letter-spacing: 0.1em !important;
 }
-.sonarline-card-price-wrap,
+
+/* Kill all backgrounds, borders, and shadows on every nested descendant */
 .sonarline-card-price-wrap *,
 .sonarline-card-row-bottom .price,
 .sonarline-card-row-bottom .price *,
+.sonarline-card-row-bottom [class*="price"],
 .sonarline-card-price-wrap::before,
 .sonarline-card-price-wrap::after,
-[data-sl-rail="done"] .sonarline-card-price-wrap,
 [data-sl-rail="done"] .sonarline-card-price-wrap *,
 .price-block,
 .price-block *,
@@ -2844,16 +2878,29 @@ h2.section-title,
 .price__container *,
 .price-item,
 .price-item * {
+  background: transparent !important;
+  background-color: transparent !important;
   box-shadow: none !important;
-  text-shadow: none !important;
+  -moz-box-shadow: none !important;
+  border: none !important;
+  border-radius: 0 !important;
   filter: none !important;
   backdrop-filter: none !important;
+  outline: none !important;
+  text-shadow: none !important;
+}
+
+/* Style strictly the single text node or leaf container */
+.sonarline-card-price-wrap,
+[data-sl-rail="done"] .sonarline-card-price-wrap {
   background: transparent !important;
   border: none !important;
-  outline: none !important;
-  -moz-box-shadow: none !important;
-}
-[data-sl-rail="done"] .sonarline-card-price-wrap {
+  box-shadow: none !important;
+  color: #ffffff !important;
+  font-family: 'Space Mono', monospace !important;
+  font-size: 0.88rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.05em !important;
   display: inline-flex !important;
   align-items: center !important;
   justify-content: flex-end !important;
@@ -2862,6 +2909,8 @@ h2.section-title,
   padding: 0 !important;
   white-space: nowrap !important;
 }
+
+.sonarline-card-price-wrap *,
 [data-sl-rail="done"] .sonarline-card-price-wrap *,
 [data-sl-rail="done"] .sonarline-card-price-wrap .price,
 [data-sl-rail="done"] .sonarline-card-price-wrap .price-block,
@@ -2869,10 +2918,10 @@ h2.section-title,
   padding: 0 !important;
   border-radius: 0 !important;
   color: #ffffff !important;
-  font-family: var(--font-mono, 'Space Mono', monospace) !important;
-  font-size: 0.72rem !important;
+  font-family: 'Space Mono', monospace !important;
+  font-size: 0.88rem !important;
   font-weight: 700 !important;
-  letter-spacing: 0.04em !important;
+  letter-spacing: 0.05em !important;
   text-transform: uppercase !important;
   line-height: 1.2 !important;
   white-space: nowrap !important;
