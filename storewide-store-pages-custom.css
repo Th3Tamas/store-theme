@@ -1992,6 +1992,7 @@ html, body, a, button, input, select, textarea, [role="button"], * {
 }
 
 #sl-cursor-dot {
+  display: block !important;
   position: fixed !important;
   top: 0 !important;
   left: 0 !important;
@@ -2010,6 +2011,7 @@ html, body, a, button, input, select, textarea, [role="button"], * {
 }
 
 #sl-cursor-circle {
+  display: block !important;
   position: fixed !important;
   top: 0 !important;
   left: 0 !important;
@@ -2017,13 +2019,13 @@ html, body, a, button, input, select, textarea, [role="button"], * {
   height: 32px !important;
   margin-top: -16px !important;
   margin-left: -16px !important;
-  border: 1px solid rgba(255, 255, 255, 0.8) !important;
+  border: 1px solid rgba(255, 255, 255, 0.85) !important;
   border-radius: 50% !important;
   pointer-events: none !important;
   z-index: 2147483645 !important;
   mix-blend-mode: difference !important;
   transform: translate3d(-100px, -100px, 0);
-  transition: width 0.22s cubic-bezier(0.16, 1, 0.3, 1), height 0.22s cubic-bezier(0.16, 1, 0.3, 1), margin 0.22s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease !important;
+  transition: width 0.22s cubic-bezier(0.16, 1, 0.3, 1), height 0.22s cubic-bezier(0.16, 1, 0.3, 1), margin 0.22s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease, transform 0.04s linear !important;
   will-change: transform, width, height, margin !important;
   backface-visibility: hidden !important;
 }

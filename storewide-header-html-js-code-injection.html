@@ -3544,6 +3544,7 @@
       '  cursor: none !important;',
       '}',
       '#sl-cursor-dot {',
+      '  display: block !important;',
       '  position: fixed !important;',
       '  top: 0 !important;',
       '  left: 0 !important;',
@@ -3561,6 +3562,7 @@
       '  backface-visibility: hidden !important;',
       '}',
       '#sl-cursor-circle {',
+      '  display: block !important;',
       '  position: fixed !important;',
       '  top: 0 !important;',
       '  left: 0 !important;',
@@ -3568,13 +3570,13 @@
       '  height: 32px !important;',
       '  margin-top: -16px !important;',
       '  margin-left: -16px !important;',
-      '  border: 1px solid rgba(255, 255, 255, 0.8) !important;',
+      '  border: 1px solid rgba(255, 255, 255, 0.85) !important;',
       '  border-radius: 50% !important;',
       '  pointer-events: none !important;',
       '  z-index: 2147483645 !important;',
       '  mix-blend-mode: difference !important;',
       '  transform: translate3d(-100px, -100px, 0);',
-      '  transition: width 0.22s cubic-bezier(0.16, 1, 0.3, 1), height 0.22s cubic-bezier(0.16, 1, 0.3, 1), margin 0.22s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease !important;',
+      '  transition: width 0.22s cubic-bezier(0.16, 1, 0.3, 1), height 0.22s cubic-bezier(0.16, 1, 0.3, 1), margin 0.22s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease, transform 0.04s linear !important;',
       '  will-change: transform, width, height, margin !important;',
       '  backface-visibility: hidden !important;',
       '}',
@@ -3622,6 +3624,7 @@
 
     var mouseX = -100, mouseY = -100;
     var circleX = -100, circleY = -100;
+    var initialized = false;
     var isHovered = false;
 
     var interactiveSelector = 'a, button, input, textarea, select, [role="button"], [role="link"], [role="tab"], .sonarline-card-info-badge, .sonarline-card-quickplay, .sonarline-filter-pill, .card-wrapper, .product-card, .payhip-btn, .btn, .theme-btn, .clickable, [onclick], [data-filter-tag], label[for], .close, .modal-close';
@@ -3629,7 +3632,16 @@
     window.addEventListener('mousemove', function(e) {
       mouseX = e.clientX;
       mouseY = e.clientY;
+      if (!initialized) {
+        circleX = mouseX;
+        circleY = mouseY;
+        initialized = true;
+      }
       dot.style.transform = 'translate3d(' + mouseX + 'px, ' + mouseY + 'px, 0)';
+
+      if (!dot.parentElement || !circle.parentElement) {
+        mountCursor();
+      }
 
       var targetInteractive = e.target && e.target.closest && e.target.closest(interactiveSelector);
       if (targetInteractive) {
@@ -3646,9 +3658,9 @@
     }, { passive: true });
 
     function lerpCursor() {
-      if (!document.hidden) {
-        circleX += (mouseX - circleX) * 0.22;
-        circleY += (mouseY - circleY) * 0.22;
+      if (!document.hidden && initialized) {
+        circleX += (mouseX - circleX) * 0.15;
+        circleY += (mouseY - circleY) * 0.15;
         circle.style.transform = 'translate3d(' + circleX + 'px, ' + circleY + 'px, 0)';
       }
       window.requestAnimationFrame(lerpCursor);
