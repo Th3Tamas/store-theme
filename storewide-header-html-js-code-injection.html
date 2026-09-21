@@ -770,6 +770,206 @@
     }
 
     // Brutalist Product & Backblaze Audio Preview Modal Engine
+    (function injectFeatureStyles() {
+      if (!document.getElementById('sonarline-deck-styles')) {
+        var deckStyles = document.createElement('style');
+        deckStyles.id = 'sonarline-deck-styles';
+        deckStyles.textContent = 
+          '#sonarline-bottom-deck {' +
+            'position: fixed !important;' +
+            'bottom: 0 !important;' +
+            'left: 0 !important;' +
+            'right: 0 !important;' +
+            'height: 60px !important;' +
+            'background: rgba(10, 10, 10, 0.95) !important;' +
+            'backdrop-filter: blur(12px) !important;' +
+            '-webkit-backdrop-filter: blur(12px) !important;' +
+            'border-top: 1px solid rgba(255, 255, 255, 0.12) !important;' +
+            'z-index: 999990 !important;' +
+            'display: flex !important;' +
+            'align-items: center !important;' +
+            'justify-content: space-between !important;' +
+            'padding: 0 24px !important;' +
+            'box-sizing: border-box !important;' +
+            'transform: translateY(100%) !important;' +
+            'transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;' +
+          '}' +
+          '#sonarline-bottom-deck.sonarline-deck-visible {' +
+            'transform: translateY(0) !important;' +
+          '}' +
+          '.sonarline-deck-left {' +
+            'display: flex !important;' +
+            'align-items: center !important;' +
+            'gap: 14px !important;' +
+            'min-width: 200px !important;' +
+          '}' +
+          '.sonarline-deck-thumb {' +
+            'width: 40px !important;' +
+            'height: 40px !important;' +
+            'object-fit: cover !important;' +
+            'border-radius: 4px !important;' +
+            'border: 1px solid rgba(255, 255, 255, 0.15) !important;' +
+            'background: #111111 !important;' +
+          '}' +
+          '.sonarline-deck-info {' +
+            'display: flex !important;' +
+            'flex-direction: column !important;' +
+            'gap: 2px !important;' +
+            'overflow: hidden !important;' +
+          '}' +
+          '.sonarline-deck-title {' +
+            'color: #ffffff !important;' +
+            'font-family: "Space Grotesk", sans-serif !important;' +
+            'font-size: 0.78rem !important;' +
+            'font-weight: 700 !important;' +
+            'text-transform: uppercase !important;' +
+            'letter-spacing: 0.05em !important;' +
+            'white-space: nowrap !important;' +
+            'overflow: hidden !important;' +
+            'text-overflow: ellipsis !important;' +
+          '}' +
+          '.sonarline-deck-tag {' +
+            'color: #FF3B30 !important;' +
+            'font-family: "Space Mono", monospace !important;' +
+            'font-size: 0.62rem !important;' +
+            'font-weight: 700 !important;' +
+            'letter-spacing: 0.12em !important;' +
+            'text-transform: uppercase !important;' +
+          '}' +
+          '.sonarline-deck-center {' +
+            'display: flex !important;' +
+            'align-items: center !important;' +
+            'gap: 16px !important;' +
+            'flex: 1 !important;' +
+            'max-width: 580px !important;' +
+            'margin: 0 24px !important;' +
+          '}' +
+          '.sonarline-deck-playbtn {' +
+            'width: 32px !important;' +
+            'height: 32px !important;' +
+            'border-radius: 50% !important;' +
+            'background: #ffffff !important;' +
+            'border: none !important;' +
+            'color: #080808 !important;' +
+            'display: flex !important;' +
+            'align-items: center !important;' +
+            'justify-content: center !important;' +
+            'font-size: 0.8rem !important;' +
+            'cursor: pointer !important;' +
+            'flex-shrink: 0 !important;' +
+            'transition: transform 0.15s ease, background-color 0.15s ease !important;' +
+          '}' +
+          '.sonarline-deck-playbtn:hover {' +
+            'background: #FF3B30 !important;' +
+            'transform: scale(1.08) !important;' +
+          '}' +
+          '.sonarline-deck-time {' +
+            'color: #888888 !important;' +
+            'font-family: "Space Mono", monospace !important;' +
+            'font-size: 0.68rem !important;' +
+            'letter-spacing: 0.06em !important;' +
+            'white-space: nowrap !important;' +
+            'min-width: 75px !important;' +
+          '}' +
+          '.sonarline-deck-scrub-wrap {' +
+            'flex: 1 !important;' +
+            'height: 4px !important;' +
+            'background: rgba(255, 255, 255, 0.1) !important;' +
+            'border-radius: 2px !important;' +
+            'position: relative !important;' +
+            'cursor: pointer !important;' +
+            'overflow: hidden !important;' +
+          '}' +
+          '.sonarline-deck-scrub-fill {' +
+            'position: absolute !important;' +
+            'top: 0 !important;' +
+            'left: 0 !important;' +
+            'bottom: 0 !important;' +
+            'width: 0% !important;' +
+            'background: #FF3B30 !important;' +
+            'border-radius: 2px !important;' +
+          '}' +
+          '.sonarline-deck-right {' +
+            'display: flex !important;' +
+            'align-items: center !important;' +
+            'gap: 14px !important;' +
+            'min-width: 200px !important;' +
+            'justify-content: flex-end !important;' +
+          '}' +
+          '.sonarline-deck-vol {' +
+            'width: 70px !important;' +
+            'accent-color: #FF3B30 !important;' +
+            'cursor: pointer !important;' +
+            'height: 4px !important;' +
+          '}' +
+          '.sonarline-deck-expand {' +
+            'background: rgba(255, 255, 255, 0.06) !important;' +
+            'border: 1px solid rgba(255, 255, 255, 0.15) !important;' +
+            'border-radius: 4px !important;' +
+            'color: #cccccc !important;' +
+            'font-family: "Space Mono", monospace !important;' +
+            'font-size: 0.64rem !important;' +
+            'font-weight: 700 !important;' +
+            'padding: 4px 10px !important;' +
+            'cursor: pointer !important;' +
+            'letter-spacing: 0.08em !important;' +
+            'text-transform: uppercase !important;' +
+            'transition: all 0.15s ease !important;' +
+          '}' +
+          '.sonarline-deck-expand:hover {' +
+            'border-color: #ffffff !important;' +
+            'color: #ffffff !important;' +
+            'background: rgba(255, 255, 255, 0.12) !important;' +
+          '}' +
+          '.sonarline-deck-close {' +
+            'background: none !important;' +
+            'border: none !important;' +
+            'color: #666666 !important;' +
+            'font-size: 1.2rem !important;' +
+            'line-height: 1 !important;' +
+            'cursor: pointer !important;' +
+            'padding: 4px !important;' +
+            'display: flex !important;' +
+            'align-items: center !important;' +
+            'justify-content: center !important;' +
+            'transition: color 0.15s ease !important;' +
+          '}' +
+          '.sonarline-deck-close:hover {' +
+            'color: #FF3B30 !important;' +
+          '}' +
+          '@media (max-width: 768px) {' +
+            '#sonarline-bottom-deck { height: 52px !important; padding: 0 12px !important; }' +
+            '.sonarline-deck-left { min-width: 0 !important; max-width: 140px !important; }' +
+            '.sonarline-deck-center { margin: 0 10px !important; gap: 8px !important; }' +
+            '.sonarline-deck-vol, .sonarline-deck-expand { display: none !important; }' +
+            '.sonarline-deck-right { min-width: 0 !important; }' +
+          '}';
+        (document.head || document.documentElement).appendChild(deckStyles);
+      }
+
+      if (!document.getElementById('sonarline-tilt-styles')) {
+        var tiltStyles = document.createElement('style');
+        tiltStyles.id = 'sonarline-tilt-styles';
+        tiltStyles.textContent = 
+          '.card-wrapper, .product-card {' +
+            'perspective: 1000px !important;' +
+            'will-change: transform !important;' +
+          '}' +
+          '.card__inner {' +
+            'transform-style: preserve-3d !important;' +
+            'transition: transform 0.15s cubic-bezier(0.2, 0, 0.2, 1) !important;' +
+          '}' +
+          '.card__media {' +
+            'transform: translateZ(8px) !important;' +
+            'transform-style: preserve-3d !important;' +
+          '}' +
+          '.sonarline-card-metadata {' +
+            'transform: translateZ(14px) !important;' +
+            'transform-style: preserve-3d !important;' +
+          '}';
+        (document.head || document.documentElement).appendChild(tiltStyles);
+      }
+    })();
     var modalHtml = 
       '<div id="sonarline-product-modal" class="sonarline-modal-overlay" style="display: none;" aria-hidden="true" role="dialog">' +
         '<div class="sonarline-modal-backdrop"></div>' +
