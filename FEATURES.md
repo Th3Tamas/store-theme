@@ -194,6 +194,14 @@
 - **Implementation:**
   1. `sonarlineScrubProductDescriptions()` walks `.product-description` text nodes and strips `[[tag: ...]]` / `[[audio: ...]]` on every `cleanProductCards()` pass.
 
+### Issue 4: Owner-Logged-In Session Loads Payhip Editor Stack
+- **Status:** `[x]` **Diagnosed (shoppers unaffected)**
+- **Description:** When viewed while logged in as the store owner, Payhip serves its seller/editor runtime (`editor2-shop-core.bundle.js`, ~514KB) plus extra third-party loops on top of the storefront. Profiling showed metronomic main-thread stalls with ~70% `Incremental CC` samples in that session only; logged-out sessions (what shoppers get) profile clean, as do other Payhip stores. Owner sessions may also miss card highlights/tags because background product-page fetches return editor-chrome markup.
+- **Implementation:**
+  1. Always judge storefront performance in a logged-out/private window.
+  2. Empty shortcode sync results are never cached, so editor-chrome responses can't go stale.
+  3. A 15s janitor re-processes only never-decorated cards and re-arms shortcode parsing only when raw tokens exist (silent at steady state).
+
 ---
 
 ## 9. Future Roadmap & Enhancements

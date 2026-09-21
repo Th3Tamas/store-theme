@@ -2009,7 +2009,13 @@
       }).then(function(html) {
         var parsed = sonarlineParseShortcodes(html);
         try {
-          sessionStorage.setItem(job.key, JSON.stringify(parsed));
+          // Cache only productive results; empty parses stay refetchable and never
+          // go stale across product edits or editor-chrome responses.
+          if (parsed.tags.length || parsed.audio || typeof parsed.highlighted === 'boolean') {
+            sessionStorage.setItem(job.key, JSON.stringify(parsed));
+          } else {
+            try { sessionStorage.removeItem(job.key); } catch (e) {}
+          }
         } catch (e) {}
         sonarlineApplySyncedShortcodes(job.card, parsed);
       }).catch(function() {}).then(function() {
@@ -2184,56 +2190,7 @@
       } catch (e) {}
     }
 
-    // TEMPORARY perf diagnostics (freeze hunt): per-pass timings + event-loop stall watch.
-    // Console: slPerfReport(). Remove once the culprit is identified and fixed.
-    window.slPerf = { counts: {}, total: {}, max: {}, events: [], stalls: [] };
-    function slPerfStart() { try { return (window.performance && performance.now) ? performance.now() : 0; } catch (e) { return 0; } }
-    window.slPerfStart = slPerfStart;
-    function slPerfEnd(name, t0) {
-      try {
-        if (!t0) return;
-        var d = performance.now() - t0;
-        var P = window.slPerf;
-        P.counts[name] = (P.counts[name] || 0) + 1;
-        P.total[name] = (P.total[name] || 0) + d;
-        if (!P.max[name] || d > P.max[name]) P.max[name] = d;
-        if (d > 40) {
-          P.events.push({ t: Math.round(performance.now()), fn: name, ms: Math.round(d) });
-          if (P.events.length > 60) P.events.shift();
-        }
-      } catch (e) {}
-    }
-    window.slPerfEnd = slPerfEnd;
-    window.slPerfReport = function() {
-      try {
-        var P = window.slPerf, out = { stalls: P.stalls.slice(), fns: {}, slowEvents: P.events.slice() };
-        for (var k in P.counts) {
-          if (Object.prototype.hasOwnProperty.call(P.counts, k)) {
-            out.fns[k] = { n: P.counts[k], totalMs: Math.round(P.total[k] || 0), maxMs: Math.round(P.max[k] || 0) };
-          }
-        }
-        return out;
-      } catch (e) { return { error: String(e) }; }
-    };
-    (function slStallWatch() {
-      try {
-        var last = performance.now();
-        setInterval(function() {
-          try {
-            var now = performance.now();
-            var over = now - last - 200;
-            last = now;
-            if (over > 150) {
-              window.slPerf.stalls.push({ t: Math.round(now), blockedMs: Math.round(over) });
-              if (window.slPerf.stalls.length > 60) window.slPerf.stalls.shift();
-            }
-          } catch (e) {}
-        }, 200);
-      } catch (e) {}
-    })();
-
     function cleanProductCards() {
-      var __t0 = slPerfStart();
       var cards = document.querySelectorAll('.card-wrapper, .product-card');
       cards.forEach(function(card) {
         try {
@@ -2522,17 +2479,15 @@
       try { initProductPageTags(); } catch (e) {}
       try { sonarlineScrubProductDescriptions(); } catch (e) {}
       try { initCategoryFilter(); } catch (e) {}
-      slPerfEnd('cleanProductCards', __t0);
     }
 
     // Product Category Filter Bar Engine
     function initCategoryFilter() {
-      var __t0 = slPerfStart();
       var section = document.querySelector('#page-section-collection, [data-section-key="collection"]');
-      if (!section) { slPerfEnd('categoryFilter', __t0); return; }
+      if (!section) return;
       var existingHud = section.querySelector('.sonarline-filter-hud');
       var cards = section.querySelectorAll('.card-wrapper:not([data-sl-clone]), .product-card:not([data-sl-clone])');
-      if (cards.length === 0) { slPerfEnd('categoryFilter', __t0); return; }
+      if (cards.length === 0) return;
 
       var tagCounts = {};
       var total = cards.length;
@@ -2574,7 +2529,7 @@
       // churn the DOM (and retrigger observers) for zero visual change.
       var filterSig = '';
       try { filterSig = JSON.stringify({ t: tags, c: tagCounts, a: activeTag }); } catch (e) {}
-      if (filterSig && existingHud.getAttribute('data-filter-sig') === filterSig) { slPerfEnd('categoryFilter', __t0); return; }
+      if (filterSig && existingHud.getAttribute('data-filter-sig') === filterSig) return;
       var hudHtml = '<span class="sonarline-filter-label">ARCHIVE //</span>' +
         '<button type="button" class="sonarline-filter-pill' + (activeTag === 'ALL' ? ' active' : '') + '" data-filter-tag="ALL">ALL <span class="sonarline-filter-count">(' + total + ')</span></button>';
 
@@ -2630,7 +2585,6 @@
           }
         });
       }
-      slPerfEnd('categoryFilter', __t0);
     }
 
     // MutationObserver: re-apply when Payhip lazy loader adds/mutates cards.
@@ -2695,6 +2649,20 @@
     setTimeout(cleanProductCards, 500);
     setTimeout(cleanProductCards, 1500);
     setTimeout(cleanProductCards, 3000);
+    // Janitor for churn-heavy sessions (owner/editor re-renders): every 15s, re-process
+    // only if undecorated cards exist, and re-arm shortcode parsing if raw tokens exist.
+    // Steady-state cost is a few scoped queries; silent when everything is decorated.
+    setInterval(function() {
+      try {
+        var fresh = document.querySelector('.card-wrapper:not([data-highlighted]):not([data-sl-clone]), .product-card:not([data-highlighted]):not([data-sl-clone])');
+        if (fresh) {
+          try { cleanProductCards(); } catch (e) {}
+        }
+      } catch (e) {}
+      try {
+        if (typeof window.slShortcodeKick === 'function') window.slShortcodeKick();
+      } catch (e) {}
+    }, 15000);
   })();
 
   // ==========================================================================
@@ -3378,7 +3346,6 @@
     }
 
     function initCarousel() {
-      var __t0 = window.slPerfStart ? window.slPerfStart() : 0;
       try {
         // Revert sections whose [[collection-rail]] tag is missing/false before (re)building.
         try { syncRailGates(); } catch (e) {}
@@ -3409,7 +3376,6 @@
           }
         }
       } catch (e) {}
-      try { if (window.slPerfEnd) window.slPerfEnd('initCarousel', __t0); } catch (e) {}
     }
 
     window.slRailInit = initCarousel;
@@ -4860,7 +4826,6 @@
     }
 
     function formatTickerElements() {
-      var __t0 = window.slPerfStart ? window.slPerfStart() : 0;
       var tickerContainers = document.querySelectorAll(
         '[data-section-key="ticker"], #content-section-QW9Kn45mB6, .ticker, .marquee, .sonarline-ticker-bar'
       );
@@ -4975,7 +4940,6 @@
           el.style.setProperty('letter-spacing', '0.18em', 'important');
         }
       }
-      try { if (window.slPerfEnd) window.slPerfEnd('formatTicker', __t0); } catch (e) {}
     }
 
     var tickerObserver = null;
@@ -5868,6 +5832,19 @@
       } catch (e) {}
     }
 
+    // Re-arm hook for churn-heavy sessions (e.g. owner/editor DOM churn can exhaust
+    // the sweep cap before real content settles): only acts when raw tokens exist.
+    window.slShortcodeKick = function() {
+      try {
+        var bodyText = (document.body && document.body.textContent) || '';
+        if (!/(?:\[\[\s*badge\s*:|\{\{\s*terminal\s*:)/i.test(bodyText)) return false;
+        observerSweepCount = 0;
+        attachShortcodeObserver();
+        runParser();
+        return true;
+      } catch (e) { return false; }
+    };
+
     var observer = new MutationObserver(function(mutations) {
       try {
         var relevant = false;
@@ -5903,7 +5880,6 @@
         observerTimer = setTimeout(function() {
           observerTimer = null;
           observer.disconnect();
-          var __t0 = window.slPerfStart ? window.slPerfStart() : 0;
           try {
             for (var p = 0; p < pendingShortcodeNodes.length; p++) {
               parseShortcodesInNode(pendingShortcodeNodes[p]);
@@ -5912,7 +5888,6 @@
             sweepUnparsedShortcodes(document.body || document.documentElement);
             observerSweepCount++;
           } catch (e) {}
-          try { if (window.slPerfEnd) window.slPerfEnd('shortcodeSweep', __t0); } catch (e) {}
           attachShortcodeObserver();
           armShortcodeIdleDisconnect();
         }, 300);
@@ -6175,7 +6150,6 @@
       }
 
       function heroGlitchTick() {
-        var __t0 = window.slPerfStart ? window.slPerfStart() : 0;
         try {
           enhanceNativeHero._slTickTs = Date.now();
           // Resolve the heading fresh every tick so re-rendered titles self-heal.
@@ -6207,7 +6181,6 @@
             }
           }
         } catch (e) {}
-        try { if (window.slPerfEnd) window.slPerfEnd('heroGlitch', __t0); } catch (e) {}
         setTimeout(heroGlitchTick, 2600 + Math.random() * 3800);
       }
 
