@@ -2940,9 +2940,7 @@ body.sonarline-modal-open {
   opacity: 0.85 !important;
 }
 
-[data-sl-collapsed="true"] .sl-carousel-body {
-  display: none !important;
-}
+/* Collapse is animated via .is-collapsed max-height/opacity (never display:none). */
 
 /* Single glowing circular dot */
 .sl-dot,
@@ -3009,19 +3007,22 @@ h2.section-title,
   display: none !important;
 }
 
-/* Infinite Looping Marquee Rail (smooth collapsible via max-height/opacity) */
+/* Infinite Looping Marquee Rail (smooth collapsible via max-height/opacity/visibility) */
 .sl-carousel-body {
   position: relative !important;
   width: 100% !important;
   overflow: hidden !important;
   max-height: 1600px !important;
   opacity: 1 !important;
-  transition: max-height 0.55s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease !important;
+  visibility: visible !important;
+  transition: max-height 0.55s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease, visibility 0s !important;
 }
 
 .sl-carousel-body.is-collapsed {
   max-height: 0 !important;
   opacity: 0 !important;
+  visibility: hidden !important;
+  transition: max-height 0.55s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease, visibility 0s linear 0.55s !important;
 }
 
 .sl-carousel-body.is-collapsed .sl-carousel-track {
@@ -3153,22 +3154,13 @@ h2.section-title,
   -webkit-user-select: none !important;
 }
 
-#page-section-collection .sl-carousel-track:hover,
-#page-section-collection:hover .sl-carousel-track,
-[data-section-key="collection"] .sl-carousel-track:hover,
-[data-section-key="collection"]:hover .sl-carousel-track,
-[data-sl-rail="done"] .sl-carousel-track:hover,
-[data-sl-rail="done"]:hover .sl-carousel-track,
-.sl-carousel-viewport:hover .sl-carousel-track,
-.sl-carousel-body:hover .sl-carousel-track,
-.sl-carousel-viewport:has(:hover) .sl-carousel-track,
-.sl-carousel-body:has(:hover) .sl-carousel-track,
-.sl-carousel-track:hover,
+#page-section-collection .sl-carousel-track.is-hovered,
+[data-section-key="collection"] .sl-carousel-track.is-hovered,
+[data-sl-rail="done"] .sl-carousel-track.is-hovered,
 .sl-carousel-track.is-hovered,
-.sl-carousel-track:has(:hover),
 .sl-carousel-track:has(.card-wrapper:hover),
 .sl-carousel-track:has(.product-card:hover) {
-  animation-play-state: paused !important; /* Pause smoothly on hover */
+  animation-play-state: paused !important; /* Pause only on direct card hover */
 }
 
 .sl-carousel-track:active,
