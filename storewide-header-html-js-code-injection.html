@@ -5449,8 +5449,8 @@
   // ==========================================================================
   // ==========================================================================
   // Subtask 1: Custom Kinetic Cursor
-  // White dot with mix-blend-mode: difference + trailing outer ring that
-  // smoothly shrinks onto the dot when hovering over clickable elements.
+  // White dot + trailing outer ring that smoothly expands on clickable elements.
+  // Mousemove is rAF-coalesced (one pass per frame max); no blend modes (compositor-safe).
   // ==========================================================================
   (function() {
     if (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) {
@@ -5476,7 +5476,7 @@
       '  border-radius: 50% !important;',
       '  pointer-events: none !important;',
       '  z-index: 2147483646 !important;',
-      '  mix-blend-mode: difference !important;',
+      '  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.55) !important;',
       '  transform: translate3d(-100px, -100px, 0);',
       '  transition: width 0.22s cubic-bezier(0.16, 1, 0.3, 1), height 0.22s cubic-bezier(0.16, 1, 0.3, 1), margin 0.22s cubic-bezier(0.16, 1, 0.3, 1) !important;',
       '  will-change: transform, width, height, margin !important;',
@@ -5501,7 +5501,7 @@
       '  border-radius: 50% !important;',
       '  pointer-events: none !important;',
       '  z-index: 2147483645 !important;',
-      '  mix-blend-mode: difference !important;',
+      '  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35) !important;',
       '  transform: translate3d(-100px, -100px, 0);',
       '  transition: width 0.22s cubic-bezier(0.16, 1, 0.3, 1), height 0.22s cubic-bezier(0.16, 1, 0.3, 1), margin 0.22s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease, transform 0.04s linear !important;',
       '  will-change: transform, width, height, margin !important;',
@@ -5556,33 +5556,52 @@
 
     var interactiveSelector = 'a, button, input, textarea, select, [role="button"], [role="link"], [role="tab"], .sonarline-card-info-badge, .sonarline-card-quickplay, .sonarline-filter-pill, .sonarline-deck-scrub-wrap, .sonarline-deck-playbtn, .sonarline-deck-expand, .sonarline-deck-close, .card-wrapper, .product-card, .payhip-btn, .btn, .theme-btn, .clickable, [onclick], [data-filter-tag], label[for], .close, .modal-close, .sl-carousel-header, .sl-carousel-track, .sonarline-modal-close, .sonarline-modal-nav, .sonarline-modal-cta, .sonarline-audio-play-btn';
 
+    // Coalesced to one processing pass per frame: raw mousemove can fire hundreds
+    // of times per second (fast flicks), and each pass does style writes plus a
+    // full ancestor selector match — doing that per event melts the main thread.
+    var mouseEvPending = false;
+    var lastMouseX = -100, lastMouseY = -100, lastMouseTarget = null;
+
+    function processMouseMove() {
+      mouseEvPending = false;
+      try {
+        mouseX = lastMouseX;
+        mouseY = lastMouseY;
+        if (!initialized) {
+          circleX = mouseX;
+          circleY = mouseY;
+          initialized = true;
+        }
+        dot.style.transform = 'translate3d(' + mouseX + 'px, ' + mouseY + 'px, 0)';
+
+        if (!dot.parentElement || !circle.parentElement) {
+          mountCursor();
+        }
+
+        var targetInteractive = lastMouseTarget && lastMouseTarget.closest && lastMouseTarget.closest(interactiveSelector);
+        if (targetInteractive) {
+          if (!isHovered) {
+            isHovered = true;
+            circle.classList.add('hovered');
+            dot.classList.add('hovered');
+          }
+        } else {
+          if (isHovered) {
+            isHovered = false;
+            circle.classList.remove('hovered');
+            dot.classList.remove('hovered');
+          }
+        }
+      } catch (err) {}
+    }
+
     window.addEventListener('mousemove', function(e) {
-      mouseX = e.clientX;
-      mouseY = e.clientY;
-      if (!initialized) {
-        circleX = mouseX;
-        circleY = mouseY;
-        initialized = true;
-      }
-      dot.style.transform = 'translate3d(' + mouseX + 'px, ' + mouseY + 'px, 0)';
-
-      if (!dot.parentElement || !circle.parentElement) {
-        mountCursor();
-      }
-
-      var targetInteractive = e.target && e.target.closest && e.target.closest(interactiveSelector);
-      if (targetInteractive) {
-        if (!isHovered) {
-          isHovered = true;
-          circle.classList.add('hovered');
-          dot.classList.add('hovered');
-        }
-      } else {
-        if (isHovered) {
-          isHovered = false;
-          circle.classList.remove('hovered');
-          dot.classList.remove('hovered');
-        }
+      lastMouseX = e.clientX;
+      lastMouseY = e.clientY;
+      lastMouseTarget = e.target;
+      if (!mouseEvPending) {
+        mouseEvPending = true;
+        window.requestAnimationFrame(processMouseMove);
       }
     }, { passive: true });
 

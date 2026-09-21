@@ -2323,7 +2323,7 @@ html, body, a, button, input, select, textarea, [role="button"], * {
   border-radius: 50% !important;
   pointer-events: none !important;
   z-index: 2147483646 !important;
-  mix-blend-mode: difference !important;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.55) !important;
   transform: translate3d(-100px, -100px, 0);
   transition: width 0.22s cubic-bezier(0.16, 1, 0.3, 1), height 0.22s cubic-bezier(0.16, 1, 0.3, 1), margin 0.22s cubic-bezier(0.16, 1, 0.3, 1) !important;
   will-change: transform, width, height, margin !important;
@@ -2350,7 +2350,7 @@ html, body, a, button, input, select, textarea, [role="button"], * {
   border-radius: 50% !important;
   pointer-events: none !important;
   z-index: 2147483645 !important;
-  mix-blend-mode: difference !important;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35) !important;
   transform: translate3d(-100px, -100px, 0);
   transition: width 0.22s cubic-bezier(0.16, 1, 0.3, 1), height 0.22s cubic-bezier(0.16, 1, 0.3, 1), margin 0.22s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease, transform 0.04s linear !important;
   will-change: transform, width, height, margin !important;
