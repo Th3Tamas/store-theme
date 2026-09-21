@@ -6034,7 +6034,7 @@
 
       function liveHeroH1() {
         try {
-          var root = document.querySelector('[data-section-key="headline"] .section-contents, #content-section-LBNmnP42zK .section-contents, .section-hero .section-contents');
+          var root = document.querySelector('[data-section-key="headline"] .section-contents, #content-section-LBNmnP42zK .section-contents, .section-hero .section-contents, [data-section-key="hero"] .section-contents, .hero .section-contents');
           return root ? root.querySelector('h1, .heading-text') : null;
         } catch (e) {
           return null;
@@ -6055,6 +6055,7 @@
 
       function heroGlitchTick() {
         try {
+          enhanceNativeHero._slTickTs = Date.now();
           // Resolve the heading fresh every tick so re-rendered titles self-heal.
           var node = liveHeroH1();
           if (node) {
@@ -6094,8 +6095,29 @@
       if (!enhanceNativeHero._slLoop) {
         enhanceNativeHero._slLoop = true;
         var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        enhanceNativeHero._slLoopTs = Date.now();
         if (!reduceMotion) setTimeout(heroGlitchTick, 1800);
       }
+
+      // Console diagnostics: slHeroDebug() reports binder state; slHeroGlitch() forces a tick.
+      try {
+        window.slHeroDebug = function() {
+          var out = { loop: !!enhanceNativeHero._slLoop, loopTs: enhanceNativeHero._slLoopTs || null, tickTs: enhanceNativeHero._slTickTs || null, node: null, connected: false, text: null, splitFor: null, spans: -1, reduceMotion: false };
+          try {
+            out.reduceMotion = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+            var n = liveHeroH1();
+            if (n) {
+              out.node = true;
+              out.connected = !!n.isConnected;
+              out.text = n.textContent;
+              out.splitFor = n.getAttribute('data-sl-split-for');
+              out.spans = n.querySelectorAll('[data-sl-char]').length;
+            }
+          } catch (e) { out.error = String(e); }
+          return out;
+        };
+        window.slHeroGlitch = function() { try { heroGlitchTick(); return true; } catch (e) { return String(e); } };
+      } catch (e) {}
 
       // Format Subtitle Bullets & Center Subtitle and Category List
       var subtitleElements = heroContents.querySelectorAll('p, .richtext p, .category-list, .categories, .category-links, .category-link-wrapper, .categories-wrapper, [class*="category"]');
