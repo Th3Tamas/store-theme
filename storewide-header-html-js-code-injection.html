@@ -2474,9 +2474,24 @@
       try { initCategoryFilter(); } catch (e) {}
     }
 
-    // Product Category Filter Bar Engine
+    // Product Category Filter Bar + Instant Search Engine
+    var sonarlineFilterQuery = '';
+    var sonarlineSearchTimer = null;
+
+    function sonarlineEscapeAttr(s) {
+      return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
     function initCategoryFilter() {
       var section = document.querySelector('#page-section-collection, [data-section-key="collection"]');
+      if (!section) {
+        // Builder sections (e.g. div#content-section-XXXX) carry no collection markers.
+        try {
+          var firstCard = document.querySelector('.card-wrapper, .product-card');
+          var wrap = (firstCard && firstCard.closest) ? firstCard.closest('[id^="content-section-"]') : null;
+          if (wrap && wrap.querySelector('.card-wrapper, .product-card')) section = wrap;
+        } catch (e) {}
+      }
       if (!section) return;
       var existingHud = section.querySelector('.sonarline-filter-hud');
       var cards = section.querySelectorAll('.card-wrapper:not([data-sl-clone]), .product-card:not([data-sl-clone])');
@@ -2505,8 +2520,7 @@
         }
       }
 
-      var tags = Object.keys(tagCounts);
-      if (tags.length === 0) return;
+      var tags = Object.keys(tagCounts).sort();
 
       if (!existingHud) {
         existingHud = document.createElement('div');
@@ -2517,15 +2531,77 @@
         }
       }
 
+      // Preserve the search query + focus across HUD rebuilds (background passes
+      // re-render innerHTML, which would otherwise eat in-progress typing).
+      var savedQuery = (typeof sonarlineFilterQuery === 'string' && sonarlineFilterQuery) ? sonarlineFilterQuery : (existingHud.getAttribute('data-search') || '');
+      var hadFocus = false;
+      try {
+        hadFocus = !!document.activeElement && !!document.activeElement.classList && document.activeElement.classList.contains('sonarline-filter-search');
+      } catch (e) {}
+
       var activeTag = existingHud.getAttribute('data-active-filter') || 'ALL';
       var hudHtml = '<span class="sonarline-filter-label">ARCHIVE //</span>' +
-        '<button type="button" class="sonarline-filter-pill' + (activeTag === 'ALL' ? ' active' : '') + '" data-filter-tag="ALL">ALL <span class="sonarline-filter-count">(' + total + ')</span></button>';
-
-      for (var t = 0; t < tags.length; t++) {
-        var tg = tags[t];
-        hudHtml += '<button type="button" class="sonarline-filter-pill' + (activeTag === tg ? ' active' : '') + '" data-filter-tag="' + tg + '">' + tg + ' <span class="sonarline-filter-count">(' + tagCounts[tg] + ')</span></button>';
+        '<span class="sonarline-filter-search-wrap"><input type="text" class="sonarline-filter-search" placeholder="SEARCH ARCHIVE" autocomplete="off" autocapitalize="off" spellcheck="false" value="' + sonarlineEscapeAttr(savedQuery) + '"><button type="button" class="sonarline-filter-clear" aria-label="Clear search">\u00d7</button></span>';
+      if (tags.length > 0) {
+        hudHtml += '<button type="button" class="sonarline-filter-pill' + (activeTag === 'ALL' ? ' active' : '') + '" data-filter-tag="ALL">ALL <span class="sonarline-filter-count">(' + total + ')</span></button>';
+        for (var t = 0; t < tags.length; t++) {
+          var tg = tags[t];
+          hudHtml += '<button type="button" class="sonarline-filter-pill' + (activeTag === tg ? ' active' : '') + '" data-filter-tag="' + sonarlineEscapeAttr(tg) + '">' + sonarlineEscapeAttr(tg) + ' <span class="sonarline-filter-count">(' + tagCounts[tg] + ')</span></button>';
+        }
       }
+      hudHtml += '<span class="sonarline-filter-readout"></span>';
       existingHud.innerHTML = hudHtml;
+      existingHud.setAttribute('data-search', savedQuery);
+      sonarlineFilterQuery = savedQuery;
+
+      // Shared applier: tag pill + search query combine; counts exclude rail clones.
+      function applyCardFilters() {
+        var tag = existingHud.getAttribute('data-active-filter') || 'ALL';
+        var q = (existingHud.getAttribute('data-search') || '').toLowerCase();
+        var list = section.querySelectorAll('.card-wrapper, .product-card');
+        var vis = 0, tot = 0;
+        for (var c = 0; c < list.length; c++) {
+          var cCard = list[c];
+          var isClone = cCard.hasAttribute('data-sl-clone');
+          if (!isClone) tot++;
+          var cTags = [];
+          var cRawTags = cCard.getAttribute('data-tags');
+          if (cRawTags) {
+            try { cTags = JSON.parse(cRawTags); } catch (e) {}
+          }
+          if (!cTags || cTags.length === 0) {
+            var cPills = cCard.querySelectorAll('.sonarline-card-tag-pill, .sonarline-tag-pill');
+            for (var cp = 0; cp < cPills.length; cp++) {
+              var ctxt = cPills[cp].textContent.trim();
+              if (ctxt && cPills[cp].style.display !== 'none' && cTags.indexOf(ctxt) === -1) {
+                cTags.push(ctxt);
+              }
+            }
+          }
+          var tagOk = (tag === 'ALL') || (cTags.indexOf(tag) !== -1);
+          var qOk = true;
+          if (q) {
+            var titleNode = cCard.querySelector('.card__heading, h3, h4, .product-title, .product-name');
+            var hay = ((titleNode ? titleNode.textContent : '') || '') + ' ' + (cCard.getAttribute('data-tag-text') || '') + ' ' + cTags.join(' ');
+            qOk = hay.toLowerCase().indexOf(q) !== -1;
+          }
+          if (tagOk && qOk) {
+            cCard.classList.remove('is-filtered-out');
+            if (!isClone) vis++;
+          } else {
+            cCard.classList.add('is-filtered-out');
+          }
+        }
+        var ro = existingHud.querySelector('.sonarline-filter-readout');
+        if (ro) {
+          ro.textContent = vis === 0 && tot > 0 ? 'SHOWING 0 / ' + tot + ' \u2014 NO MATCH' : 'SHOWING ' + vis + ' / ' + tot;
+          if (vis === 0 && tot > 0) ro.classList.add('is-empty');
+          else ro.classList.remove('is-empty');
+        }
+        if (typeof window.slRailInit === 'function') {
+          try { window.slRailInit(); } catch (e) {}
+        }
+      }
 
       var pills = existingHud.querySelectorAll('.sonarline-filter-pill');
       for (var p = 0; p < pills.length; p++) {
@@ -2537,39 +2613,54 @@
           for (var ap = 0; ap < allPills.length; ap++) {
             allPills[ap].classList.toggle('active', allPills[ap] === this);
           }
+          applyCardFilters();
+        });
+      }
 
-          var allCards = document.querySelectorAll('.card-wrapper, .product-card');
-          for (var c = 0; c < allCards.length; c++) {
-            var cCard = allCards[c];
-            if (filterTag === 'ALL') {
-              cCard.classList.remove('is-filtered-out');
-            } else {
-              var cTags = [];
-              var cRawTags = cCard.getAttribute('data-tags');
-              if (cRawTags) {
-                try { cTags = JSON.parse(cRawTags); } catch (e) {}
-              }
-              if (!cTags || cTags.length === 0) {
-                var cPills = cCard.querySelectorAll('.sonarline-card-tag-pill, .sonarline-tag-pill');
-                for (var cp = 0; cp < cPills.length; cp++) {
-                  var ctxt = cPills[cp].textContent.trim();
-                  if (ctxt && cPills[cp].style.display !== 'none' && cTags.indexOf(ctxt) === -1) {
-                    cTags.push(ctxt);
-                  }
-                }
-              }
-              if (cTags.indexOf(filterTag) !== -1) {
-                cCard.classList.remove('is-filtered-out');
-              } else {
-                cCard.classList.add('is-filtered-out');
-              }
-            }
-          }
-          if (typeof window.slRailInit === 'function') {
-            window.slRailInit();
+      var searchInput = existingHud.querySelector('.sonarline-filter-search');
+      if (searchInput) {
+        if (hadFocus) {
+          try {
+            searchInput.focus();
+            var vlen = searchInput.value.length;
+            searchInput.setSelectionRange(vlen, vlen);
+          } catch (e) {}
+        }
+        searchInput.addEventListener('input', function() {
+          var v = searchInput.value;
+          if (sonarlineSearchTimer) clearTimeout(sonarlineSearchTimer);
+          sonarlineSearchTimer = setTimeout(function() {
+            sonarlineSearchTimer = null;
+            sonarlineFilterQuery = v;
+            existingHud.setAttribute('data-search', v);
+            applyCardFilters();
+          }, 120);
+        });
+        searchInput.addEventListener('keydown', function(e) {
+          if (e.key === 'Escape') {
+            e.preventDefault();
+            searchInput.value = '';
+            sonarlineFilterQuery = '';
+            existingHud.setAttribute('data-search', '');
+            applyCardFilters();
+            try { searchInput.blur(); } catch (err) {}
           }
         });
       }
+      var clearBtn = existingHud.querySelector('.sonarline-filter-clear');
+      if (clearBtn) {
+        clearBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          if (searchInput) searchInput.value = '';
+          sonarlineFilterQuery = '';
+          existingHud.setAttribute('data-search', '');
+          applyCardFilters();
+          if (searchInput) {
+            try { searchInput.focus(); } catch (err) {}
+          }
+        });
+      }
+      applyCardFilters();
     }
 
     // MutationObserver: re-apply when Payhip lazy loader adds/mutates cards.

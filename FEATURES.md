@@ -215,7 +215,9 @@
 - `[x]` **Card Quick-Listen Trigger:** Instant 1-click play/pause overlay on card artwork hover with animated soundwave indicator.
 - `[ ]` **Audio Stem / Layer Selector in Preview Modal:** Multi-track demo auditioning via `[[audio:stem:url]]`.
 - `[ ]` **Multi-Sample Directory Tree:** `[[contents: ...]]` formatted into an ASCII tree breakdown inside modals.
-- `[ ]` **Instant In-Page Search & Live Card Filter HUD:** Real-time counter readouts and instant filtering.
+- `[x]` **Instant In-Page Search & Live Card Filter HUD:**
+  - Brutalist search field (`SEARCH ARCHIVE`) with 120ms debounced instant filtering by title + tags, combining with tag pill filters.
+  - Live counter readout (`SHOWING x / y`, `NO MATCH` state) excluding rail clones; query + focus survive background HUD rebuilds; `Escape`/× clears.
 - `[x]` **3D Hardware-Accelerated Perspective Tilt on Card Hover:**
   - Subtle perspective mouse tracking with dynamic specular glare highlight effect on collection cards.
 - `[x]` **Monospace Text Scramble / Character Decryption Effect on Hover:** Cyberpunk text reveal animation on card title hover.
@@ -359,3 +361,6 @@
 - **Fixed:** Restored continuous announcement ticker marquee loop with bullet separators.
 - **Fixed:** Re-engaged scroll parallax and opacity falloff engine.
 - **Logged:** Initialized `FEATURES.md` master tracker for all implemented and upcoming features.
+
+### [2026-09-21 - Release 18]
+- **Instant In-Page Search & Live Card Filter HUD**: added debounced search field to the ARCHIVE bar filtering cards by title and tags combined with tag pills, live SHOWING x / y readout with NO MATCH state, query and focus preserved across background rebuilds, Escape and clear-button reset, and builder-section support via content-section fallback.
