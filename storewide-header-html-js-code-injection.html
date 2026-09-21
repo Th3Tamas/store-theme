@@ -3548,28 +3548,35 @@
       '  position: fixed !important;',
       '  top: 0 !important;',
       '  left: 0 !important;',
-      '  width: 10px !important;',
-      '  height: 10px !important;',
-      '  margin-top: -5px !important;',
-      '  margin-left: -5px !important;',
+      '  width: 6px !important;',
+      '  height: 6px !important;',
+      '  margin-top: -3px !important;',
+      '  margin-left: -3px !important;',
       '  background: #ffffff !important;',
       '  border-radius: 50% !important;',
       '  pointer-events: none !important;',
       '  z-index: 2147483646 !important;',
       '  mix-blend-mode: difference !important;',
       '  transform: translate3d(-100px, -100px, 0);',
-      '  will-change: transform !important;',
+      '  transition: width 0.22s cubic-bezier(0.16, 1, 0.3, 1), height 0.22s cubic-bezier(0.16, 1, 0.3, 1), margin 0.22s cubic-bezier(0.16, 1, 0.3, 1) !important;',
+      '  will-change: transform, width, height, margin !important;',
       '  backface-visibility: hidden !important;',
+      '}',
+      '#sl-cursor-dot.hovered {',
+      '  width: 24px !important;',
+      '  height: 24px !important;',
+      '  margin-top: -12px !important;',
+      '  margin-left: -12px !important;',
       '}',
       '#sl-cursor-circle {',
       '  display: block !important;',
       '  position: fixed !important;',
       '  top: 0 !important;',
       '  left: 0 !important;',
-      '  width: 32px !important;',
-      '  height: 32px !important;',
-      '  margin-top: -16px !important;',
-      '  margin-left: -16px !important;',
+      '  width: 24px !important;',
+      '  height: 24px !important;',
+      '  margin-top: -12px !important;',
+      '  margin-left: -12px !important;',
       '  border: 1px solid rgba(255, 255, 255, 0.85) !important;',
       '  border-radius: 50% !important;',
       '  pointer-events: none !important;',
@@ -3581,11 +3588,11 @@
       '  backface-visibility: hidden !important;',
       '}',
       '#sl-cursor-circle.hovered {',
-      '  width: 10px !important;',
-      '  height: 10px !important;',
-      '  margin-top: -5px !important;',
-      '  margin-left: -5px !important;',
-      '  border-color: #ffffff !important;',
+      '  width: 24px !important;',
+      '  height: 24px !important;',
+      '  margin-top: -12px !important;',
+      '  margin-left: -12px !important;',
+      '  border-color: rgba(255, 255, 255, 1) !important;',
       '}',
       '@media (pointer: coarse) {',
       '  #sl-cursor-dot, #sl-cursor-circle { display: none !important; }',
@@ -3648,19 +3655,22 @@
         if (!isHovered) {
           isHovered = true;
           circle.classList.add('hovered');
+          dot.classList.add('hovered');
         }
       } else {
         if (isHovered) {
           isHovered = false;
           circle.classList.remove('hovered');
+          dot.classList.remove('hovered');
         }
       }
     }, { passive: true });
 
     function lerpCursor() {
       if (!document.hidden && initialized) {
-        circleX += (mouseX - circleX) * 0.15;
-        circleY += (mouseY - circleY) * 0.15;
+        var speed = isHovered ? 0.35 : 0.15;
+        circleX += (mouseX - circleX) * speed;
+        circleY += (mouseY - circleY) * speed;
         circle.style.transform = 'translate3d(' + circleX + 'px, ' + circleY + 'px, 0)';
       }
       window.requestAnimationFrame(lerpCursor);

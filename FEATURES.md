@@ -41,8 +41,8 @@
   - `Inter` — Body text, descriptions, UI labels.
 - `[x]` **Custom Kinetic Cursor:**
   - Multi-element cursor with `mix-blend-mode: difference` inversion across all surfaces.
-  - Centered 10px white dot + trailing 32px outer ring with smooth rAF lerp physics.
-  - Interactive reaction: outer ring smoothly shrinks and collapses directly onto the dot when hovering over clickable targets (`a`, `button`, cards, badges, pills, etc.).
+  - Centered 6px white dot + trailing 24px outer ring with smooth rAF lerp physics.
+  - Interactive reaction: dot smoothly expands from 6px to 24px to fill the outer ring when hovering over clickable targets (`a`, `button`, cards, badges, pills, etc.).
 - `[-]` **Desktop Drag-Selection Box (`#sl-selection-box`):**
   - Scrapped and removed per user direction.
 - `[x]` **Layout Cleanup & Overflow Protection:**
