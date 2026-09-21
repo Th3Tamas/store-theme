@@ -247,6 +247,9 @@
 - **Refined Price Tag**: Reduced font size to `0.72rem` Space Mono, eliminated nested pill backgrounds/borders across `.price-block`, `.price`, `.price__container`, etc., enforced the zero-glow mandate (no drop-shadows, glow halos, or layered blur effects), and isolated right-aligned flexbox to the `.sonarline-card-price-wrap` container so nested price text/sale items retain natural layout.
 - **Removed `!` Buttons**: Completely removed product preview exclamation badges (`.sonarline-card-info-badge { display: none !important; }` and purged all instances from DOM).
 
+### [2026-09-21 - Release 15]
+- **Removed Product Image Hover Zoom**: Completely removed `transform: scale(1.03)` and animation on card hover across `storewide-store-pages-custom.css`, `CAROUSEL_CSS`, and `injectImmediateStyles()` in `storewide-header-html-js-code-injection.html`. Enforced `transform: none !important;` across all product card image selectors, ensuring product images remain completely static when hovered while the whole card lift (`translateY(-6px)`) and border enhancement remain active.
+
 ### [2026-09-21 - Release 14]
 - **Hard-Override Firefox Gecko Grid Collapse**:
   - Scoped parent selectors with `:not(.sl-rail-track):not(.sl-carousel-track)` across all grid and collection containers so `#page-section-collection .grid-list` no longer clamps the track to `width: 100%`.

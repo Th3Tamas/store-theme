@@ -1236,16 +1236,34 @@ html body .card-wrapper .card__inner .media img {
   opacity: 1 !important;
   visibility: visible !important;
   filter: contrast(1.04) brightness(0.96) !important;
-  transition: transform 0.4s var(--ease-brutal), filter 0.4s var(--ease-brutal) !important;
+  transition: filter 0.4s var(--ease-brutal) !important;
+  transform: none !important;
 }
 
+/* Completely disable product image zoom on hover */
+.card-wrapper img,
+.product-card img,
+.card-wrapper .card__media img,
+.product-card .card__media img,
+.card-wrapper .media img,
+.product-card .media img,
 .card-wrapper:hover img,
 .product-card:hover img,
 .product-item:hover img,
 [data-product-id]:hover img,
-[class*="product-card"]:hover img {
-  transform: scale(1.03) !important;
-  filter: contrast(1.08) brightness(1.02) !important;
+[class*="product-card"]:hover img,
+.card-wrapper:hover .card__media img,
+.product-card:hover .card__media img,
+.card-wrapper:hover .media img,
+.product-card:hover .media img,
+.card--card:hover .card__media img,
+.media--hover-effect:hover img,
+[data-sl-rail="done"] .card-wrapper:hover img,
+[data-sl-rail="done"] .product-card:hover img,
+[data-sl-rail="done"] .card-wrapper:hover .card__media img,
+[data-sl-rail="done"] .product-card:hover .card__media img {
+  transform: none !important;
+  filter: contrast(1.04) brightness(0.96) !important;
 }
 
 /* 4. TEXT AREA STRICT PADDING (Strictly applied to content underneath media) */
