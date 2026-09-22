@@ -237,9 +237,9 @@
     clock.className = 'lab-clock';
     clock.textContent = '--:--:--';
     bar.appendChild(clock);
-    var header = document.getElementById('header');
-    if (header && header.parentNode) header.parentNode.insertBefore(bar, header);
-    else document.body.insertBefore(bar, document.body.firstChild);
+    // never detach or reorder #header: bar goes to the very top of <body>
+    if (document.body.firstChild) document.body.insertBefore(bar, document.body.firstChild);
+    else document.body.appendChild(bar);
     if (!CLOCK_TIMER) {
       var tick = function () {
         try {
@@ -555,7 +555,8 @@
         if (d.watermark) { section.classList.add('lab-frame'); ensureWatermark(section, d.watermark); ensureTicks(section); }
 
         if (key === 'ticker' && (d.ticker || d.fx || d.ticker_fx)) decorateTicker(section, d);
-        if (key === 'featured-product' && (d.section === 'hero' || d.spec || d.code || d.button || d.hero_spec || d.hero_code)) decorateHero(section, d);
+        // hero is always treated: the featured product is the primary focal block (tags only customize it)
+        if (key === 'featured-product') decorateHero(section, d);
         if (key === 'featured-collection' && (d.barcode || d.rack || d.nodes || d.spec || d.meta || d.watermark || d.card_meta)) decorateCollection(section, d);
         else if (key === 'featured-collection' && hasLab) decorateCollection(section, d);
         if ((key === 'video-simple' || key === 'gallery' || key === 'embed-code') && (d.monitor === 'oscilloscope' || d.skin === 'oscilloscope' || d.section === 'monitor')) decorateMonitor(section);
