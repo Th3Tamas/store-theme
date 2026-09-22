@@ -1,0 +1,20 @@
+<!-- LAB DECORATOR — header injection (Phase 1: fonts + early overlay)
+     Decorator-only. No brand strings. No hardcoded content.
+     Full tag parsing + telemetry build lives in footer injection. -->
+<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script>
+(function () {
+  try {
+    document.documentElement.classList.add('lab-js');
+    // Early noise overlay (footer decorator reuses if present — idempotent).
+    if (!document.querySelector('.lab-noise-overlay')) {
+      var n = document.createElement('div');
+      n.className = 'lab-noise-overlay';
+      n.setAttribute('aria-hidden', 'true');
+      (document.body || document.documentElement).appendChild(n);
+    }
+  } catch (e) { /* no-op: never break native header */ }
+})();
+</script>
