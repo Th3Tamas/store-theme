@@ -6324,6 +6324,24 @@
       return null;
     }
 
+    function escapeHtml(s) {
+      return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    // Card title comes from the native footer heading (e.g. "GET EXCLUSIVE DEALS").
+    function findNativeTitle(footer) {
+      try {
+        var heads = footer.querySelectorAll('h1, h2, h3, h4, .heading-text, [class*="title"], [class*="heading"]');
+        for (var i = 0; i < heads.length; i++) {
+          var h = heads[i];
+          if (h.closest && h.closest('.sonarline-footer')) continue;
+          var t = (h.textContent || '').replace(/\s+/g, ' ').trim();
+          if (t && /exclusive|newsletter|subscribe|stay in|deals|join|sign up/i.test(t)) return t;
+        }
+      } catch (e) {}
+      return null;
+    }
+
     function isVisible(el) {
       try {
         if (!el || !el.isConnected) return false;
@@ -6448,6 +6466,7 @@
 
         var open = (parsed !== null) ? parsed : true;
         scrubToken(footer);
+        var titleText = findNativeTitle(footer) || 'Get exclusive deals';
 
         var box = document.createElement('div');
         box.className = 'sonarline-footer';
@@ -6463,7 +6482,7 @@
         card.className = 'sonarline-footer-card';
         card.innerHTML =
           '<div class="sonarline-footer-card-top">' +
-            '<span class="sonarline-footer-title">Get exclusive deals</span>' +
+            '<span class="sonarline-footer-title">' + escapeHtml(titleText) + '</span>' +
             '<span class="sonarline-footer-status"><span class="sonarline-footer-dot"></span><span class="sonarline-footer-status-text">OPEN</span></span>' +
           '</div>' +
           '<p class="sonarline-footer-sub">early access, discounts &amp; free drops. no spam.</p>' +
@@ -6600,19 +6619,50 @@
 
     window.slFooterDebug = function() {
       try {
-        var footer = findFooter();
-        if (!footer) return { found: false };
-        var box = footer.querySelector('.sonarline-footer');
-        return {
-          found: true,
-          built: !!box,
-          open: box ? box.getAttribute('data-newsletter-open') : null,
-          tokenPresent: OPEN_RE.test(footer.textContent || ''),
-          links: box ? box.querySelectorAll('.sonarline-footer-nav a').length : 0,
-          form: !!(box && box.querySelector('.sonarline-footer-formrow form'))
-        };
+        var all = document.querySelectorAll('footer, [data-section-key="footer"]');
+        var list = [];
+        for (var i = 0; i < all.length; i++) {
+          var f = all[i];
+          var info = { index: i, tag: f.tagName, key: f.getAttribute('data-section-key'), id: f.id || null, cls: String(f.className || '').slice(0, 80) };
+          try {
+            var cs = window.getComputedStyle(f);
+            info.display = cs.display;
+            info.visibility = cs.visibility;
+            info.opacity = cs.opacity;
+            info.rectH = Math.round(f.getBoundingClientRect().height);
+          } catch (e) {}
+          var box = f.querySelector('.sonarline-footer');
+          if (box) {
+            try {
+              var bcs = window.getComputedStyle(box);
+              info.box = {
+                display: bcs.display, visibility: bcs.visibility, opacity: bcs.opacity,
+                rectH: Math.round(box.getBoundingClientRect().height), children: box.children.length
+              };
+            } catch (e) {}
+            info.open = box.getAttribute('data-newsletter-open');
+            info.links = box.querySelectorAll('.sonarline-footer-nav a').length;
+            info.form = !!(box.querySelector('.sonarline-footer-formrow form'));
+          } else {
+            info.box = null;
+          }
+          var anc = [];
+          var p = f.parentElement, d = 0;
+          while (p && d < 6) {
+            try {
+              var pcs = window.getComputedStyle(p);
+              anc.push(p.tagName + (p.id ? '#' + p.id : '') + ' d=' + pcs.display + ' v=' + pcs.visibility);
+              if (pcs.display === 'none') break;
+            } catch (e) {}
+            p = p.parentElement;
+            d++;
+          }
+          info.ancestors = anc;
+          list.push(info);
+        }
+        return { count: all.length, tokenPresent: OPEN_RE.test((document.body && document.body.textContent) || ''), footers: list };
       } catch (e) {
-        return { found: false, error: String(e) };
+        return { error: String(e) };
       }
     };
     window.slFooterRebuild = function() {
