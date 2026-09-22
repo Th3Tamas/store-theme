@@ -4075,6 +4075,17 @@ div.card-wrapper.product-card-wrapper.sonarline-card--highlighted,
   font-size: 0.6rem !important;
   letter-spacing: 0.12em !important;
 }
+/* Visibility lockdown: footer subtree always paints (defeats stuck reveal /
+   entrance states from theme CSS that hide children despite clean layout). */
+.sonarline-footer.sonarline-footer *,
+.sonarline-footer.sonarline-footer *::before,
+.sonarline-footer.sonarline-footer *::after {
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: none !important;
+  filter: none !important;
+  animation: none !important;
+}
 @media (max-width: 520px) {
   .sonarline-footer-formrow,
   .sonarline-footer-formrow form {
