@@ -239,7 +239,10 @@
 
 ## 10. Changelog & Revision History
 
-### [2026-09-22 - Release 20]
+### [2026-09-22 - Release 21]
+- **Placeholder Purge**: unpopulated Payhip showcase blocks (`[data-section-key="product"]`, placeholder-SVG/example-alt details wrappers) hidden; hero-to-collections gap closed (margin 0, 24px bottom pad).
+- **Symmetrical Hero HUD**: `.sl-hud-framed` hairline frame with red TL/BR corner marks replaces the one-sided schematic box on the hero band; headline stays centered.
+- **Instrument-Chassis Cards**: rail cards recessed (`#0f0f11`, 0.1 hairline, 10px inset, inset bezel ring) with bordered `#050505` media beds; highlight hairline/glow, padding, and barcode alignment preserved.
 - **Technical Schematic Placard Cards**: cards rebuilt as spec-sheet placards (`#111113` surface, `rgba(255,255,255,0.12)` hairline, 12px exhibition frame, corner ticks, 2px geometry); removed the white `BUY NOW`/`LISTEN` button row and its delegation; Row 1 = Space Grotesk 0.85rem title + `#01` catalog index, Row 2 = spec-strip tag pills, Row 3 = CSS barcode + big mono price bar.
 - **Blueprint Section Framing**: `.sl-schematic-box` HUD corners (TL/BR accents) applied to carousel bodies and the hero band.
 - **Ghost Watermark**: `ARCHIVE // COLLECTIONS` ultra-bold ghost type behind the rail with the track elevated above it.

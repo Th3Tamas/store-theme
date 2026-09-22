@@ -6145,7 +6145,12 @@
       if (!h1) return;
 
       // Blueprint framing on the hero band (idempotent class add).
-      try { heroContents.classList.add('sl-schematic-box'); } catch (e) {}
+      // Symmetrical red-corner HUD frame; the older schematic box is retired here
+      // so two frames never stack.
+      try {
+        heroContents.classList.add('sl-hud-framed');
+        heroContents.classList.remove('sl-schematic-box');
+      } catch (e) {}
 
       // Purge any unparsed/hardcoded fallback status pills or terminal prompts
       var unparsedPills = heroContents.querySelectorAll('.sonarline-status-pill:not([data-shortcode-parsed])');
