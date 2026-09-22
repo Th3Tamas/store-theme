@@ -53,22 +53,16 @@ a {
   color: inherit;
 }
 
-/* Mountain hero kill: headline banner image removed so the spec hero is focal.
-   Scoped to headline sections only — product imagery untouched.
-   The wrapper itself stays (brand heading + tag content preserved). */
-.section-wrapper[data-section-key="headline"] .section-background-image,
-.section-wrapper[data-section-key="headline"] .section-background-image-fallback,
-.section-wrapper[data-section-key="headline"] .section-background-overlay {
+/* Hard hide the mountain headline section: removed from document flow. */
+[data-section-key="headline"],
+.section-wrapper[data-section-key="headline"],
+#content-section-jznN5Kyqz7 {
   display: none !important;
-}
-
-.section-wrapper[data-section-key="headline"] {
+  height: 0 !important;
   min-height: 0 !important;
-}
-
-.section-wrapper[data-section-key="headline"] .section-contents-wrapper {
-  padding-top: 24px !important;
-  padding-bottom: 24px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow: hidden !important;
 }
 
 /* ---------- Typography helpers ---------- */
@@ -237,19 +231,28 @@ a {
 
 /* ---------- Ticker FX ---------- */
 
+/* Clean ticker reset: geometry untouched — Payhip measures glyphs on mount. */
+.ticker,
+[data-section-key="ticker"] {
+  overflow: hidden !important;
+  background: var(--carbon-0, #0a0a0a) !important;
+  border-bottom: 1px solid var(--line, #333) !important;
+}
+
+/* Text treatment only: no letter-spacing, width, display, or transform changes. */
+.ticker *,
 .fx-ticker-glow .ticker-item,
 .fx-ticker-glow .ticker-svg-text,
 .fx-ticker-glow [class*="ticker-item--"] {
-  font-family: var(--font-mono) !important;
-  letter-spacing: 0.18em;
+  font-family: 'Space Grotesk', -apple-system, sans-serif !important;
+  text-transform: uppercase !important;
 }
 
-/* Layout preservation: native marquee geometry is never altered (HTML items only). */
-.fx-ticker-glow .ticker-item,
-.fx-ticker-glow [class*="ticker-item--"] {
-  display: inline-block !important;
-  margin-right: 3rem !important;
-  white-space: nowrap !important;
+/* Glow accent without disrupting bounding boxes. */
+.fx-ticker-glow,
+[data-section-key="ticker"] span {
+  color: #e6e6e6 !important;
+  text-shadow: 0 0 12px rgba(184, 241, 255, 0.45);
 }
 
 .lab-ticker-glow-holo .ticker-item,
@@ -260,7 +263,6 @@ a {
   color: transparent !important;
 }
 
-/* SVG marquee text keeps a solid fill: gradient clipping would clump glyphs. */
 .lab-ticker-glow-holo .ticker-svg-text {
   fill: #e6e6e6;
 }
@@ -277,16 +279,12 @@ a {
 
 .lab-ticker-plain-mono .ticker-item,
 .lab-ticker-plain-mono [class*="ticker-item--"] {
-  font-family: var(--font-mono) !important;
   color: var(--ink-dim) !important;
-  letter-spacing: 0.18em;
 }
 
 .lab-ticker-plain-mono .ticker-svg-text {
   fill: var(--ink-dim);
 }
-
-/* Variant hooks folded into the rules above (SVG text kept solid). */
 
 /* Variant hooks folded into the rules above (SVG text kept solid). */
 
@@ -609,6 +607,50 @@ a {
 
 .lab-rack-node:last-child::after {
   content: none;
+}
+
+/* Ghost kill: never show empty rack shells (native or decorator). */
+.rack-node:empty,
+.rack-nodes-container:empty,
+.lab-rack:empty,
+.lab-rack-nodes:empty,
+.lab-rack-node:empty {
+  display: none !important;
+}
+
+/* Hero spec layout: native featured-product row becomes a 2-col technical grid. */
+.lab-hero .row {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 2rem !important;
+  align-items: center !important;
+}
+
+.lab-hero .text-column {
+  font-family: var(--font-mono) !important;
+  border-left: 1px solid var(--line) !important;
+  padding-left: 1.5rem !important;
+}
+
+.lab-hero .image-column {
+  border: 1px solid var(--line) !important;
+}
+
+.lab-hero .image-column img {
+  filter: grayscale(1) contrast(1.25) !important;
+}
+
+@media (max-width: 900px) {
+  .lab-hero .row {
+    grid-template-columns: 1fr !important;
+  }
+
+  .lab-hero .text-column {
+    border-left: none !important;
+    border-top: 1px solid var(--line) !important;
+    padding-left: 0 !important;
+    padding-top: 1.5rem !important;
+  }
 }
 
 /* ---------- Scrubbed-tag helper ---------- */
