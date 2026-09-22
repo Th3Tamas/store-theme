@@ -20,6 +20,7 @@
   var DONE = 'data-lab-done';
   var CLOCK_TIMER = null;
   var LAB_VERSION = '1.1.0';
+  var DEBOUNCE_MS = 450; // ticker animation guard: collapse churn into sparse passes
   var NF = (typeof NodeFilter !== 'undefined') ? NodeFilter : { SHOW_TEXT: 4, FILTER_ACCEPT: 1, FILTER_REJECT: 2 };
 
   function labLog(msg, data) {
@@ -359,12 +360,27 @@
     });
 
     var wantRack = String(d.rack || d.nodes || d.rack_nodes || '').toLowerCase() === 'on';
+    // prune stale/empty rails so no ghost boxes linger above the grid
+    try {
+      section.querySelectorAll('.lab-rack-nodes').forEach(function (rail) {
+        var kids = rail.querySelectorAll('.lab-rack-node');
+        var hasLabel = false;
+        kids.forEach(function (k) { if ((k.textContent || '').trim()) hasLabel = true; });
+        if (!kids.length || !hasLabel) { if (rail.parentNode) rail.parentNode.removeChild(rail); }
+      });
+    } catch (e) {}
     if (wantRack && !section.querySelector(':scope .lab-rack-nodes') && cards.length) {
+      var labels = [];
+      Array.prototype.slice.call(cards, 0, 6).forEach(function (card) {
+        var rawKey = '';
+        try { rawKey = card.getAttribute('data-product-key') || ''; } catch (e) {}
+        labels.push(rawKey.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6) || 'MOD');
+      });
+      if (!labels.length) return;
       var rail = document.createElement('div');
       rail.className = 'lab-rack-nodes';
       rail.setAttribute('aria-hidden', 'true');
-      Array.prototype.slice.call(cards, 0, 6).forEach(function (card) {
-        var key = (card.getAttribute('data-product-key') || 'MOD').toUpperCase().slice(0, 6);
+      labels.forEach(function (key) {
         var node = document.createElement('div');
         node.className = 'lab-rack-node';
         node.textContent = key;
@@ -373,6 +389,7 @@
       var grid = section.querySelector('.grid-block, .grid-list');
       if (grid && grid.parentNode) grid.parentNode.insertBefore(rail, grid);
       else section.appendChild(rail);
+      labLog('rack built', { nodes: labels.length });
     }
   }
 
@@ -543,7 +560,7 @@
       // mark scanned (2 = section-level done; cards use 1)
       try { if (!section.hasAttribute(DONE)) section.setAttribute(DONE, '2'); } catch (e) {}
     });
-    labLog('pass complete', { scanned: scanned, decorated: decorated });
+    if (decorated > 0) labLog('pass complete', { scanned: scanned, decorated: decorated });
 
     // standalone newsletter forms outside footer sections
     try {
@@ -563,6 +580,29 @@
     } catch (e) {}
   }
 
+  /* Mutation filters: ticker animation + our own chrome must never retrigger scans. */
+  function isIgnorableNode(an) {
+    try {
+      if (!an || an.nodeType !== 1) return true;
+      if (an.closest && an.closest('.ticker, [data-section-key="ticker"]')) return true;
+      if (an.closest && an.closest('#lab-telemetry-bar, .lab-noise-overlay')) return true;
+      var cls = an.className;
+      if (cls && typeof cls !== 'string' && cls.baseVal !== undefined) cls = ''; // SVG nodes
+      if (typeof cls === 'string' && /(^|\s)lab-[\w-]+/.test(cls)) return true;
+      if (/^(SCRIPT|STYLE|LINK)$/.test(an.nodeName || '')) return true;
+    } catch (e) { return false; }
+    return false;
+  }
+
+  function isGenuineAddition(an) {
+    try {
+      var SEL = '.product-card-wrapper, [data-product-key], .section-wrapper, [data-section-key], form, [class*="cart"], [id*="cart"]';
+      if (an.matches && an.matches(SEL)) return true;
+      if (an.querySelector && an.querySelector(SEL)) return true;
+    } catch (e) {}
+    return false;
+  }
+
   /* ---------- boot + observers (covers side-cart / cart modal) ---------- */
 
   var scheduled = false;
@@ -572,7 +612,7 @@
     setTimeout(function () {
       scheduled = false;
       try { decorateRoot(root || document); } catch (e) {}
-    }, 120);
+    }, DEBOUNCE_MS);
   }
 
   function boot() {
@@ -581,11 +621,23 @@
     try { decorateRoot(document); } catch (e) { labLog('boot pass failed', String(e && e.message || e)); }
     try {
       var obs = new MutationObserver(function (mutations) {
-        for (var i = 0; i < mutations.length; i++) {
+        var fire = false;
+        for (var i = 0; i < mutations.length && !fire; i++) {
           var mut = mutations[i];
-          if (mut.addedNodes && mut.addedNodes.length) { schedule(document); break; }
-          // cart quantity/price text updates need no rescan; skip characterData
+          try {
+            var t = mut.target;
+            if (t && t.closest && t.closest('.ticker, [data-section-key="ticker"]')) continue;
+            if (t && t.nodeName && /^(VIDEO|AUDIO)$/.test(t.nodeName)) continue;
+          } catch (e) {}
+          var added = mut.addedNodes;
+          if (!added || !added.length) continue;
+          for (var j = 0; j < added.length; j++) {
+            if (isIgnorableNode(added[j])) continue;
+            if (isGenuineAddition(added[j])) { fire = true; break; }
+            // unknown additions are ignored to starve loops (timed passes cover late embeds)
+          }
         }
+        if (fire) schedule(document);
       });
       obs.observe(document.body || document.documentElement, { childList: true, subtree: true });
       labLog('watching dynamic cart + sections');
