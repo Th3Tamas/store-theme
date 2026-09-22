@@ -3907,6 +3907,19 @@ body#page-custom [data-section-key="footer"] .sonarline-footer.sonarline-footer 
   align-self: center !important;
   justify-self: center !important;
 }
+/* Stack the footer section vertically: our card centered on top, native blocks
+   (e.g. Custom Text) full-width below. Without this the native content wrapper
+   hogs the flex row and leaves no free space for auto-margins to absorb. */
+div[data-section-key="footer"] {
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 32px !important;
+}
+body#page-custom div[data-section-key="footer"] {
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 32px !important;
+}
 .sonarline-footer-card.sonarline-footer-card {
   width: 100% !important;
   background: #0e0e0e !important;
