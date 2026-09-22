@@ -6420,6 +6420,40 @@
       }
     }
 
+    // Collapse the native content wrapper when it holds no live content outside
+    // our box (mirrors manually deleting it: our card centers, dead space gone).
+    // Re-evaluated every pass so late-loading native content unhides it again.
+    function syncDeadWrapper(footer, box) {
+      try {
+        var wrap = footer.querySelector('.section-contents-wrapper, .section-contents');
+        if (!wrap || wrap.contains(box)) return;
+        function shown(el) {
+          while (el && el !== wrap) {
+            var cs = window.getComputedStyle(el);
+            if (cs.display === 'none' || cs.visibility === 'hidden') return false;
+            el = el.parentElement;
+          }
+          return true;
+        }
+        var alive = false;
+        var walker = document.createTreeWalker(wrap, NodeFilter.SHOW_TEXT, null, false);
+        var n;
+        while ((n = walker.nextNode())) {
+          if (box.contains(n.parentElement)) continue;
+          if ((n.nodeValue || '').trim() && shown(n.parentElement)) { alive = true; break; }
+        }
+        if (!alive) {
+          var media = wrap.querySelectorAll('img, svg, canvas, iframe, video, input, button, form, a[href]');
+          for (var i = 0; i < media.length && !alive; i++) {
+            if (box.contains(media[i])) continue;
+            if (shown(media[i])) alive = true;
+          }
+        }
+        if (alive) wrap.style.removeProperty('display');
+        else wrap.style.setProperty('display', 'none', 'important');
+      } catch (e) {}
+    }
+
     function hideIfEmptied(el, stopAt) {
       // Hide ONLY the emptied element itself (never climb): climbing can take out
       // ancestors that later host our box. Never hide the footer section itself.
@@ -6465,6 +6499,7 @@
           var stored = existing.getAttribute('data-newsletter-open');
           var next = (parsed !== null) ? parsed : (stored === 'false' ? false : true);
           centerBox(existing);
+          syncDeadWrapper(footer, existing);
           applyOpenState(existing, next);
           return { found: true, open: next, rebuilt: false };
         }
@@ -6611,6 +6646,7 @@
 
         footer.insertBefore(box, footer.firstChild);
         centerBox(box);
+        syncDeadWrapper(footer, box);
         applyOpenState(box, open);
         return { found: true, open: open, rebuilt: true, links: links.length, form: !!form };
       } catch (e) {
