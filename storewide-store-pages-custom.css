@@ -1,0 +1,638 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+/* ============================================================
+   LAB DECORATOR THEME — Phase 0: Design Tokens & Base Theme
+   Decorator-only: augments native Payhip DOM, never replaces it.
+   Marker namespace: [[lab: ...]] (all other [[...]] ignored)
+   Zero brand strings. Zero hardcoded content.
+   ============================================================ */
+
+:root {
+  --carbon-0: #0a0a0a;
+  --carbon-1: #121212;
+  --carbon-2: #181818;
+  --ink: #e6e6e6;
+  --ink-dim: #d1d1d1;
+  --ink-faint: #8a8a8a;
+  --line: #333333;
+  --line-soft: #222222;
+  --cyan: #b8f1ff;
+  --amber: #ffb454;
+  --holo: linear-gradient(90deg, #b8f1ff 0%, #e0b8ff 45%, #ffd1b8 100%);
+  --font-display: 'Space Grotesk', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'IBM Plex Mono', 'JetBrains Mono', 'Space Mono', ui-monospace, monospace;
+  --grid-max: 1280px;
+  --tick-size: 14px;
+}
+
+/* ---------- Base ---------- */
+
+html {
+  background: var(--carbon-0);
+}
+
+body {
+  background: var(--carbon-0) !important;
+  color: var(--ink) !important;
+  font-family: var(--font-display);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Keep native scheme wrappers but force carbon */
+.section-wrapper[data-section-setting-color-scheme-id="blackPrimary"],
+.section-wrapper[data-section-setting-color-scheme-id="darkPrimary"] {
+  background-color: var(--carbon-0);
+  color: var(--ink);
+}
+
+.section-wrapper .section-background {
+  background-color: transparent;
+}
+
+a {
+  color: inherit;
+}
+
+/* Kill generic mountain banner image only when lab hero takes over.
+   Scoped so product imagery is never hidden. */
+.section-wrapper[data-section-key="headline"] .section-background-image {
+  opacity: 0.12;
+  filter: grayscale(1) contrast(1.2);
+}
+
+/* ---------- Typography helpers ---------- */
+
+.font-section-header-link a,
+.header-nav a {
+  font-family: var(--font-mono) !important;
+  font-size: 11px !important;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.heading-text {
+  font-family: var(--font-display) !important;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+}
+
+.mono-tag,
+.lab-card-meta,
+.lab-card-code,
+.lab-card-spec,
+.lab-monitor-head,
+.lab-terminal-frame,
+#lab-telemetry-bar {
+  font-family: var(--font-mono) !important;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* ---------- Telemetry bar (built dynamically, no brand) ---------- */
+
+#lab-telemetry-bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  padding: 6px 16px;
+  background: var(--carbon-0);
+  border-bottom: 1px solid var(--line-soft);
+  color: var(--ink-faint);
+  font-size: 10px;
+  line-height: 1.6;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+#lab-telemetry-bar .lab-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--amber);
+  margin-right: 6px;
+  vertical-align: 1px;
+}
+
+#lab-telemetry-bar .lab-dot.is-ok {
+  background: #7dffb0;
+}
+
+#lab-telemetry-bar .lab-brand {
+  color: var(--ink);
+}
+
+#lab-telemetry-bar .lab-clock {
+  margin-left: auto;
+  color: var(--ink-dim);
+}
+
+/* ---------- Noise / grain overlay ---------- */
+
+.lab-noise-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483000;
+  pointer-events: none;
+  opacity: 0.07;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+}
+
+/* ---------- Frame ticks + crosshairs (decorative only) ---------- */
+
+.lab-frame {
+  position: relative;
+}
+
+.lab-tick {
+  position: absolute;
+  width: var(--tick-size);
+  height: var(--tick-size);
+  border: 0 solid var(--ink-faint);
+  opacity: 0.7;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.lab-tick-tl { top: 8px; left: 8px; border-top-width: 1px; border-left-width: 1px; }
+.lab-tick-tr { top: 8px; right: 8px; border-top-width: 1px; border-right-width: 1px; }
+.lab-tick-bl { bottom: 8px; left: 8px; border-bottom-width: 1px; border-left-width: 1px; }
+.lab-tick-br { bottom: 8px; right: 8px; border-bottom-width: 1px; border-right-width: 1px; }
+
+.lab-cross {
+  position: absolute;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  line-height: 1;
+  color: var(--ink-faint);
+  opacity: 0.6;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* ---------- Watermark ---------- */
+
+.lab-watermark {
+  position: absolute;
+  inset: auto 0 0 0;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(48px, 12vw, 160px);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--ink);
+  opacity: 0.055;
+  white-space: nowrap;
+  overflow: hidden;
+  text-align: center;
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
+}
+
+.lab-frame > .section-contents,
+.lab-frame > .section-contents-wrapper {
+  position: relative;
+  z-index: 1;
+}
+
+/* ---------- Barcode (pure CSS) ---------- */
+
+.lab-barcode {
+  height: 26px;
+  width: 120px;
+  max-width: 100%;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--ink) 0 1px,
+    transparent 1px 3px,
+    var(--ink) 3px 4px,
+    transparent 4px 7px,
+    var(--ink) 7px 9px,
+    transparent 9px 11px
+  );
+  opacity: 0.85;
+}
+
+.lab-barcode.is-small {
+  height: 18px;
+  width: 88px;
+}
+
+/* ---------- Ticker FX ---------- */
+
+.fx-ticker-glow .ticker-item,
+.fx-ticker-glow .ticker-svg-text {
+  font-family: var(--font-mono) !important;
+  letter-spacing: 0.18em;
+}
+
+.lab-ticker-glow-holo .ticker-item,
+.lab-ticker-glow-holo .ticker-svg-text {
+  background: var(--holo);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent !important;
+  fill: #e6e6e6;
+}
+
+@supports ((-webkit-background-clip: text) and (not (-moz-appearance: none))) {
+  .lab-ticker-glow-holo .ticker-svg-text {
+    fill: var(--ink);
+  }
+}
+
+.lab-ticker-glow-cyan .ticker-item {
+  color: var(--cyan) !important;
+  text-shadow: 0 0 12px rgba(184, 241, 255, 0.55);
+}
+
+.lab-ticker-plain-mono .ticker-item {
+  font-family: var(--font-mono) !important;
+  color: var(--ink-dim) !important;
+  letter-spacing: 0.18em;
+}
+
+/* ---------- Product / spec cards ---------- */
+
+.lab-card-augmented .card,
+.product-card-wrapper.lab-card-augmented .card {
+  background: #111111 !important;
+  border: 1px solid var(--line) !important;
+  border-radius: 0 !important;
+  position: relative;
+}
+
+.product-card-wrapper.lab-card-augmented .card:hover {
+  border-color: var(--ink) !important;
+  transform: translate(-2px, -2px);
+  box-shadow: 4px 4px 0 var(--ink);
+}
+
+.product-card-wrapper.lab-card-augmented .card__media img {
+  filter: grayscale(1) contrast(1.18);
+}
+
+.lab-card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  border-top: 1px solid var(--line-soft);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.lab-card-code {
+  color: var(--ink-dim);
+}
+
+.lab-card-spec {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Halftone helper for thumbs + placeholders */
+.lab-halftone {
+  position: relative;
+}
+
+.lab-halftone::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.14) 1px, transparent 1px);
+  background-size: 4px 4px;
+  mix-blend-mode: overlay;
+}
+
+.lab-gear-placeholder {
+  aspect-ratio: 1 / 1;
+  background:
+    linear-gradient(var(--line-soft) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line-soft) 1px, transparent 1px),
+    var(--carbon-2);
+  background-size: 24px 24px, 24px 24px, auto;
+  border: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-faint);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+}
+
+/* ---------- Hero spec panel (sibling overlay, native button kept) ---------- */
+
+.lab-hero-grid {
+  display: grid;
+  grid-template-columns: minmax(240px, 360px) 1fr;
+  gap: 24px;
+  align-items: stretch;
+  position: relative;
+  z-index: 1;
+}
+
+.lab-hero-spec {
+  border: 1px solid var(--line);
+  background: rgba(18, 18, 18, 0.92);
+  padding: 16px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.lab-hero-spec .lab-hero-code {
+  color: var(--ink);
+  font-size: 12px;
+}
+
+.lab-hero-spec dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 12px;
+  margin: 0;
+}
+
+.lab-hero-spec dt {
+  color: var(--ink-faint);
+}
+
+.lab-hero-spec dd {
+  margin: 0;
+  color: var(--ink-dim);
+  overflow-wrap: anywhere;
+}
+
+/* Holo button frame: styles native button, never replaces it */
+.lab-holo-frame {
+  position: relative;
+  display: block;
+}
+
+.lab-holo-frame > .btn,
+.lab-holo-frame > button,
+.lab-btn-holo {
+  position: relative;
+  background: var(--holo) !important;
+  color: #0a0a0a !important;
+  border: 1px solid var(--ink) !important;
+  border-radius: 999px !important;
+  font-family: var(--font-mono) !important;
+  font-size: 11px !important;
+  letter-spacing: 0.16em !important;
+  text-transform: uppercase !important;
+  overflow: hidden;
+}
+
+.lab-holo-frame > .btn::after,
+.lab-btn-holo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.65) 50%, transparent 70%);
+  transform: translateX(-60%);
+  pointer-events: none;
+}
+
+.lab-holo-frame > .btn:hover::after,
+.lab-btn-holo:hover::after {
+  transform: translateX(60%);
+  transition: transform 0.6s ease;
+}
+
+.lab-holo-frame > .btn:hover,
+.lab-btn-holo:hover {
+  filter: invert(1);
+}
+
+/* ---------- Lab monitor ---------- */
+
+.lab-monitor {
+  border: 1px solid var(--line);
+  background: #0d0d0d;
+  position: relative;
+}
+
+.lab-monitor-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--line-soft);
+  color: var(--ink-faint);
+}
+
+.lab-monitor-screen {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  background: #000;
+  overflow: hidden;
+}
+
+.lab-monitor-screen img,
+.lab-monitor-screen video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: grayscale(1) contrast(1.25);
+}
+
+.lab-play {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: 1px solid var(--ink);
+  background: rgba(10, 10, 10, 0.6);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  cursor: pointer;
+  z-index: 2;
+}
+
+.lab-play:hover {
+  background: var(--ink);
+  color: #000;
+}
+
+.lab-scrub {
+  height: 22px;
+  border-top: 1px solid var(--line-soft);
+  background: repeating-linear-gradient(
+    90deg,
+    var(--line-soft) 0 1px,
+    transparent 1px 8px
+  );
+  position: relative;
+}
+
+.lab-scrub-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 0%;
+  background: var(--holo);
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+/* ---------- Terminal newsletter (wrapper only) ---------- */
+
+.lab-terminal-frame {
+  border: 1px solid var(--line);
+  background: #0d0d0d;
+  padding: 14px;
+  position: relative;
+}
+
+.lab-terminal-frame::before {
+  content: "root@_ :~$ intake --subscribe";
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: var(--ink-faint);
+  margin-bottom: 10px;
+}
+
+.lab-terminal-frame input[type="email"],
+.lab-terminal-frame input[type="text"] {
+  background: #000 !important;
+  border: 1px solid var(--line) !important;
+  color: var(--ink) !important;
+  font-family: var(--font-mono) !important;
+  border-radius: 0 !important;
+}
+
+.lab-terminal-frame input::placeholder {
+  color: var(--ink-faint);
+}
+
+/* ---------- Rack nodes ---------- */
+
+.lab-rack-nodes {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 96px;
+  gap: 16px;
+  overflow-x: auto;
+  padding: 12px 4px;
+  position: relative;
+  z-index: 1;
+}
+
+.lab-rack-node {
+  width: 96px;
+  height: 96px;
+  border: 1px solid var(--line);
+  background: var(--carbon-1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  color: var(--ink-faint);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+}
+
+.lab-rack-node::after {
+  content: "→";
+  position: absolute;
+  right: -14px;
+  color: var(--ink-faint);
+}
+
+.lab-rack-node:last-child::after {
+  content: none;
+}
+
+/* ---------- Scrubbed-tag helper ---------- */
+
+p.lab-tag-scrubbed:empty,
+h1.lab-tag-scrubbed:empty,
+h2.lab-tag-scrubbed:empty,
+h3.lab-tag-scrubbed:empty,
+span.lab-tag-scrubbed:empty {
+  display: none !important;
+}
+
+/* ---------- Side-cart / cart consistency (style only) ---------- */
+
+.js-cart-items-wrapper,
+.cart-items-wrapper,
+.cart-footer {
+  font-family: var(--font-mono);
+}
+
+.cart-item {
+  border: 1px solid var(--line-soft) !important;
+  border-radius: 0 !important;
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 900px) {
+  .lab-hero-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .section-wrapper[data-section-key="featured-collection"] .grid-list {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+@media (max-width: 560px) {
+  #lab-telemetry-bar .lab-hide-mobile {
+    display: none;
+  }
+
+  .section-wrapper[data-section-key="featured-collection"] .grid-list {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+/* ---------- Motion / a11y ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .lab-holo-frame > .btn::after,
+  .lab-btn-holo::after,
+  .lab-noise-overlay {
+    display: none !important;
+  }
+
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible {
+  outline: 1px solid var(--cyan);
+  outline-offset: 2px;
+}
