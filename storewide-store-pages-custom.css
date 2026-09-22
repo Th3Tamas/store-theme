@@ -53,11 +53,22 @@ a {
   color: inherit;
 }
 
-/* Kill generic mountain banner image only when lab hero takes over.
-   Scoped so product imagery is never hidden. */
-.section-wrapper[data-section-key="headline"] .section-background-image {
-  opacity: 0.12;
-  filter: grayscale(1) contrast(1.2);
+/* Mountain hero kill: headline banner image removed so the spec hero is focal.
+   Scoped to headline sections only — product imagery untouched.
+   The wrapper itself stays (brand heading + tag content preserved). */
+.section-wrapper[data-section-key="headline"] .section-background-image,
+.section-wrapper[data-section-key="headline"] .section-background-image-fallback,
+.section-wrapper[data-section-key="headline"] .section-background-overlay {
+  display: none !important;
+}
+
+.section-wrapper[data-section-key="headline"] {
+  min-height: 0 !important;
+}
+
+.section-wrapper[data-section-key="headline"] .section-contents-wrapper {
+  padding-top: 24px !important;
+  padding-bottom: 24px !important;
 }
 
 /* ---------- Typography helpers ---------- */
@@ -227,58 +238,60 @@ a {
 /* ---------- Ticker FX ---------- */
 
 .fx-ticker-glow .ticker-item,
-.fx-ticker-glow .ticker-svg-text {
+.fx-ticker-glow .ticker-svg-text,
+.fx-ticker-glow [class*="ticker-item--"] {
   font-family: var(--font-mono) !important;
   letter-spacing: 0.18em;
+}
+
+/* Layout preservation: native marquee geometry is never altered (HTML items only). */
+.fx-ticker-glow .ticker-item,
+.fx-ticker-glow [class*="ticker-item--"] {
+  display: inline-block !important;
+  margin-right: 3rem !important;
+  white-space: nowrap !important;
 }
 
 .lab-ticker-glow-holo .ticker-item,
-.lab-ticker-glow-holo .ticker-svg-text {
+.lab-ticker-glow-holo [class*="ticker-item--"] {
   background: var(--holo);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent !important;
+}
+
+/* SVG marquee text keeps a solid fill: gradient clipping would clump glyphs. */
+.lab-ticker-glow-holo .ticker-svg-text {
   fill: #e6e6e6;
 }
 
-@supports ((-webkit-background-clip: text) and (not (-moz-appearance: none))) {
-  .lab-ticker-glow-holo .ticker-svg-text {
-    fill: var(--ink);
-  }
-}
-
-.lab-ticker-glow-cyan .ticker-item {
+.lab-ticker-glow-cyan .ticker-item,
+.lab-ticker-glow-cyan [class*="ticker-item--"] {
   color: var(--cyan) !important;
   text-shadow: 0 0 12px rgba(184, 241, 255, 0.55);
 }
 
-.lab-ticker-plain-mono .ticker-item {
+.lab-ticker-glow-cyan .ticker-svg-text {
+  fill: var(--cyan);
+}
+
+.lab-ticker-plain-mono .ticker-item,
+.lab-ticker-plain-mono [class*="ticker-item--"] {
   font-family: var(--font-mono) !important;
   color: var(--ink-dim) !important;
   letter-spacing: 0.18em;
 }
 
-/* Fallback hooks for theme markup variants (scoped to decorated ticker sections only) */
-.lab-ticker-glow-holo [class*="ticker-item--"],
-.lab-ticker-glow-holo [class*="ticker-text"] {
-  background: var(--holo);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent !important;
+.lab-ticker-plain-mono .ticker-svg-text {
+  fill: var(--ink-dim);
 }
 
-.lab-ticker-glow-cyan [class*="ticker-item--"],
-.lab-ticker-glow-cyan [class*="ticker-text"] {
-  color: var(--cyan) !important;
-  text-shadow: 0 0 12px rgba(184, 241, 255, 0.55);
-}
+/* Variant hooks folded into the rules above (SVG text kept solid). */
 
-.lab-ticker-plain-mono [class*="ticker-item--"],
-.lab-ticker-plain-mono [class*="ticker-text"] {
-  font-family: var(--font-mono) !important;
-  color: var(--ink-dim) !important;
-  letter-spacing: 0.18em;
-}
+/* Variant hooks folded into the rules above (SVG text kept solid). */
+
+/* Mountain hero kill: headline banner image removed so the spec hero is focal.
+   Scoped to headline sections only — product imagery untouched. */
 
 /* ---------- Product / spec cards ---------- */
 
