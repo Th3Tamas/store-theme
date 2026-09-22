@@ -6329,14 +6329,19 @@
     }
 
     // Card title comes from the native footer heading (e.g. "GET EXCLUSIVE DEALS").
+    // The source node is stashed so ONLY it gets hidden (never fuzzy ancestor hiding).
     function findNativeTitle(footer) {
+      findNativeTitle.node = null;
       try {
         var heads = footer.querySelectorAll('h1, h2, h3, h4, .heading-text, [class*="title"], [class*="heading"]');
         for (var i = 0; i < heads.length; i++) {
           var h = heads[i];
           if (h.closest && h.closest('.sonarline-footer')) continue;
           var t = (h.textContent || '').replace(/\s+/g, ' ').trim();
-          if (t && /exclusive|newsletter|subscribe|stay in|deals|join|sign up/i.test(t)) return t;
+          if (t && /exclusive|newsletter|subscribe|stay in|deals|join|sign up/i.test(t)) {
+            findNativeTitle.node = h;
+            return t;
+          }
         }
       } catch (e) {}
       return null;
@@ -6415,14 +6420,13 @@
       }
     }
 
-    function hideIfEmptied(el) {
+    function hideIfEmptied(el, stopAt) {
+      // Hide ONLY the emptied element itself (never climb): climbing can take out
+      // ancestors that later host our box. Never hide the footer section itself.
       try {
-        var cur = el, depth = 0;
-        while (cur && depth < 3 && isEmptyBlock(cur)) {
-          cur.style.setProperty('display', 'none', 'important');
-          cur = cur.parentElement;
-          depth++;
-        }
+        if (!el || el === stopAt || el === document.body) return;
+        if (el.hasAttribute && el.hasAttribute('data-section-key')) return;
+        if (isEmptyBlock(el)) el.style.setProperty('display', 'none', 'important');
       } catch (e) {}
     }
 
@@ -6514,7 +6518,7 @@
           }
           var formParent = form.parentElement;
           formRow.appendChild(form);
-          if (formParent) hideIfEmptied(formParent);
+          if (formParent) hideIfEmptied(formParent, footer);
         } else {
           try {
             var ghostEmail = document.createElement('input');
@@ -6556,6 +6560,7 @@
               var hc = harvested[hi];
               if (box.contains(hc)) continue;
               if (form && form.contains(hc)) continue;
+              if (form && hc.contains(form)) continue;
               if (hc.querySelector('a[href]')) hc.style.setProperty('display', 'none', 'important');
             }
           } catch (e) {}
@@ -6580,32 +6585,24 @@
         } catch (e) {}
         var copyEl = document.createElement('div');
         copyEl.className = 'sonarline-footer-copy';
-        if (copy) {
-          copyEl.textContent = (copy.textContent || '').replace(/\s+/g, ' ').trim();
-          try {
-            if (copy.parentElement) hideIfEmptied(copy.parentElement);
-            if (copy.parentNode) copy.parentNode.removeChild(copy);
-          } catch (e) {}
-        } else {
+          if (copy) {
+            var copyParent = copy.parentElement;
+            copyEl.textContent = (copy.textContent || '').replace(/\s+/g, ' ').trim();
+            try {
+              if (copy.parentNode) copy.parentNode.removeChild(copy);
+            } catch (e) {}
+            if (copyParent) hideIfEmptied(copyParent, footer);
+          } else {
           copyEl.textContent = '\u00a9 ' + new Date().getFullYear() + ' SONARLINE';
         }
         box.appendChild(copyEl);
 
-        // Hide leftover newsletter-ish headings/text the token lived in.
+        // Hide ONLY the title-source heading (it now lives on the card) plus harvested
+        // nav containers. Never fuzzy-hide: an over-matched ancestor would bury our box.
         try {
-          var heads = footer.querySelectorAll('h1, h2, h3, h4, .heading-text, [class*="title"], [class*="heading"]');
-          for (var hh = 0; hh < heads.length; hh++) {
-            if (box.contains(heads[hh])) continue;
-            if (/exclusive|newsletter|subscribe|stay in|get.*deals/i.test(heads[hh].textContent || '')) {
-              heads[hh].style.setProperty('display', 'none', 'important');
-            }
-          }
-          var paras = footer.querySelectorAll('p');
-          for (var pp = 0; pp < paras.length; pp++) {
-            if (box.contains(paras[pp])) continue;
-            if (/exclusive deals|newsletter/i.test(paras[pp].textContent || '')) {
-              paras[pp].style.setProperty('display', 'none', 'important');
-            }
+          var titleNode = findNativeTitle.node;
+          if (titleNode && titleNode.isConnected && !box.contains(titleNode) && !(form && titleNode.contains(form))) {
+            titleNode.style.setProperty('display', 'none', 'important');
           }
         } catch (e) {}
 
@@ -6623,7 +6620,7 @@
         var list = [];
         for (var i = 0; i < all.length; i++) {
           var f = all[i];
-          var info = { index: i, tag: f.tagName, key: f.getAttribute('data-section-key'), id: f.id || null, cls: String(f.className || '').slice(0, 80) };
+          var info = { index: i, tag: f.tagName, key: f.getAttribute('data-section-key'), id: f.id || null };
           try {
             var cs = window.getComputedStyle(f);
             info.display = cs.display;
@@ -6641,6 +6638,21 @@
               };
             } catch (e) {}
             info.open = box.getAttribute('data-newsletter-open');
+            var kids = [];
+            for (var k = 0; k < box.children.length; k++) {
+              var ch = box.children[k];
+              var row = { cls: String(ch.className || '').slice(0, 40), tag: ch.tagName };
+              try {
+                var ccs = window.getComputedStyle(ch);
+                row.d = ccs.display;
+                row.v = ccs.visibility;
+                row.o = ccs.opacity;
+                row.h = Math.round(ch.getBoundingClientRect().height);
+              } catch (e) {}
+              try { row.text = String(ch.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 60); } catch (e) {}
+              kids.push(row);
+            }
+            info.kids = kids;
             info.links = box.querySelectorAll('.sonarline-footer-nav a').length;
             info.form = !!(box.querySelector('.sonarline-footer-formrow form'));
           } else {
