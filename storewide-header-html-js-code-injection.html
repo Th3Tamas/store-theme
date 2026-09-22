@@ -6464,6 +6464,7 @@
           scrubToken(footer);
           var stored = existing.getAttribute('data-newsletter-open');
           var next = (parsed !== null) ? parsed : (stored === 'false' ? false : true);
+          centerBox(existing);
           applyOpenState(existing, next);
           return { found: true, open: next, rebuilt: false };
         }
@@ -6472,14 +6473,16 @@
         scrubToken(footer);
         var titleText = findNativeTitle(footer) || 'Get exclusive deals';
 
+        function centerBox(box) {
+          // Stylesheet auto-margins can lose to ID-scoped theme rules; inline wins.
+          try {
+            box.style.setProperty('margin-left', 'auto', 'important');
+            box.style.setProperty('margin-right', 'auto', 'important');
+          } catch (e) {}
+        }
+
         var box = document.createElement('div');
         box.className = 'sonarline-footer';
-
-        // Brand mark
-        var brand = document.createElement('div');
-        brand.className = 'sonarline-footer-brand';
-        brand.innerHTML = '<span class="sonarline-footer-mark">SL</span><span class="sonarline-footer-word">SONARLINE</span>';
-        box.appendChild(brand);
 
         // Newsletter card
         var card = document.createElement('div');
@@ -6607,6 +6610,7 @@
         } catch (e) {}
 
         footer.insertBefore(box, footer.firstChild);
+        centerBox(box);
         applyOpenState(box, open);
         return { found: true, open: open, rebuilt: true, links: links.length, form: !!form };
       } catch (e) {
