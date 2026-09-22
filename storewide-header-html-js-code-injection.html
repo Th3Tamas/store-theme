@@ -10,7 +10,7 @@
 <!-- Typography: Space Grotesk, Space Mono, Syne -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;800&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;800&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Roboto+Mono:wght@400;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
 
 <style>
   /* Terminal / HUD Preloader Overlay - Reference Image 4 */
@@ -1872,7 +1872,7 @@
           var span = document.createElement('span');
           span.className = 'sl-inline-tags-wrapper';
           span.innerHTML = node.textContent.replace(/\[\[tag:\s*([^\]]+)\]\]/gi, function(_, tagText) {
-            return '<span class="sonarline-tag-pill">' + tagText.trim() + '</span>';
+            return '<span class="sonarline-tag-pill sl-tag">' + tagText.trim() + '</span>';
           });
           node.parentNode.replaceChild(span, node);
         });
@@ -2215,21 +2215,21 @@
           cardInner.style.setProperty('padding-top', '0', 'important');
           cardInner.style.setProperty('padding-bottom', '100%', 'important');
           cardInner.style.setProperty('box-sizing', 'content-box', 'important');
-          cardInner.style.setProperty('border-radius', '7px 7px 0 0', 'important');
+          cardInner.style.setProperty('border-radius', '2px 2px 0 0', 'important');
         }
 
         // 3. Fix card__media: force absolute positioning
         var cardMedias = card.querySelectorAll('.card__media, .media');
         for (var k = 0; k < cardMedias.length; k++) {
           fixCardMedia(cardMedias[k]);
-          cardMedias[k].style.setProperty('border-radius', '7px 7px 0 0', 'important');
+          cardMedias[k].style.setProperty('border-radius', '2px 2px 0 0', 'important');
         }
 
         // 4. Fix all images inside cards: force position and top:0
         var imgs = card.querySelectorAll('img');
         for (var m = 0; m < imgs.length; m++) {
           fixCardImage(imgs[m]);
-          imgs[m].style.setProperty('border-radius', '7px 7px 0 0', 'important');
+          imgs[m].style.setProperty('border-radius', '2px 2px 0 0', 'important');
         }
 
         // 5. Robust [[highlighted: true/false]] Detection & Deep Token Cleanup (multi-card, Firefox-safe, defaults false)
@@ -2374,6 +2374,28 @@
             titleWrap.appendChild(titleEl);
           }
 
+          // Schematic serial: stable per-card unit code (SL-001…), inherited by clones.
+          try {
+            if (!card.hasAttribute('data-sl-clone') && !card.getAttribute('data-sl-serial')) {
+              var serialScope = card.parentElement;
+              var serialSibs = serialScope ? serialScope.querySelectorAll('.card-wrapper:not([data-sl-clone]), .product-card:not([data-sl-clone])') : [];
+              var serialIdx = Array.prototype.indexOf.call(serialSibs, card);
+              card.setAttribute('data-sl-serial', 'SL-' + ('00' + (serialIdx + 1)).slice(-3));
+            }
+          } catch (e) {}
+          var cardSerial = card.getAttribute('data-sl-serial') || '';
+          var indexEl = titleWrap.querySelector('.sonarline-card-index');
+          if (cardSerial) {
+            if (!indexEl) {
+              indexEl = document.createElement('div');
+              indexEl.className = 'sonarline-card-index';
+              titleWrap.appendChild(indexEl);
+            }
+            if (indexEl.textContent !== cardSerial) indexEl.textContent = cardSerial;
+          } else if (indexEl && indexEl.parentNode) {
+            indexEl.parentNode.removeChild(indexEl);
+          }
+
           // Update tags in row 2: .sonarline-card-tags-group is the single source of truth.
           // Legacy .sonarline-card-tags-wrap is removed to prevent duplicated pill sets
           // (dual rendering showed e.g. [[tag: red]] [[tag: yellow]] as repeated pills).
@@ -2414,6 +2436,26 @@
           var extraPrices = card.querySelectorAll('.price-block:not(.sonarline-card-price-wrap *), .price:not(.sonarline-card-price-wrap *), [class*="price"]:not(.sonarline-card-metadata *):not(.card__inner *)');
           for (var ep = 0; ep < extraPrices.length; ep++) {
             extraPrices[ep].style.setProperty('display', 'none', 'important');
+          }
+
+          // Schematic action row: BUY NOW (span + delegation, never a nested <a>)
+          // and LISTEN (delegated to the card's quickplay trigger).
+          var actionsRow = metaWrap.querySelector('.sonarline-card-row-actions');
+          if (!actionsRow) {
+            actionsRow = document.createElement('div');
+            actionsRow.className = 'sonarline-card-row-actions';
+            actionsRow.innerHTML = '<span class="sonarline-card-buy" role="link" tabindex="0">BUY NOW</span><button class="sonarline-card-listen" type="button">LISTEN</button>';
+            metaWrap.appendChild(actionsRow);
+          }
+          var buyBtn = actionsRow.querySelector('.sonarline-card-buy');
+          var listenBtn = actionsRow.querySelector('.sonarline-card-listen');
+          var productLink = card.querySelector('a[href*="/b/"], a[href*="/p/"], a[href*="/product"]') || card.querySelector('a[href]');
+          if (buyBtn && productLink && productLink.href) {
+            if (buyBtn.getAttribute('data-href') !== productLink.href) buyBtn.setAttribute('data-href', productLink.href);
+          }
+          if (listenBtn) {
+            var hasCardAudio = !!(card.getAttribute('data-audio-src') || audioUrl);
+            listenBtn.style.setProperty('display', hasCardAudio ? 'inline-flex' : 'none', 'important');
           }
 
           var cardInfos = content.querySelectorAll('.card__information, .card-information');
@@ -2633,6 +2675,37 @@
         childList: true,
         attributes: true,
         attributeFilter: ['src', 'class']
+      });
+    }
+
+    // Delegated schematic card actions (clone-safe: clones inherit markup, one listener).
+    if (!window.slCardActionsBound) {
+      window.slCardActionsBound = true;
+      document.addEventListener('click', function(e) {
+        try {
+          var t = e.target;
+          if (!t || !t.closest) return;
+          var listen = t.closest('.sonarline-card-listen');
+          if (listen) {
+            var lc = listen.closest('.card-wrapper, .product-card');
+            var qp = lc ? lc.querySelector('.sonarline-card-quickplay') : null;
+            if (qp) qp.click();
+            return;
+          }
+          var buy = t.closest('.sonarline-card-buy[data-href]');
+          if (buy) {
+            var href = buy.getAttribute('data-href');
+            if (href && href !== '#') window.location.href = href;
+          }
+        } catch (err) {}
+      });
+      document.addEventListener('keydown', function(e) {
+        try {
+          if ((e.key === 'Enter' || e.key === ' ') && e.target && e.target.classList && e.target.classList.contains('sonarline-card-buy')) {
+            e.preventDefault();
+            e.target.click();
+          }
+        } catch (err) {}
       });
     }
 
@@ -3062,6 +3135,8 @@
             repCard.setAttribute('data-highlighted', 'true');
             repCard.setAttribute('data-sl-highlighted', 'true');
           }
+          var origSerial = origCard.getAttribute('data-sl-serial');
+          if (origSerial && !repCard.getAttribute('data-sl-serial')) repCard.setAttribute('data-sl-serial', origSerial);
           grid.appendChild(repCard);
         });
       }
@@ -3081,6 +3156,8 @@
           cloneCard.setAttribute('data-highlighted', 'true');
           cloneCard.setAttribute('data-sl-highlighted', 'true');
         }
+        var setSerial = sCard.getAttribute('data-sl-serial');
+        if (setSerial && !cloneCard.getAttribute('data-sl-serial')) cloneCard.setAttribute('data-sl-serial', setSerial);
         grid.appendChild(cloneCard);
       });
 
@@ -6736,5 +6813,189 @@
     setTimeout(initSonarlineFooter, 800);
     setTimeout(initSonarlineFooter, 2000);
     setTimeout(initSonarlineFooter, 4500);
+  })();
+
+  // ==========================================================================
+  // Schematic viewport overlay: persistent transparent wireframe grid + corner
+  // brackets across the whole viewport. Static layers only (no blend modes),
+  // pointer-transparent, single guarded node.
+  // ==========================================================================
+  (function() {
+    function buildSchematicOverlay() {
+      try {
+        if (document.getElementById('sl-schematic-overlay')) return;
+        var ov = document.createElement('div');
+        ov.id = 'sl-schematic-overlay';
+        ov.setAttribute('aria-hidden', 'true');
+        var corners = ['sl-schem-tl', 'sl-schem-tr', 'sl-schem-bl', 'sl-schem-br'];
+        for (var i = 0; i < corners.length; i++) {
+          var c = document.createElement('span');
+          c.className = 'sl-schem-corner ' + corners[i];
+          c.setAttribute('aria-hidden', 'true');
+          ov.appendChild(c);
+        }
+        (document.body || document.documentElement).appendChild(ov);
+      } catch (e) {}
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', buildSchematicOverlay);
+    } else {
+      buildSchematicOverlay();
+    }
+    setTimeout(buildSchematicOverlay, 1500);
+  })();
+
+  // ==========================================================================
+  // Inline audio scrubber shortcode: {{audioplay: URL}} or {{audioplay: [URL]}}
+  // Renders a minimal play + wave-bar scrubber in place. One shared tracker
+  // pauses other scrubbers; independent from the modal audio engine.
+  // ==========================================================================
+  (function() {
+    var currentSlAudio = null;
+
+    function fmtTime(sec) {
+      try {
+        if (!isFinite(sec) || sec < 0) return '0:00';
+        var m = Math.floor(sec / 60);
+        var s = Math.floor(sec % 60);
+        return m + ':' + (s < 10 ? '0' : '') + s;
+      } catch (e) {
+        return '0:00';
+      }
+    }
+
+    function bindScrubber(root) {
+      try {
+        var btn = root.querySelector('.sl-audioplay-btn');
+        var track = root.querySelector('.sl-audioplay-track');
+        var fill = root.querySelector('.sl-audioplay-fill');
+        var time = root.querySelector('.sl-audioplay-time');
+        var src = root.getAttribute('data-src') || '';
+        if (!btn || !src) return;
+        var audio = null;
+        function ensureAudio() {
+          if (!audio) {
+            audio = new Audio(src);
+            audio.preload = 'metadata';
+            audio.addEventListener('timeupdate', function() {
+              try {
+                var d = audio.duration || 0;
+                var ratio = d > 0 ? (audio.currentTime / d) : 0;
+                if (fill) fill.style.width = (ratio * 100).toFixed(1) + '%';
+                if (time) time.textContent = fmtTime(audio.currentTime) + ' / ' + fmtTime(d);
+              } catch (e) {}
+            });
+            audio.addEventListener('ended', function() {
+              try {
+                btn.innerHTML = '&#9654;';
+                btn.classList.remove('is-playing');
+                if (fill) fill.style.width = '0%';
+                if (currentSlAudio === audio) currentSlAudio = null;
+              } catch (e) {}
+            });
+          }
+          return audio;
+        }
+        btn.addEventListener('click', function(e) {
+          try {
+            e.preventDefault();
+            e.stopPropagation();
+            var a = ensureAudio();
+            if (!a.paused && !a.ended) {
+              a.pause();
+              btn.innerHTML = '&#9654;';
+              btn.classList.remove('is-playing');
+              if (currentSlAudio === a) currentSlAudio = null;
+            } else {
+              if (currentSlAudio && currentSlAudio !== a) {
+                try { currentSlAudio.pause(); } catch (err) {}
+              }
+              var others = document.querySelectorAll('.sl-audioplay-btn.is-playing');
+              for (var i = 0; i < others.length; i++) {
+                if (others[i] !== btn) {
+                  others[i].innerHTML = '&#9654;';
+                  others[i].classList.remove('is-playing');
+                }
+              }
+              currentSlAudio = a;
+              var playPromise = a.play();
+              if (playPromise && playPromise.catch) playPromise.catch(function() {});
+              btn.innerHTML = '&#10074;&#10074;';
+              btn.classList.add('is-playing');
+            }
+          } catch (err) {}
+        });
+        if (track) {
+          track.addEventListener('click', function(e) {
+            try {
+              var a = ensureAudio();
+              var rect = track.getBoundingClientRect();
+              var ratio = rect.width > 0 ? ((e.clientX - rect.left) / rect.width) : 0;
+              ratio = Math.min(Math.max(ratio, 0), 1);
+              if (isFinite(a.duration) && a.duration > 0) a.currentTime = ratio * a.duration;
+            } catch (err) {}
+          });
+        }
+      } catch (e) {}
+    }
+
+    function parseAudioplayTokens() {
+      try {
+        var root = document.body || document.documentElement;
+        if (!root) return;
+        var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null, false);
+        var node, targets = [];
+        while ((node = walker.nextNode())) targets.push(node);
+        var re = /\{\{\s*audioplay\s*:\s*\[?([^\]\}]+?)\]?\s*\}\}/gi;
+        for (var i = 0; i < targets.length; i++) {
+          (function(textNode) {
+            try {
+              var val = textNode.nodeValue || '';
+              if (!/\{\{\s*audioplay\s*:/i.test(val)) return;
+              var parent = textNode.parentElement;
+              if (!parent) return;
+              var tag = parent.tagName;
+              if (tag === 'SCRIPT' || tag === 'STYLE' || tag === 'TEXTAREA' || tag === 'AUDIO' || tag === 'VIDEO') return;
+              if (parent.closest && parent.closest('.card-wrapper, .product-card, #sonarline-product-modal, .sl-audioplay')) return;
+              var frag = document.createDocumentFragment();
+              var lastIdx = 0, m;
+              re.lastIndex = 0;
+              var src = val;
+              var found = false;
+              while ((m = re.exec(src)) !== null) {
+                found = true;
+                var raw = (m[1] || '').trim().replace(/^["']|["']$/g, '');
+                if (m.index > lastIdx) frag.appendChild(document.createTextNode(src.slice(lastIdx, m.index)));
+                if (/^https?:\/\//i.test(raw)) {
+                  var wrap = document.createElement('span');
+                  wrap.className = 'sl-audioplay';
+                  wrap.setAttribute('data-src', raw);
+                  wrap.innerHTML = '<button class="sl-audioplay-btn" type="button" aria-label="Play audio preview">&#9654;</button>' +
+                    '<span class="sl-audioplay-track"><span class="sl-audioplay-fill"></span></span>' +
+                    '<span class="sl-audioplay-time">0:00</span>';
+                  frag.appendChild(wrap);
+                  bindScrubber(wrap);
+                } else {
+                  frag.appendChild(document.createTextNode(m[0]));
+                }
+                lastIdx = m.index + m[0].length;
+                if (m[0].length === 0) re.lastIndex++;
+              }
+              if (!found) return;
+              if (lastIdx < src.length) frag.appendChild(document.createTextNode(src.slice(lastIdx)));
+              parent.replaceChild(frag, textNode);
+            } catch (e) {}
+          })(targets[i]);
+        }
+      } catch (e) {}
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', parseAudioplayTokens);
+    } else {
+      parseAudioplayTokens();
+    }
+    setTimeout(parseAudioplayTokens, 1200);
+    setTimeout(parseAudioplayTokens, 3000);
   })();
 </script>

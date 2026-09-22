@@ -25,7 +25,7 @@
   --sl-text-muted: #555555;
 
   --font-sans: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-mono: 'Space Mono', 'JetBrains Mono', monospace;
+  --font-mono: 'Space Mono', 'Roboto Mono', 'JetBrains Mono', monospace;
 
   --ease-brutal: cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -4091,6 +4091,221 @@ body#page-custom div[data-section-key="footer"] {
   filter: none !important;
   animation: none !important;
 }
+
+/* --------------------------------------------------------------------------
+   14. Kilo-Hertz Schematic Layer (corner brackets, serials, actions, overlay)
+   -------------------------------------------------------------------------- */
+/* Sharp schematic geometry override for product cards + media frames */
+div.card-wrapper.product-card-wrapper,
+.card-wrapper.product-card-wrapper,
+div.card-wrapper,
+.card-wrapper,
+.product-card,
+[data-sl-rail="done"] .card-wrapper,
+[data-sl-rail="done"] .product-card {
+  border-radius: 2px !important;
+}
+.card-wrapper .card__inner,
+.product-card .card__inner,
+.card-wrapper .card__inner .card__media,
+.card-wrapper .card__media,
+.card-wrapper img,
+.product-card img {
+  border-radius: 2px 2px 0 0 !important;
+}
+/* Floating corner wireframes: pure-CSS L-brackets over card corners */
+[data-sl-rail="done"] .sl-carousel-track .card-wrapper,
+[data-sl-rail="done"] .sl-carousel-track .product-card,
+div.card-wrapper.product-card-wrapper {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.32), rgba(255, 255, 255, 0.32)),
+    linear-gradient(rgba(255, 255, 255, 0.32), rgba(255, 255, 255, 0.32)),
+    linear-gradient(rgba(255, 255, 255, 0.32), rgba(255, 255, 255, 0.32)),
+    linear-gradient(rgba(255, 255, 255, 0.32), rgba(255, 255, 255, 0.32)),
+    linear-gradient(rgba(255, 255, 255, 0.32), rgba(255, 255, 255, 0.32)),
+    linear-gradient(rgba(255, 255, 255, 0.32), rgba(255, 255, 255, 0.32)),
+    linear-gradient(rgba(255, 255, 255, 0.32), rgba(255, 255, 255, 0.32)),
+    linear-gradient(rgba(255, 255, 255, 0.32), rgba(255, 255, 255, 0.32)) !important;
+  background-size:
+    10px 1px, 1px 10px,
+    10px 1px, 1px 10px,
+    10px 1px, 1px 10px,
+    10px 1px, 1px 10px !important;
+  background-position:
+    5px 5px, 5px 5px,
+    right 5px top 5px, right 5px top 5px,
+    left 5px bottom 5px, left 5px bottom 5px,
+    right 5px bottom 5px, right 5px bottom 5px !important;
+  background-repeat: no-repeat !important;
+}
+/* Schematic serial micro-label */
+.sonarline-card-title-wrap.sonarline-card-title-wrap {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  gap: 2px !important;
+}
+.sonarline-card-index {
+  color: rgba(255, 255, 255, 0.38) !important;
+  font-family: var(--font-mono, 'Space Mono', monospace) !important;
+  font-size: 0.58rem !important;
+  letter-spacing: 0.22em !important;
+  text-transform: uppercase !important;
+  line-height: 1.2 !important;
+  white-space: nowrap !important;
+}
+/* Schematic action row: BUY NOW + LISTEN */
+.sonarline-card-row-actions {
+  display: flex !important;
+  gap: 8px !important;
+  width: 100% !important;
+  margin-top: 10px !important;
+  box-sizing: border-box !important;
+}
+.sonarline-card-row-actions .sonarline-card-buy,
+.sonarline-card-row-actions .sonarline-card-listen {
+  flex: 1 1 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-family: var(--font-mono, 'Space Mono', monospace) !important;
+  font-size: 0.62rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.14em !important;
+  text-transform: uppercase !important;
+  padding: 8px 6px !important;
+  border-radius: 3px !important;
+  cursor: none !important;
+  text-decoration: none !important;
+  white-space: nowrap !important;
+  box-sizing: border-box !important;
+  transition: opacity 0.15s ease, background 0.15s ease !important;
+}
+.sonarline-card-row-actions .sonarline-card-buy {
+  background: #ffffff !important;
+  border: 1px solid #ffffff !important;
+  color: #080808 !important;
+}
+.sonarline-card-row-actions .sonarline-card-buy:hover {
+  opacity: 0.85 !important;
+}
+.sonarline-card-row-actions .sonarline-card-listen {
+  background: transparent !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  color: #ffffff !important;
+}
+.sonarline-card-row-actions .sonarline-card-listen:hover {
+  border-color: #ffffff !important;
+}
+/* Big schematic prices */
+.sonarline-card-price-wrap,
+[data-sl-rail="done"] .sonarline-card-price-wrap {
+  font-size: 1.02rem !important;
+}
+.sonarline-card-price-wrap *,
+[data-sl-rail="done"] .sonarline-card-price-wrap * {
+  font-size: 1.02rem !important;
+}
+.sonarline-modal-price {
+  font-size: 1.3rem !important;
+}
+/* sl-tag alias: same schematic pill language as card tags */
+.sl-tag {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 3px 8px !important;
+  border-radius: 9999px !important;
+  background: rgba(255, 255, 255, 0.06) !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  color: #ffffff !important;
+  font-family: var(--font-mono, 'Space Mono', monospace) !important;
+  font-size: 0.7rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  line-height: 1.2 !important;
+  white-space: nowrap !important;
+  box-sizing: border-box !important;
+}
+/* Inline audio scrubber token */
+.sl-audioplay {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 5px 12px 5px 6px !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  border-radius: 9999px !important;
+  background: rgba(255, 255, 255, 0.04) !important;
+  vertical-align: middle !important;
+  box-sizing: border-box !important;
+}
+.sl-audioplay-btn {
+  width: 24px !important;
+  height: 24px !important;
+  border-radius: 50% !important;
+  background: #ffffff !important;
+  border: none !important;
+  color: #080808 !important;
+  font-size: 0.6rem !important;
+  line-height: 1 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: none !important;
+  padding: 0 !important;
+  flex-shrink: 0 !important;
+}
+.sl-audioplay-track {
+  width: 90px !important;
+  max-width: 24vw !important;
+  height: 3px !important;
+  background: rgba(255, 255, 255, 0.14) !important;
+  border-radius: 2px !important;
+  position: relative !important;
+  cursor: none !important;
+  overflow: hidden !important;
+}
+.sl-audioplay-fill {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  bottom: 0 !important;
+  width: 0% !important;
+  background: #FF2A2A !important;
+  border-radius: 2px !important;
+}
+.sl-audioplay-time {
+  color: #888888 !important;
+  font-family: var(--font-mono, 'Space Mono', monospace) !important;
+  font-size: 0.62rem !important;
+  letter-spacing: 0.06em !important;
+  white-space: nowrap !important;
+}
+/* Persistent schematic viewport overlay: wireframe grid + corner brackets */
+#sl-schematic-overlay {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 500000 !important;
+  pointer-events: none !important;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.028 0'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E"),
+    linear-gradient(rgba(255, 255, 255, 0.028) 1px, transparent 1px),
+    linear-gradient(to right, rgba(255, 255, 255, 0.028) 1px, transparent 1px) !important;
+  background-size: 120px 120px, 56px 56px, 56px 56px !important;
+  background-position: 0 0, 0 0, 0 0 !important;
+}
+.sl-schem-corner {
+  position: absolute !important;
+  width: 18px !important;
+  height: 18px !important;
+  border: 0 solid rgba(255, 255, 255, 0.45) !important;
+  box-sizing: border-box !important;
+}
+.sl-schem-tl { top: 14px !important; left: 14px !important; border-top-width: 1.5px !important; border-left-width: 1.5px !important; }
+.sl-schem-tr { top: 14px !important; right: 14px !important; border-top-width: 1.5px !important; border-right-width: 1.5px !important; }
+.sl-schem-bl { bottom: 14px !important; left: 14px !important; border-bottom-width: 1.5px !important; border-left-width: 1.5px !important; }
+.sl-schem-br { bottom: 14px !important; right: 14px !important; border-bottom-width: 1.5px !important; border-right-width: 1.5px !important; }
 @media (max-width: 520px) {
   .sonarline-footer-formrow,
   .sonarline-footer-formrow form {

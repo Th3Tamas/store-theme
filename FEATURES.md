@@ -166,6 +166,10 @@
   - Parses category tags for card pill badges and removes raw bracket delimiters from visible titles.
 - `[x]` **Audio Preview Shortcode (`[[audio: ...]]`):**
   - Extracts audio preview URLs for modal playback.
+- `[x]` **Inline Audio Scrubber (`{{audioplay: URL}}` / `{{audioplay: [URL]}}`):**
+  - Renders a minimal play + wave-bar scrubber in place with elapsed/total readout and click-to-seek; instances pause each other.
+- `[x]` **Chained & Inline Tags (`[[tag:A]] [[tag:B]]`, `<span class="sl-tag">`):**
+  - Multi-tag chaining collects every token into individual schematic pills; inline `[[tag: ...]]` in text blocks renders dual-classed (`.sonarline-tag-pill.sl-tag`) pills.
 
 ---
 
@@ -234,6 +238,12 @@
 ---
 
 ## 10. Changelog & Revision History
+
+### [2026-09-22 - Release 19]
+- **Kilo-Hertz Schematic Layer**: pure-CSS corner wireframe brackets on cards (gradient layers, no DOM churn), stable `SL-001` serial micro-labels, schematic action row per card (`BUY NOW` span + delegation so clones inherit behavior with zero nested-anchor risk, `LISTEN` bridged to each card's quickplay trigger), large monospace prices on cards and in modal, sharp 2px card geometry, Roboto Mono in the type stack.
+- **Viewport Schematic Overlay**: single guarded `#sl-schematic-overlay` fixed layer (subtle grid + film-grain noise + viewport corner brackets), pointer-transparent, static layers only.
+- **`{{audioplay: URL}}` Token**: inline minimal scrubber (play toggle, progress fill, time readout, click-to-seek) with mutual pausing between instances.
+- **Deliberately unchanged**: marquee rail engine (no scroll-snap conversion), dark palette (no light inversion), no `color-dodge`/`screen` blends (measured jank risk on owner hardware), no `.section-main` surgery (page container, unsafe to bleed).
 
 ### [2026-09-22 - Release 18]
 - **Sonarline Footer + `[[newsletter-open: true/false]]`**: rebuilt the native footer section around Payhip's own newsletter form (moved, never cloned, so submissions keep working) into a centered Atrum-style layout: brand mark, rounded newsletter card (`Get exclusive deals` + OPEN status pill + subtext + email + white JOIN button), mono nav row with `·` separators, and copyright. Token parsed case-insensitively from footer text and scrubbed from display; `true`/absent shows green OPEN with enabled form, explicit `false` shows red CLOSED with dimmed disabled form. Idempotent engine with `slFooterDebug()` / `slFooterRebuild()` console hooks.
