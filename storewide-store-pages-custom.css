@@ -3880,8 +3880,14 @@ div.card-wrapper.product-card-wrapper.sonarline-card--highlighted,
   border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
 }
 .sonarline-footer.sonarline-footer {
+  width: 100% !important;
   max-width: 560px !important;
-  margin: 0 auto !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  align-self: center !important;
+  justify-self: center !important;
   display: flex !important;
   flex-direction: column !important;
   align-items: center !important;
