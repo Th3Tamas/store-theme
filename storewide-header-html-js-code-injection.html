@@ -2374,16 +2374,18 @@
             titleWrap.appendChild(titleEl);
           }
 
-          // Schematic serial: stable per-card unit code (SL-001…), inherited by clones.
+          // Schematic catalog index: stable 2-digit placard code (#01…) per card.
           try {
             if (!card.hasAttribute('data-sl-clone') && !card.getAttribute('data-sl-serial')) {
               var serialScope = card.parentElement;
               var serialSibs = serialScope ? serialScope.querySelectorAll('.card-wrapper:not([data-sl-clone]), .product-card:not([data-sl-clone])') : [];
               var serialIdx = Array.prototype.indexOf.call(serialSibs, card);
-              card.setAttribute('data-sl-serial', 'SL-' + ('00' + (serialIdx + 1)).slice(-3));
+              card.setAttribute('data-sl-serial', '#' + ('0' + (serialIdx + 1)).slice(-2));
             }
           } catch (e) {}
-          var cardSerial = card.getAttribute('data-sl-serial') || '';
+          var cardSerialRaw = card.getAttribute('data-sl-serial') || '';
+          var cardSerialDigits = (cardSerialRaw.match(/(\d+)\s*$/) || [])[1] || '';
+          var cardSerial = cardSerialDigits ? '#' + ('0' + cardSerialDigits).slice(-2) : '';
           var indexEl = titleWrap.querySelector('.sonarline-card-index');
           if (cardSerial) {
             if (!indexEl) {
@@ -2401,6 +2403,9 @@
           // (dual rendering showed e.g. [[tag: red]] [[tag: yellow]] as repeated pills).
           var legacyTagsWrap = metaWrap.querySelector('.sonarline-card-tags-wrap');
           if (legacyTagsWrap && legacyTagsWrap.parentNode) legacyTagsWrap.parentNode.removeChild(legacyTagsWrap);
+          // Legacy schematic action row removed by the placard pivot.
+          var legacyActions = metaWrap.querySelector('.sonarline-card-row-actions');
+          if (legacyActions && legacyActions.parentNode) legacyActions.parentNode.removeChild(legacyActions);
 
           // FIX TESTBEAT MULTI-TAGS: render each tag into .sonarline-card-tags-group.
           var tagsContainer = metaWrap.querySelector('.sonarline-card-tags-group');
@@ -2438,25 +2443,23 @@
             extraPrices[ep].style.setProperty('display', 'none', 'important');
           }
 
-          // Schematic action row: BUY NOW (span + delegation, never a nested <a>)
-          // and LISTEN (delegated to the card's quickplay trigger).
-          var actionsRow = metaWrap.querySelector('.sonarline-card-row-actions');
-          if (!actionsRow) {
-            actionsRow = document.createElement('div');
-            actionsRow.className = 'sonarline-card-row-actions';
-            actionsRow.innerHTML = '<span class="sonarline-card-buy" role="link" tabindex="0">BUY NOW</span><button class="sonarline-card-listen" type="button">LISTEN</button>';
-            metaWrap.appendChild(actionsRow);
-          }
-          var buyBtn = actionsRow.querySelector('.sonarline-card-buy');
-          var listenBtn = actionsRow.querySelector('.sonarline-card-listen');
-          var productLink = card.querySelector('a[href*="/b/"], a[href*="/p/"], a[href*="/product"]') || card.querySelector('a[href]');
-          if (buyBtn && productLink && productLink.href) {
-            if (buyBtn.getAttribute('data-href') !== productLink.href) buyBtn.setAttribute('data-href', productLink.href);
-          }
-          if (listenBtn) {
-            var hasCardAudio = !!(card.getAttribute('data-audio-src') || audioUrl);
-            listenBtn.style.setProperty('display', hasCardAudio ? 'inline-flex' : 'none', 'important');
-          }
+          // Placard price bar: micro barcode left, price pinned right.
+          try {
+            var priceBar = metaWrap.querySelector('.sl-placard-pricebar');
+            if (!priceBar) {
+              priceBar = document.createElement('div');
+              priceBar.className = 'sl-placard-pricebar';
+              var priceRowHost = metaWrap.querySelector('.sonarline-card-row-bottom') || metaWrap;
+              priceRowHost.appendChild(priceBar);
+              var barcode = document.createElement('div');
+              barcode.className = 'sl-placard-barcode';
+              barcode.setAttribute('aria-hidden', 'true');
+              priceBar.appendChild(barcode);
+            }
+            if (priceWrap && priceWrap.parentElement !== priceBar) priceBar.appendChild(priceWrap);
+          } catch (e) {}
+
+          // Schematic action row removed (placard spec): cards carry no buttons.
 
           var cardInfos = content.querySelectorAll('.card__information, .card-information');
           for (var ci = 0; ci < cardInfos.length; ci++) {
@@ -2678,36 +2681,7 @@
       });
     }
 
-    // Delegated schematic card actions (clone-safe: clones inherit markup, one listener).
-    if (!window.slCardActionsBound) {
-      window.slCardActionsBound = true;
-      document.addEventListener('click', function(e) {
-        try {
-          var t = e.target;
-          if (!t || !t.closest) return;
-          var listen = t.closest('.sonarline-card-listen');
-          if (listen) {
-            var lc = listen.closest('.card-wrapper, .product-card');
-            var qp = lc ? lc.querySelector('.sonarline-card-quickplay') : null;
-            if (qp) qp.click();
-            return;
-          }
-          var buy = t.closest('.sonarline-card-buy[data-href]');
-          if (buy) {
-            var href = buy.getAttribute('data-href');
-            if (href && href !== '#') window.location.href = href;
-          }
-        } catch (err) {}
-      });
-      document.addEventListener('keydown', function(e) {
-        try {
-          if ((e.key === 'Enter' || e.key === ' ') && e.target && e.target.classList && e.target.classList.contains('sonarline-card-buy')) {
-            e.preventDefault();
-            e.target.click();
-          }
-        } catch (err) {}
-      });
-    }
+    // (Schematic action delegation removed with the placard button row.)
 
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', function() {
@@ -2756,6 +2730,17 @@
       '.sl-carousel-header.is-collapsed { opacity: 0.85 !important; }',
       '.sl-collapse-glyph { display: inline-flex !important; align-items: center !important; justify-content: center !important; margin-left: 10px !important; font-size: 0.8rem !important; color: rgba(255, 255, 255, 0.6) !important; transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1) !important; }',
       '.sl-carousel-header.is-collapsed .sl-collapse-glyph { transform: rotate(-90deg) !important; }',
+      'div.card-wrapper.product-card-wrapper, .card-wrapper.product-card-wrapper, div.card-wrapper, .card-wrapper, .product-card, [data-sl-rail="done"] .card-wrapper, [data-sl-rail="done"] .product-card { background: #111113 !important; border: 1px solid rgba(255, 255, 255, 0.12) !important; border-radius: 2px !important; padding: 12px !important; }',
+      '.sonarline-card-title-wrap.sonarline-card-title-wrap { display: flex !important; flex-direction: row !important; align-items: baseline !important; justify-content: space-between !important; gap: 8px !important; }',
+      '.sonarline-card-title-wrap .card__heading, .sonarline-card-title-wrap h3, .sonarline-card-title-wrap h4, .sonarline-card-title-wrap .product-title, .sonarline-card-title-wrap .product-name { font-family: \'Space Grotesk\', sans-serif !important; font-size: 0.85rem !important; font-weight: 700 !important; text-transform: uppercase !important; letter-spacing: 0.06em !important; color: #ffffff !important; }',
+      '.sonarline-card-index.sonarline-card-index { color: #666666 !important; font-family: \'Space Mono\', monospace !important; font-size: 0.62rem !important; letter-spacing: 0.1em !important; flex-shrink: 0 !important; }',
+      '.sonarline-card-row-bottom.sonarline-card-row-bottom { display: flex !important; flex-direction: column !important; align-items: stretch !important; justify-content: flex-start !important; width: 100% !important; margin-top: auto !important; gap: 8px !important; }',
+      '.sl-placard-pricebar { display: flex !important; align-items: flex-end !important; justify-content: space-between !important; width: 100% !important; gap: 10px !important; box-sizing: border-box !important; }',
+      '.sl-placard-barcode { width: 48px !important; height: 14px !important; background: repeating-linear-gradient(90deg, #fff 0px, #fff 1px, transparent 1px, transparent 3px, #fff 3px, #fff 5px, transparent 5px, transparent 6px) !important; opacity: 0.45 !important; flex-shrink: 0 !important; }',
+      '.sonarline-card-price-wrap, [data-sl-rail="done"] .sonarline-card-price-wrap { font-size: 1.02rem !important; }',
+      '.sl-schematic-box { position: relative !important; border: 1px solid rgba(255, 255, 255, 0.08) !important; }',
+      '.sl-rail-watermark { position: absolute !important; top: 50% !important; left: 50% !important; transform: translate(-50%, -50%) !important; pointer-events: none !important; z-index: 1 !important; white-space: nowrap !important; font-family: \'Space Grotesk\', sans-serif !important; font-weight: 800 !important; font-size: clamp(3rem, 10vw, 8rem) !important; letter-spacing: -0.04em !important; color: rgba(255, 255, 255, 0.025) !important; }',
+      '.sl-carousel-track, [data-sl-rail="done"] .sl-carousel-track { position: relative !important; z-index: 2 !important; }',
       '.sl-dot, .sl-carousel-header-left .sl-dot { display: inline-block !important; width: 6px !important; height: 6px !important; background: #FF2A2A !important; border-radius: 50% !important; box-shadow: 0 0 8px #FF2A2A !important; margin-right: 8px !important; flex-shrink: 0 !important; vertical-align: middle !important; animation: slSlowBlink 2.5s ease-in-out infinite !important; }',
       '.sonarline-carousel-title .sl-dot, .sl-carousel-header-left .sl-dot { width: 6px !important; height: 6px !important; background: #FF2A2A !important; border-radius: 50% !important; animation: slSlowBlink 2.5s ease-in-out infinite !important; }',
       '@keyframes slSlowBlink { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.35; transform: scale(0.92); } }',
@@ -2782,6 +2767,7 @@
       '.sl-carousel-track > div, .sl-carousel-track .card-wrapper, .sl-carousel-track .product-card, [data-sl-rail="done"] .card-wrapper.product-card-wrapper, [data-sl-rail="done"] .card-wrapper, [data-sl-rail="done"] .product-card, .card-wrapper, .product-card { flex: 0 0 280px !important; width: 280px !important; min-width: 280px !important; max-width: 280px !important; display: flex !important; flex-direction: column !important; background: #0f0f0f !important; border: 1px solid rgba(255,255,255,0.08) !important; border-radius: 8px !important; overflow: hidden !important; transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease !important; }',
       '.card-wrapper > .card, .product-card > .card, .card-wrapper .card, .card { display: flex !important; flex-direction: column !important; height: 100% !important; flex-grow: 1 !important; }',
       '.card-wrapper > .card > .card__content, .card-wrapper .card > .card__content:not(.card__inner .card__content), .card-wrapper .card__content:not(.card__inner *), .product-card > .card__content, .card__content { display: flex !important; flex-direction: column !important; flex-grow: 1 !important; height: 100% !important; justify-content: space-between !important; padding: 16px 18px 18px 18px !important; }',
+      '.card-wrapper > .card > .card__content, .card-wrapper .card > .card__content:not(.card__inner .card__content), .card-wrapper .card__content:not(.card__inner *), .product-card > .card__content { padding: 12px 0 0 0 !important; }',
       '[data-sl-rail="done"] .card-wrapper:hover, [data-sl-rail="done"] .product-card:hover, .card-wrapper:hover, .product-card:hover { transform: translateY(-6px) !important; border-color: rgba(255, 255, 255, 0.6) !important; }',
       '.card-wrapper.sonarline-card--highlighted, .product-card.sonarline-card--highlighted, [data-highlighted="true"], [data-sl-rail="done"] .card-wrapper.product-card-wrapper.sonarline-card--highlighted, [data-sl-rail="done"] .card-wrapper.sonarline-card--highlighted, [data-sl-rail="done"] .product-card.sonarline-card--highlighted, [data-sl-rail="done"] [data-sl-highlighted="true"], [data-sl-rail="done"] [data-highlighted="true"], div.card-wrapper.product-card-wrapper.sonarline-card--highlighted, .card-wrapper.product-card-wrapper.sonarline-card--highlighted, [data-sl-highlighted="true"], .sonarline-card--highlighted { border: 1px solid #FF3B30 !important; border-color: #FF3B30 !important; box-shadow: 0 0 12px rgba(255, 59, 48, 0.3) !important; }',
       '.card-wrapper.sonarline-card--highlighted:hover, .product-card.sonarline-card--highlighted:hover, [data-highlighted="true"]:hover, [data-sl-rail="done"] .card-wrapper.sonarline-card--highlighted:hover, [data-sl-rail="done"] .product-card.sonarline-card--highlighted:hover { border-color: #FF3B30 !important; }',
@@ -3264,6 +3250,18 @@
         fadeR.setAttribute('aria-hidden', 'true');
         viewport.appendChild(fadeL);
         viewport.appendChild(fadeR);
+      } catch (e) {}
+
+      // Blueprint framing + ghost watermark (behind the scrolling track).
+      try {
+        body.classList.add('sl-schematic-box');
+        if (!body.querySelector('.sl-rail-watermark')) {
+          var watermark = document.createElement('div');
+          watermark.className = 'sl-rail-watermark';
+          watermark.setAttribute('aria-hidden', 'true');
+          watermark.textContent = 'ARCHIVE // COLLECTIONS';
+          body.appendChild(watermark);
+        }
       } catch (e) {}
 
       // Prevent wheel scrolling over carousel cards from scrolling horizontally
@@ -6145,6 +6143,9 @@
 
       var h1 = heroContents.querySelector('h1, .heading-text');
       if (!h1) return;
+
+      // Blueprint framing on the hero band (idempotent class add).
+      try { heroContents.classList.add('sl-schematic-box'); } catch (e) {}
 
       // Purge any unparsed/hardcoded fallback status pills or terminal prompts
       var unparsedPills = heroContents.querySelectorAll('.sonarline-status-pill:not([data-shortcode-parsed])');

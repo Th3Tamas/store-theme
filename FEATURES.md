@@ -239,7 +239,11 @@
 
 ## 10. Changelog & Revision History
 
-### [2026-09-22 - Release 19]
+### [2026-09-22 - Release 20]
+- **Technical Schematic Placard Cards**: cards rebuilt as spec-sheet placards (`#111113` surface, `rgba(255,255,255,0.12)` hairline, 12px exhibition frame, corner ticks, 2px geometry); removed the white `BUY NOW`/`LISTEN` button row and its delegation; Row 1 = Space Grotesk 0.85rem title + `#01` catalog index, Row 2 = spec-strip tag pills, Row 3 = CSS barcode + big mono price bar.
+- **Blueprint Section Framing**: `.sl-schematic-box` HUD corners (TL/BR accents) applied to carousel bodies and the hero band.
+- **Ghost Watermark**: `ARCHIVE // COLLECTIONS` ultra-bold ghost type behind the rail with the track elevated above it.
+- **Preserved**: infinite marquee drift, single row, card-only hover pause, collapsible header, highlight/clone engine, dark palette, difference cursor.
 - **Kilo-Hertz Schematic Layer**: pure-CSS corner wireframe brackets on cards (gradient layers, no DOM churn), stable `SL-001` serial micro-labels, schematic action row per card (`BUY NOW` span + delegation so clones inherit behavior with zero nested-anchor risk, `LISTEN` bridged to each card's quickplay trigger), large monospace prices on cards and in modal, sharp 2px card geometry, Roboto Mono in the type stack.
 - **Viewport Schematic Overlay**: single guarded `#sl-schematic-overlay` fixed layer (subtle grid + film-grain noise + viewport corner brackets), pointer-transparent, static layers only.
 - **`{{audioplay: URL}}` Token**: inline minimal scrubber (play toggle, progress fill, time readout, click-to-seek) with mutual pausing between instances.
