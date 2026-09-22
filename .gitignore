@@ -7,6 +7,18 @@ reference/
 *.mp4
 *.webp
 
+# Ignore base site files
+base-site-store/
+*.html
+*.css
+*.js
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.mp4
+*.webp
+
 # Ignore OS / Editor files
 .DS_Store
 Thumbs.db
