@@ -263,7 +263,7 @@
   }
 
   function decorateHero(section, d) {
-    section.classList.add('lab-frame');
+    section.classList.add('lab-frame', 'lab-hero');
     var textCol = section.querySelector('.text-column, .product-details-wrapper') || section;
     var imgCol = section.querySelector('.image-column') || section.querySelector('.card__media, .media');
     if (imgCol) {
@@ -369,7 +369,9 @@
         if (!kids.length || !hasLabel) { if (rail.parentNode) rail.parentNode.removeChild(rail); }
       });
     } catch (e) {}
-    if (wantRack && !section.querySelector(':scope .lab-rack-nodes') && cards.length) {
+    // no config or no items: return immediately, inject nothing
+    if (!wantRack || !cards.length) return;
+    if (!section.querySelector(':scope .lab-rack-nodes')) {
       var labels = [];
       Array.prototype.slice.call(cards, 0, 6).forEach(function (card) {
         var rawKey = '';
