@@ -16,9 +16,18 @@
 (function () {
   'use strict';
 
-  var TAG_RE = /\[\[lab:[\s\S]*?\]\]/gi;
+  var TAG_RE = /\[\s*\[\s*lab\s*:\s*([^\]]+?)\s*\]\s*\]/gi;
   var DONE = 'data-lab-done';
   var CLOCK_TIMER = null;
+  var LAB_VERSION = '1.1.0';
+  var NF = (typeof NodeFilter !== 'undefined') ? NodeFilter : { SHOW_TEXT: 4, FILTER_ACCEPT: 1, FILTER_REJECT: 2 };
+
+  function labLog(msg, data) {
+    try {
+      if (data !== undefined) console.log('[Lab] ' + msg, data);
+      else console.log('[Lab] ' + msg);
+    } catch (e) {}
+  }
 
   /* ---------- utils ---------- */
 
@@ -55,8 +64,8 @@
   function parseTokenInner(inner) {
     var out = {};
     var body = String(inner || '');
-    body = body.replace(/^\s*\[\[lab:/i, '').replace(/\]\]\s*$/, '');
-    body = body.replace(/[\u201C\u201D]/g, '"').replace(/[\u2018\u2019]/g, "'").trim();
+    body = body.replace(/[\u201C\u201D]/g, '"').replace(/[\u2018\u2019]/g, "'").replace(/\u00a0/g, ' ').replace(/[\u200B-\u200D\uFEFF]/g, '').trim();
+    body = body.replace(/^\s*\[\s*\[\s*lab\s*:\s*/i, '').replace(/\s*\]\s*\]\s*$/, '');
     if (!body) return out;
     var re = /([a-z0-9_.\-]+)\s*=\s*([^=]*?)(?=\s+[a-z0-9_.\-]+\s*=|$)/gi;
     var m, found = false;
@@ -78,11 +87,30 @@
   /* Robust scrub: handles tags split across child spans.
      Builds combined string + node map, parses, then deletes ranges. */
   function scrubContainer(root) {
-    var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
+    // skip code nodes: never scrub inside scripts/styles/form fields
+    var filter = function (node) {
+      try {
+        var p = node.parentNode;
+        if (p && /^(SCRIPT|STYLE|NOSCRIPT|TEXTAREA|INPUT)$/.test(p.nodeName)) return NF.FILTER_REJECT;
+      } catch (e) {}
+      return NF.FILTER_ACCEPT;
+    };
+    var walker = null;
+    try { walker = document.createTreeWalker(root, NF.SHOW_TEXT, filter); }
+    catch (e1) { try { walker = document.createTreeWalker(root, NF.SHOW_TEXT, null); } catch (e2) { return {}; } }
     var nodes = [];
     var n;
     while ((n = walker.nextNode())) nodes.push(n);
     if (!nodes.length) return {};
+
+    // pre-pass: drop invisible chars the editor may inject (map built after, stays consistent)
+    nodes.forEach(function (tn) {
+      try {
+        var raw = tn.data || '';
+        var clean = raw.replace(/[\u200B-\u200D\uFEFF]/g, '').replace(/&nbsp;/gi, ' ');
+        if (clean !== raw) tn.data = clean;
+      } catch (e) {}
+    });
 
     var combined = '';
     var map = []; // {node, start, end}
@@ -91,22 +119,24 @@
       map.push({ node: tn, start: combined.length, end: combined.length + d.length });
       combined += d;
     });
+    // length-preserving normalization for matching (nbsp -> space)
+    var norm = combined.replace(/\u00a0/g, ' ');
 
-    var matches = combined.match(TAG_RE);
+    var matches = norm.match(TAG_RE);
     if (!matches) return {};
 
     var directives = {};
     matches.forEach(function (tok) {
-      var inner = tok;
-      var parsed = parseTokenInner(inner);
+      var parsed = parseTokenInner(tok);
       Object.keys(parsed).forEach(function (k) { directives[k] = parsed[k]; });
     });
+    labLog('tag matched', { tokens: matches.length, directives: directives });
 
-    // delete ranges reverse order so offsets stay valid
+    // delete ranges reverse order so offsets stay valid (norm is length-preserving vs combined)
     var ranges = [];
-    var re = new RegExp('\\[\\[lab:[\\s\\S]*?\\]\\]', 'gi');
+    var re = /\[\s*\[\s*lab\s*:\s*[^\]]+?\s*\]\s*\]/gi;
     var mm;
-    while ((mm = re.exec(combined)) !== null) ranges.push({ s: mm.index, e: mm.index + mm[0].length });
+    while ((mm = re.exec(norm)) !== null) ranges.push({ s: mm.index, e: mm.index + mm[0].length });
     for (var i = ranges.length - 1; i >= 0; i--) deleteRange(map, ranges[i].s, ranges[i].e);
 
     // hide blocks left empty by scrub (never hide media/form/button carriers)
@@ -233,8 +263,8 @@
 
   function decorateHero(section, d) {
     section.classList.add('lab-frame');
-    var textCol = section.querySelector('.text-column');
-    var imgCol = section.querySelector('.image-column');
+    var textCol = section.querySelector('.text-column, .product-details-wrapper') || section;
+    var imgCol = section.querySelector('.image-column') || section.querySelector('.card__media, .media');
     if (imgCol) {
       imgCol.classList.add('lab-halftone');
       var hasImg = imgCol.querySelector('img');
@@ -305,6 +335,7 @@
 
   function decorateCollection(section, d) {
     var cards = section.querySelectorAll('.product-card-wrapper');
+    if (!cards.length) cards = section.querySelectorAll('[data-product-key]');
     var wantBarcode = String(d.barcode || '').toLowerCase() === 'on';
     var sectionSpec = sanitizeText(d.spec || d.meta || d.card_meta || 'WAV | 48KHZ', 80);
     cards.forEach(function (card) {
@@ -433,6 +464,22 @@
     });
   }
 
+  /* Infer section role from native content (IDs rotate per instance — never match them). */
+  function sectionKey(section) {
+    try {
+      var k = section.getAttribute && section.getAttribute('data-section-key');
+      if (k) return k;
+    } catch (e) {}
+    try {
+      if (section.id === 'header' || section.querySelector('.header-nav')) return 'header';
+      if (section.querySelector('.ticker, [class*="ticker"]')) return 'ticker';
+      if (section.querySelector('.product-card-wrapper, [data-product-key]')) return 'featured-collection';
+      if (section.querySelector('.product-details-wrapper, .js-product-price-value')) return 'featured-product';
+      if (section.querySelector('video, audio')) return 'video-simple';
+    } catch (e) {}
+    return '';
+  }
+
   /* ---------- root scan ---------- */
 
   function decorateRoot(root) {
@@ -441,22 +488,25 @@
 
     var sections = [];
     try {
-      if (root.matches && root.matches('.section-wrapper')) sections.push(root);
-      root.querySelectorAll && root.querySelectorAll('.section-wrapper').forEach(function (s) { sections.push(s); });
-      if (root.matches && root.matches('#header')) sections.push(root);
+      var SEL = '.section-wrapper, #header, [data-section-key]';
+      if (root.matches && root.matches(SEL) && sections.indexOf(root) === -1) sections.push(root);
+      if (root.querySelectorAll) root.querySelectorAll(SEL).forEach(function (s) { if (sections.indexOf(s) === -1) sections.push(s); });
       // cart drawer / modal nodes carry no lab tags but get baseline consistency via CSS;
       // still scrub them in case editor text leaks inside.
     } catch (e) {}
+    var scanned = 0, decorated = 0;
 
     sections.forEach(function (section) {
-      var key = (section.getAttribute && section.getAttribute('data-section-key')) || '';
+      var key = sectionKey(section);
       var isDone = section.hasAttribute && section.hasAttribute(DONE) && section.getAttribute(DONE) === '2';
       if (isDone) {
         // catch-up: cards appended after first scan (pagination / ajax) reuse cached directives
         if (key === 'featured-collection') {
           var hasFresh = false;
           try {
-            section.querySelectorAll('.product-card-wrapper').forEach(function (c) { if (!c.hasAttribute(DONE)) hasFresh = true; });
+            var list = section.querySelectorAll('.product-card-wrapper');
+            if (!list.length) list = section.querySelectorAll('[data-product-key]');
+            list.forEach(function (c) { if (!c.hasAttribute(DONE)) hasFresh = true; });
           } catch (e) {}
           if (hasFresh) {
             var cc = {};
@@ -471,6 +521,8 @@
       try { section.setAttribute('data-lab-directives', JSON.stringify(d)); } catch (e) {}
 
       var hasLab = Object.keys(d).length > 0;
+      scanned++;
+      if (key && key !== 'header') labLog('section detected', key);
 
       try {
         if (d.frame === 'ticks') { section.classList.add('lab-frame'); ensureTicks(section); }
@@ -485,11 +537,13 @@
 
         // footer scope: allow terminal tag placed anywhere in footer section
         if (key === 'footer' && hasLab) decorateNewsletter(section, d);
-      } catch (err) { /* never break native */ }
+        if (hasLab) { decorated++; labLog('decoration complete', key || 'unknown'); }
+      } catch (err) { labLog('section error', String(err && err.message || err)); }
 
       // mark scanned (2 = section-level done; cards use 1)
       try { if (!section.hasAttribute(DONE)) section.setAttribute(DONE, '2'); } catch (e) {}
     });
+    labLog('pass complete', { scanned: scanned, decorated: decorated });
 
     // standalone newsletter forms outside footer sections
     try {
@@ -522,7 +576,9 @@
   }
 
   function boot() {
-    try { decorateRoot(document); } catch (e) {}
+    labLog('Initializing decorator...');
+    labLog('version ' + LAB_VERSION + ' readyState=' + document.readyState);
+    try { decorateRoot(document); } catch (e) { labLog('boot pass failed', String(e && e.message || e)); }
     try {
       var obs = new MutationObserver(function (mutations) {
         for (var i = 0; i < mutations.length; i++) {
@@ -532,9 +588,15 @@
         }
       });
       obs.observe(document.body || document.documentElement, { childList: true, subtree: true });
-    } catch (e) {}
+      labLog('watching dynamic cart + sections');
+    } catch (e) { labLog('observer failed', String(e && e.message || e)); }
     window.addEventListener('load', function () { schedule(document); });
+    // fallback passes for late-rendered native sections / remote embeds
+    setTimeout(function () { schedule(document); }, 800);
+    setTimeout(function () { schedule(document); }, 2500);
   }
+
+  try { window.LabDecorator = { rescan: function () { schedule(document); }, version: LAB_VERSION }; } catch (e) {}
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();
