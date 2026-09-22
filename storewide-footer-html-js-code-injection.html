@@ -1,0 +1,542 @@
+<!-- LAB DECORATOR — footer injection (Phases 1-4: parser + decorators + watchers)
+     Decorator-only. No hardcoded products/players/tickers. No brand strings.
+     Marker namespace: [[lab: key=value ...]] — all other [[...]] left untouched.
+     ------------------------------------------------------------------
+     EDITOR GUIDE (Action -> Result):
+     - Ticker: add native Ticker + append [[lab: ticker=glow-holo]] -> holo glow.
+       values: glow-holo | glow-cyan | plain-mono
+     - Hero: native Featured Product + [[lab: section=hero spec=24bit/48k | stems code=CAT-001 button=holo]] -> spec panel + holo frame on NATIVE button.
+     - Grid: native Featured Collection heading + [[lab: watermark=GHOST barcode=on rack=on]] -> watermark, spec footers w/ CSS barcode, rack nodes from native cards.
+     - Per-card: product description + [[lab: spec=wav | 48khz code=CAT-002]] -> overrides section spec for that card only.
+     - Monitor: native Video/Gallery/Embed + [[lab: monitor=oscilloscope]] -> monitor frame around NATIVE media.
+     - Terminal: native Newsletter + [[lab: newsletter=terminal]] -> CLI skin on NATIVE form.
+     - Frame: any section + [[lab: frame=ticks watermark=TEXT]] -> corner ticks + watermark.
+-->
+<script>
+(function () {
+  'use strict';
+
+  var TAG_RE = /\[\[lab:[\s\S]*?\]\]/gi;
+  var DONE = 'data-lab-done';
+  var CLOCK_TIMER = null;
+
+  /* ---------- utils ---------- */
+
+  function sanitizeText(s, max) {
+    s = String(s == null ? '' : s).replace(/[\u201C\u201D]/g, '"').replace(/[\u2018\u2019]/g, "'").trim();
+    s = s.replace(/[<>&"']/g, '').replace(/\s+/g, ' ').trim();
+    if (s.length > max) s = s.slice(0, max);
+    return s;
+  }
+
+  function sanitizeCode(s) {
+    s = sanitizeText(s, 32).toUpperCase().replace(/[^A-Z0-9\-_\/ ]/g, '').trim();
+    return s;
+  }
+
+  function getBrand() {
+    try {
+      var img = document.querySelector('.js-header-logo-image');
+      if (img && img.getAttribute('alt')) {
+        var a = img.getAttribute('alt').trim();
+        if (a) return a;
+      }
+      var t = document.querySelector('.header-title a');
+      if (t && t.textContent.trim()) return t.textContent.trim();
+      var title = (document.title || '').split(/[-|/]/)[0].trim();
+      if (title) return title;
+    } catch (e) {}
+    return '';
+  }
+
+  /* Parse inner of [[lab: ...]] into {directives}. Supports:
+     key=value pairs where value runs until next " key=" or end (spaces/pipes allowed),
+     plus bare flags (barcode) -> "on". Keys case-insensitive, dots kept. */
+  function parseTokenInner(inner) {
+    var out = {};
+    var body = String(inner || '');
+    body = body.replace(/^\s*\[\[lab:/i, '').replace(/\]\]\s*$/, '');
+    body = body.replace(/[\u201C\u201D]/g, '"').replace(/[\u2018\u2019]/g, "'").trim();
+    if (!body) return out;
+    var re = /([a-z0-9_.\-]+)\s*=\s*([^=]*?)(?=\s+[a-z0-9_.\-]+\s*=|$)/gi;
+    var m, found = false;
+    while ((m = re.exec(body)) !== null) {
+      found = true;
+      var k = m[1].toLowerCase().replace(/\./g, '_');
+      out[k] = m[2].trim();
+    }
+    if (!found) {
+      // bare flags: "barcode rack ticks"
+      body.split(/\s+/).forEach(function (w) {
+        w = w.toLowerCase().replace(/[^a-z0-9_\-]/g, '');
+        if (w) out[w] = 'on';
+      });
+    }
+    return out;
+  }
+
+  /* Robust scrub: handles tags split across child spans.
+     Builds combined string + node map, parses, then deletes ranges. */
+  function scrubContainer(root) {
+    var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
+    var nodes = [];
+    var n;
+    while ((n = walker.nextNode())) nodes.push(n);
+    if (!nodes.length) return {};
+
+    var combined = '';
+    var map = []; // {node, start, end}
+    nodes.forEach(function (tn) {
+      var d = tn.data || '';
+      map.push({ node: tn, start: combined.length, end: combined.length + d.length });
+      combined += d;
+    });
+
+    var matches = combined.match(TAG_RE);
+    if (!matches) return {};
+
+    var directives = {};
+    matches.forEach(function (tok) {
+      var inner = tok;
+      var parsed = parseTokenInner(inner);
+      Object.keys(parsed).forEach(function (k) { directives[k] = parsed[k]; });
+    });
+
+    // delete ranges reverse order so offsets stay valid
+    var ranges = [];
+    var re = new RegExp('\\[\\[lab:[\\s\\S]*?\\]\\]', 'gi');
+    var mm;
+    while ((mm = re.exec(combined)) !== null) ranges.push({ s: mm.index, e: mm.index + mm[0].length });
+    for (var i = ranges.length - 1; i >= 0; i--) deleteRange(map, ranges[i].s, ranges[i].e);
+
+    // hide blocks left empty by scrub (never hide media/form/button carriers)
+    try {
+      root.querySelectorAll('p, h1, h2, h3, span').forEach(function (el) {
+        if (el.hasAttribute(DONE)) return;
+        var txt = (el.textContent || '').trim();
+        if (txt !== '') return;
+        if (el.querySelector('img, video, audio, input, button, a, iframe')) return;
+        if (el.children.length > 0) return;
+        el.classList.add('lab-tag-scrubbed');
+      });
+    } catch (e) {}
+
+    return directives;
+  }
+
+  function deleteRange(map, s, e) {
+    map.forEach(function (entry) {
+      if (entry.end <= s || entry.start >= e) return;
+      var node = entry.node;
+      var data = node.data || '';
+      var localS = Math.max(0, s - entry.start);
+      var localE = Math.min(data.length, e - entry.start);
+      if (localS >= localE) return;
+      try { node.data = data.slice(0, localS) + data.slice(localE); } catch (err) {}
+    });
+  }
+
+  function ensureNoise() {
+    if (document.querySelector('.lab-noise-overlay')) return;
+    var d = document.createElement('div');
+    d.className = 'lab-noise-overlay';
+    d.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(d);
+  }
+
+  function ensureTicks(el) {
+    if (el.querySelector(':scope > .lab-tick-tl')) return;
+    ['lab-tick-tl', 'lab-tick-tr', 'lab-tick-bl', 'lab-tick-br'].forEach(function (c) {
+      var s = document.createElement('span');
+      s.className = 'lab-tick ' + c;
+      s.setAttribute('aria-hidden', 'true');
+      el.appendChild(s);
+    });
+    var cross = document.createElement('span');
+    cross.className = 'lab-cross';
+    cross.textContent = '+';
+    cross.style.cssText = 'top:6px;left:50%;';
+    cross.setAttribute('aria-hidden', 'true');
+    el.appendChild(cross);
+  }
+
+  function ensureWatermark(el, text) {
+    var clean = sanitizeText(text, 24);
+    if (!clean) return;
+    var ex = el.querySelector(':scope > .lab-watermark');
+    if (ex) { ex.textContent = clean; return; }
+    var w = document.createElement('div');
+    w.className = 'lab-watermark';
+    w.textContent = clean;
+    w.setAttribute('aria-hidden', 'true');
+    el.insertBefore(w, el.firstChild);
+  }
+
+  function ensureBarcode(parent, small) {
+    if (parent.querySelector(':scope > .lab-barcode')) return;
+    var b = document.createElement('div');
+    b.className = 'lab-barcode' + (small ? ' is-small' : '');
+    b.setAttribute('aria-hidden', 'true');
+    // CSS-only bars; accessible label kept on parent card instead.
+    parent.appendChild(b);
+  }
+
+  /* ---------- telemetry (dynamic brand, generic otherwise) ---------- */
+
+  function ensureTelemetry() {
+    if (document.getElementById('lab-telemetry-bar')) return;
+    var bar = document.createElement('div');
+    bar.id = 'lab-telemetry-bar';
+    bar.setAttribute('aria-hidden', 'false');
+    var brand = sanitizeText(getBrand(), 40);
+    var dot = document.createElement('span');
+    dot.innerHTML = '<span class="lab-dot is-ok"></span>SYS.ONLINE';
+    bar.appendChild(dot);
+    if (brand) {
+      var b = document.createElement('span');
+      b.className = 'lab-brand';
+      b.textContent = brand + ' / LAB';
+      bar.appendChild(b);
+    }
+    var spec = document.createElement('span');
+    spec.className = 'lab-hide-mobile';
+    spec.textContent = '48KHZ 24-BIT';
+    bar.appendChild(spec);
+    var clock = document.createElement('span');
+    clock.className = 'lab-clock';
+    clock.textContent = '--:--:--';
+    bar.appendChild(clock);
+    var header = document.getElementById('header');
+    if (header && header.parentNode) header.parentNode.insertBefore(bar, header);
+    else document.body.insertBefore(bar, document.body.firstChild);
+    if (!CLOCK_TIMER) {
+      var tick = function () {
+        try {
+          var c = document.querySelector('#lab-telemetry-bar .lab-clock');
+          if (c) c.textContent = new Date().toLocaleTimeString('en-GB');
+        } catch (e) {}
+      };
+      tick();
+      CLOCK_TIMER = setInterval(tick, 1000);
+    }
+  }
+
+  /* ---------- section decorators ---------- */
+
+  function decorateTicker(section, d) {
+    var fx = String(d.ticker || d.fx || d.ticker_fx || '').toLowerCase();
+    section.classList.add('fx-ticker-glow');
+    if (fx.indexOf('holo') >= 0) section.classList.add('lab-ticker-glow-holo');
+    else if (fx.indexOf('cyan') >= 0) section.classList.add('lab-ticker-glow-cyan');
+    else section.classList.add('lab-ticker-plain-mono');
+  }
+
+  function decorateHero(section, d) {
+    section.classList.add('lab-frame');
+    var textCol = section.querySelector('.text-column');
+    var imgCol = section.querySelector('.image-column');
+    if (imgCol) {
+      imgCol.classList.add('lab-halftone');
+      var hasImg = imgCol.querySelector('img');
+      if (!hasImg && !imgCol.querySelector('.lab-gear-placeholder')) {
+        var ph = document.createElement('div');
+        ph.className = 'lab-gear-placeholder lab-halftone';
+        ph.textContent = 'HW // NO SIGNAL';
+        ph.setAttribute('aria-hidden', 'true');
+        imgCol.appendChild(ph);
+      }
+    }
+    if (textCol && !textCol.querySelector(':scope > .lab-hero-spec')) {
+      var panel = document.createElement('div');
+      panel.className = 'lab-hero-spec';
+      var code = sanitizeCode(d.code || d.hero_code || 'UNIT-001');
+      var spec = sanitizeText(d.spec || d.hero_spec || d.meta || 'WAV | 48KHZ | 24-BIT', 120);
+      var priceEl = section.querySelector('.js-product-price-value');
+      var price = priceEl ? priceEl.textContent.trim() : '';
+      panel.innerHTML = '';
+      var codeEl = document.createElement('div');
+      codeEl.className = 'lab-hero-code';
+      codeEl.textContent = 'MODEL ' + code;
+      panel.appendChild(codeEl);
+      var dl = document.createElement('dl');
+      [['SPEC', spec], ['FORMAT', 'STEMS / ONE-SHOTS'], ['RATE', '48KHZ 24-BIT']].forEach(function (row) {
+        var dt = document.createElement('dt'); dt.textContent = row[0];
+        var dd = document.createElement('dd'); dd.textContent = row[1];
+        dl.appendChild(dt); dl.appendChild(dd);
+      });
+      if (price) {
+        var pdt = document.createElement('dt'); pdt.textContent = 'PRICE';
+        var pdd = document.createElement('dd'); pdd.textContent = price;
+        dl.appendChild(pdt); dl.appendChild(pdd);
+      }
+      panel.appendChild(dl);
+      textCol.insertBefore(panel, textCol.firstChild);
+    }
+    var wantHolo = String(d.button || d.button_style || d.style || '').toLowerCase().indexOf('holo') >= 0;
+    if (wantHolo) {
+      section.querySelectorAll('.btn, button[type="submit"], .visit-product-page-link-wrapper a').forEach(function (btn) {
+        if (btn.closest('.lab-holo-frame') || btn.disabled) return;
+        var wrap = document.createElement('span');
+        wrap.className = 'lab-holo-frame';
+        btn.parentNode.insertBefore(wrap, btn);
+        wrap.appendChild(btn);
+      });
+    }
+  }
+
+  function cardFoot(card, code, spec) {
+    var foot = card.querySelector(':scope > .card > .lab-card-foot, :scope > .lab-card-foot');
+    if (!foot) {
+      foot = document.createElement('div');
+      foot.className = 'lab-card-foot';
+      var cardInner = card.querySelector('.card');
+      (cardInner || card).appendChild(foot);
+    }
+    foot.innerHTML = '';
+    var c = document.createElement('span');
+    c.className = 'lab-card-code';
+    c.textContent = code;
+    var s = document.createElement('span');
+    s.className = 'lab-card-spec';
+    s.textContent = spec;
+    foot.appendChild(c); foot.appendChild(s);
+    ensureBarcode(foot, true);
+  }
+
+  function decorateCollection(section, d) {
+    var cards = section.querySelectorAll('.product-card-wrapper');
+    var wantBarcode = String(d.barcode || '').toLowerCase() === 'on';
+    var sectionSpec = sanitizeText(d.spec || d.meta || d.card_meta || 'WAV | 48KHZ', 80);
+    cards.forEach(function (card) {
+      if (card.hasAttribute(DONE)) {
+        // still refresh foot if section spec changed? skip for idempotency
+      }
+      var cardD = {};
+      try { cardD = scrubContainer(card); } catch (e) {}
+      var codeRaw = cardD.code || cardD.card_code || card.getAttribute('data-product-key') || 'UNIT';
+      var code = sanitizeCode(codeRaw).slice(0, 12) || 'UNIT';
+      var spec = sanitizeText(cardD.spec || cardD.meta || sectionSpec, 80);
+      card.classList.add('lab-card-augmented');
+      var media = card.querySelector('.card__media');
+      if (media) media.classList.add('lab-halftone');
+      cardFoot(card, code, spec);
+      if (wantBarcode || String(cardD.barcode || '').toLowerCase() === 'on') {
+        var foot = card.querySelector('.lab-card-foot');
+        if (foot) ensureBarcode(foot, true);
+      }
+      card.setAttribute(DONE, '1');
+    });
+
+    var wantRack = String(d.rack || d.nodes || d.rack_nodes || '').toLowerCase() === 'on';
+    if (wantRack && !section.querySelector(':scope .lab-rack-nodes') && cards.length) {
+      var rail = document.createElement('div');
+      rail.className = 'lab-rack-nodes';
+      rail.setAttribute('aria-hidden', 'true');
+      Array.prototype.slice.call(cards, 0, 6).forEach(function (card) {
+        var key = (card.getAttribute('data-product-key') || 'MOD').toUpperCase().slice(0, 6);
+        var node = document.createElement('div');
+        node.className = 'lab-rack-node';
+        node.textContent = key;
+        rail.appendChild(node);
+      });
+      var grid = section.querySelector('.grid-block, .grid-list');
+      if (grid && grid.parentNode) grid.parentNode.insertBefore(rail, grid);
+      else section.appendChild(rail);
+    }
+  }
+
+  function decorateMonitor(section) {
+    if (section.querySelector(':scope > .lab-monitor')) return;
+    var target = section.querySelector('.section-contents') || section;
+    var media = section.querySelector('video, audio, img, iframe');
+    var frame = document.createElement('div');
+    frame.className = 'lab-monitor';
+    var head = document.createElement('div');
+    head.className = 'lab-monitor-head';
+    var tc = document.createElement('span');
+    tc.className = 'lab-tc';
+    tc.textContent = 'CH-01 00:00:00';
+    head.appendChild(tc);
+    var rec = document.createElement('span');
+    rec.textContent = '[REC]';
+    head.appendChild(rec);
+    var screen = document.createElement('div');
+    screen.className = 'lab-monitor-screen';
+    if (media) {
+      // move native media inside screen — keeps all listeners/handlers intact
+      screen.appendChild(media);
+    } else {
+      var ph = document.createElement('div');
+      ph.className = 'lab-gear-placeholder';
+      ph.textContent = 'AV // NO SIGNAL';
+      screen.appendChild(ph);
+    }
+    // play toggles native media only; placeholder has no media so button hidden
+    var nativeMedia = screen.querySelector('video, audio');
+    if (nativeMedia) {
+      var play = document.createElement('button');
+      play.type = 'button';
+      play.className = 'lab-play';
+      play.textContent = '▶';
+      play.setAttribute('aria-label', 'Play preview');
+      play.addEventListener('click', function () {
+        try {
+          if (nativeMedia.paused) { nativeMedia.play(); play.textContent = '❚❚'; }
+          else { nativeMedia.pause(); play.textContent = '▶'; }
+        } catch (e) {}
+      });
+      try {
+        nativeMedia.addEventListener('play', function () { play.textContent = '❚❚'; });
+        nativeMedia.addEventListener('pause', function () { play.textContent = '▶'; });
+        nativeMedia.addEventListener('timeupdate', function () {
+          var cur = nativeMedia.currentTime || 0;
+          var h = String(Math.floor(cur / 3600)).padStart(2, '0');
+          var m = String(Math.floor((cur % 3600) / 60)).padStart(2, '0');
+          var s = String(Math.floor(cur % 60)).padStart(2, '0');
+          tc.textContent = 'CH-01 ' + h + ':' + m + ':' + s;
+          var dur = nativeMedia.duration || 0;
+          if (dur > 0) fill.style.width = (cur / dur * 100).toFixed(1) + '%';
+        });
+      } catch (e) {}
+      screen.appendChild(play);
+    }
+    var scrub = document.createElement('div');
+    scrub.className = 'lab-scrub';
+    scrub.setAttribute('aria-hidden', 'true');
+    var fill = document.createElement('div');
+    fill.className = 'lab-scrub-fill';
+    scrub.appendChild(fill);
+    frame.appendChild(head); frame.appendChild(screen); frame.appendChild(scrub);
+    target.appendChild(frame);
+  }
+
+  function decorateNewsletter(scope, d) {
+    var want = String(d.newsletter || d.skin || d.section || '').toLowerCase().indexOf('terminal') >= 0;
+    if (!want) return;
+    scope.querySelectorAll('form').forEach(function (form) {
+      var email = form.querySelector('input[type="email"], input[type="text"]');
+      if (!email) return;
+      var frame = form.closest('.lab-terminal-frame');
+      if (!frame) {
+        frame = document.createElement('div');
+        frame.className = 'lab-terminal-frame';
+        form.parentNode.insertBefore(frame, form);
+        frame.appendChild(form);
+      }
+      try {
+        if (!email.getAttribute('placeholder')) email.setAttribute('placeholder', 'enter email address..._');
+        email.setAttribute('autocomplete', 'email');
+      } catch (e) {}
+      form.querySelectorAll('button, .btn, input[type="submit"]').forEach(function (b) {
+        b.classList.add('lab-btn-holo');
+      });
+    });
+  }
+
+  /* ---------- root scan ---------- */
+
+  function decorateRoot(root) {
+    try { ensureNoise(); } catch (e) {}
+    try { ensureTelemetry(); } catch (e) {}
+
+    var sections = [];
+    try {
+      if (root.matches && root.matches('.section-wrapper')) sections.push(root);
+      root.querySelectorAll && root.querySelectorAll('.section-wrapper').forEach(function (s) { sections.push(s); });
+      if (root.matches && root.matches('#header')) sections.push(root);
+      // cart drawer / modal nodes carry no lab tags but get baseline consistency via CSS;
+      // still scrub them in case editor text leaks inside.
+    } catch (e) {}
+
+    sections.forEach(function (section) {
+      var key = (section.getAttribute && section.getAttribute('data-section-key')) || '';
+      var isDone = section.hasAttribute && section.hasAttribute(DONE) && section.getAttribute(DONE) === '2';
+      if (isDone) {
+        // catch-up: cards appended after first scan (pagination / ajax) reuse cached directives
+        if (key === 'featured-collection') {
+          var hasFresh = false;
+          try {
+            section.querySelectorAll('.product-card-wrapper').forEach(function (c) { if (!c.hasAttribute(DONE)) hasFresh = true; });
+          } catch (e) {}
+          if (hasFresh) {
+            var cc = {};
+            try { cc = JSON.parse(section.getAttribute('data-lab-directives') || '{}'); } catch (e) { cc = {}; }
+            try { decorateCollection(section, cc); } catch (e) {}
+          }
+        }
+        return;
+      }
+      var d = {};
+      try { d = scrubContainer(section) || {}; } catch (e) { d = {}; }
+      try { section.setAttribute('data-lab-directives', JSON.stringify(d)); } catch (e) {}
+
+      var hasLab = Object.keys(d).length > 0;
+
+      try {
+        if (d.frame === 'ticks') { section.classList.add('lab-frame'); ensureTicks(section); }
+        if (d.watermark) { section.classList.add('lab-frame'); ensureWatermark(section, d.watermark); ensureTicks(section); }
+
+        if (key === 'ticker' && (d.ticker || d.fx || d.ticker_fx)) decorateTicker(section, d);
+        if (key === 'featured-product' && (d.section === 'hero' || d.spec || d.code || d.button || d.hero_spec || d.hero_code)) decorateHero(section, d);
+        if (key === 'featured-collection' && (d.barcode || d.rack || d.nodes || d.spec || d.meta || d.watermark || d.card_meta)) decorateCollection(section, d);
+        else if (key === 'featured-collection' && hasLab) decorateCollection(section, d);
+        if ((key === 'video-simple' || key === 'gallery' || key === 'embed-code') && (d.monitor === 'oscilloscope' || d.skin === 'oscilloscope' || d.section === 'monitor')) decorateMonitor(section);
+        if (d.newsletter || d.skin === 'terminal' || d.section === 'terminal') decorateNewsletter(section, d);
+
+        // footer scope: allow terminal tag placed anywhere in footer section
+        if (key === 'footer' && hasLab) decorateNewsletter(section, d);
+      } catch (err) { /* never break native */ }
+
+      // mark scanned (2 = section-level done; cards use 1)
+      try { if (!section.hasAttribute(DONE)) section.setAttribute(DONE, '2'); } catch (e) {}
+    });
+
+    // standalone newsletter forms outside footer sections
+    try {
+      var pending = [];
+      (root.querySelectorAll ? root.querySelectorAll('form') : []).forEach(function (f) {
+        if (f.closest('.lab-terminal-frame') || f.hasAttribute(DONE)) return;
+        pending.push(f);
+      });
+      // scrub each candidate form container for tags (handles split spans inside labels)
+      pending.forEach(function (form) {
+        var holder = form.parentNode || form;
+        var fd = {};
+        try { fd = scrubContainer(holder) || {}; } catch (e) {}
+        if (fd.newsletter || fd.skin === 'terminal' || fd.section === 'terminal') decorateNewsletter(holder, fd);
+        try { form.setAttribute(DONE, '1'); } catch (e) {}
+      });
+    } catch (e) {}
+  }
+
+  /* ---------- boot + observers (covers side-cart / cart modal) ---------- */
+
+  var scheduled = false;
+  function schedule(root) {
+    if (scheduled) return;
+    scheduled = true;
+    setTimeout(function () {
+      scheduled = false;
+      try { decorateRoot(root || document); } catch (e) {}
+    }, 120);
+  }
+
+  function boot() {
+    try { decorateRoot(document); } catch (e) {}
+    try {
+      var obs = new MutationObserver(function (mutations) {
+        for (var i = 0; i < mutations.length; i++) {
+          var mut = mutations[i];
+          if (mut.addedNodes && mut.addedNodes.length) { schedule(document); break; }
+          // cart quantity/price text updates need no rescan; skip characterData
+        }
+      });
+      obs.observe(document.body || document.documentElement, { childList: true, subtree: true });
+    } catch (e) {}
+    window.addEventListener('load', function () { schedule(document); });
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
+</script>
