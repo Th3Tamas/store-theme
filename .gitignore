@@ -8,7 +8,7 @@ reference/
 *.webp
 
 # Ignore base site files
-base-site-store/
+base-site-source/
 *.html
 *.css
 *.js
