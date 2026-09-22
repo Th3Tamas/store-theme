@@ -235,6 +235,9 @@
 
 ## 10. Changelog & Revision History
 
+### [2026-09-22 - Release 18]
+- **Sonarline Footer + `[[newsletter-open: true/false]]`**: rebuilt the native footer section around Payhip's own newsletter form (moved, never cloned, so submissions keep working) into a centered Atrum-style layout: brand mark, rounded newsletter card (`Get exclusive deals` + OPEN status pill + subtext + email + white JOIN button), mono nav row with `·` separators, and copyright. Token parsed case-insensitively from footer text and scrubbed from display; `true`/absent shows green OPEN with enabled form, explicit `false` shows red CLOSED with dimmed disabled form. Idempotent engine with `slFooterDebug()` / `slFooterRebuild()` console hooks.
+
 ### [2026-09-21 - Release 10]
 - **Horizontal Carousel Conversion**: Transformed the static collection grid into an interactive, brutalist horizontal slider/carousel matching the Atrum Lab reference design. Converted track to a single-row flex container (`overflow-x: auto; scroll-snap-type: x mandatory; gap: 16px; padding: 24px 48px;`) with WebKit scrollbars hidden.
 - **Fixed Card Widths & Edge Peek**: Constrained collection cards to `flex: 0 0 280px !important; min-width: 280px !important; max-width: 280px !important; scroll-snap-align: start !important;` ensuring adjacent cards peek gracefully from screen edges.

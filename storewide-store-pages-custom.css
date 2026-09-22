@@ -3870,4 +3870,224 @@ div.card-wrapper.product-card-wrapper.sonarline-card--highlighted,
   color: #080808 !important;
 }
 
+/* --------------------------------------------------------------------------
+   13. Sonarline Footer (Atrum-style newsletter card + link row)
+   -------------------------------------------------------------------------- */
+[data-section-key="footer"] {
+  background: #080808 !important;
+  padding: 72px 24px 44px !important;
+  text-align: center !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+.sonarline-footer.sonarline-footer {
+  max-width: 560px !important;
+  margin: 0 auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 30px !important;
+  box-sizing: border-box !important;
+}
+.sonarline-footer-brand {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+}
+.sonarline-footer-mark {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 28px !important;
+  height: 28px !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  border-radius: 4px !important;
+  color: #ffffff !important;
+  font-family: 'Space Mono', monospace !important;
+  font-size: 0.62rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.05em !important;
+  box-sizing: border-box !important;
+}
+.sonarline-footer-word {
+  color: rgba(255, 255, 255, 0.55) !important;
+  font-family: 'Space Mono', monospace !important;
+  font-size: 0.68rem !important;
+  letter-spacing: 0.35em !important;
+  text-transform: uppercase !important;
+}
+.sonarline-footer-card.sonarline-footer-card {
+  width: 100% !important;
+  background: #0e0e0e !important;
+  border: 1px solid rgba(255, 255, 255, 0.09) !important;
+  border-radius: 12px !important;
+  padding: 22px 24px !important;
+  text-align: left !important;
+  box-sizing: border-box !important;
+}
+.sonarline-footer-card-top {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+}
+.sonarline-footer-title {
+  color: #ffffff !important;
+  font-family: 'Space Mono', monospace !important;
+  font-size: 0.85rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.04em !important;
+}
+.sonarline-footer-status {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  color: rgba(255, 255, 255, 0.45) !important;
+  font-family: 'Space Mono', monospace !important;
+  font-size: 0.6rem !important;
+  letter-spacing: 0.22em !important;
+  text-transform: uppercase !important;
+  white-space: nowrap !important;
+}
+.sonarline-footer-dot {
+  width: 6px !important;
+  height: 6px !important;
+  border-radius: 50% !important;
+  background: #34d399 !important;
+  box-shadow: 0 0 8px rgba(52, 211, 153, 0.8) !important;
+  flex-shrink: 0 !important;
+}
+.sonarline-footer-card.is-closed .sonarline-footer-dot {
+  background: #FF2A2A !important;
+  box-shadow: 0 0 8px rgba(255, 42, 42, 0.8) !important;
+}
+.sonarline-footer-sub {
+  color: #777777 !important;
+  font-family: 'Space Mono', monospace !important;
+  font-size: 0.68rem !important;
+  letter-spacing: 0.04em !important;
+  margin: 10px 0 0 !important;
+  padding: 0 !important;
+}
+.sonarline-footer-formrow {
+  display: flex !important;
+  gap: 10px !important;
+  margin-top: 16px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+.sonarline-footer-formrow form {
+  display: flex !important;
+  gap: 10px !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  background: transparent !important;
+}
+.sonarline-footer.sonarline-footer .sonarline-footer-formrow input[type="email"],
+.sonarline-footer.sonarline-footer .sonarline-footer-formrow input[type="text"] {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  background: rgba(255, 255, 255, 0.04) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-radius: 8px !important;
+  color: #ffffff !important;
+  font-family: 'Space Mono', monospace !important;
+  font-size: 0.8rem !important;
+  letter-spacing: 0.03em !important;
+  padding: 12px 16px !important;
+  margin: 0 !important;
+  outline: none !important;
+  box-shadow: none !important;
+  text-transform: none !important;
+}
+.sonarline-footer.sonarline-footer .sonarline-footer-formrow input[type="email"]:focus,
+.sonarline-footer.sonarline-footer .sonarline-footer-formrow input[type="text"]:focus {
+  border-color: rgba(255, 255, 255, 0.35) !important;
+  box-shadow: none !important;
+}
+.sonarline-footer.sonarline-footer .sonarline-footer-formrow input::placeholder {
+  color: #555555 !important;
+  opacity: 1 !important;
+  text-transform: none !important;
+}
+.sonarline-footer.sonarline-footer .sonarline-newsletter-join,
+.sonarline-footer.sonarline-footer .sonarline-footer-formrow button,
+.sonarline-footer.sonarline-footer .sonarline-footer-formrow input[type="submit"] {
+  flex: 0 0 auto !important;
+  background: #ffffff !important;
+  border: 1px solid #ffffff !important;
+  border-radius: 8px !important;
+  color: #080808 !important;
+  font-family: 'Space Mono', monospace !important;
+  font-size: 0.72rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.14em !important;
+  text-transform: uppercase !important;
+  padding: 12px 22px !important;
+  margin: 0 !important;
+  cursor: none !important;
+  box-shadow: none !important;
+  text-decoration: none !important;
+  white-space: nowrap !important;
+  transition: opacity 0.15s ease !important;
+}
+.sonarline-footer.sonarline-footer .sonarline-newsletter-join:hover,
+.sonarline-footer.sonarline-footer .sonarline-footer-formrow button:hover,
+.sonarline-footer.sonarline-footer .sonarline-footer-formrow input[type="submit"]:hover {
+  background: #ffffff !important;
+  border-color: #ffffff !important;
+  color: #080808 !important;
+  opacity: 0.85 !important;
+  box-shadow: none !important;
+}
+.sonarline-footer-card.is-closed .sonarline-footer-formrow {
+  opacity: 0.45 !important;
+}
+.sonarline-footer-nav {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px 14px !important;
+  max-width: 100% !important;
+}
+.sonarline-footer-nav a {
+  color: rgba(255, 255, 255, 0.45) !important;
+  font-family: 'Space Mono', monospace !important;
+  font-size: 0.62rem !important;
+  letter-spacing: 0.22em !important;
+  text-transform: uppercase !important;
+  text-decoration: none !important;
+  transition: color 0.15s ease !important;
+}
+.sonarline-footer-nav a:hover {
+  color: #ffffff !important;
+}
+.sonarline-footer-sep {
+  color: rgba(255, 255, 255, 0.22) !important;
+  font-size: 0.62rem !important;
+  user-select: none !important;
+}
+.sonarline-footer-copy {
+  color: rgba(255, 255, 255, 0.28) !important;
+  font-family: 'Space Mono', monospace !important;
+  font-size: 0.6rem !important;
+  letter-spacing: 0.12em !important;
+}
+@media (max-width: 520px) {
+  .sonarline-footer-formrow,
+  .sonarline-footer-formrow form {
+    flex-direction: column !important;
+  }
+  .sonarline-footer.sonarline-footer .sonarline-newsletter-join,
+  .sonarline-footer.sonarline-footer .sonarline-footer-formrow button,
+  .sonarline-footer.sonarline-footer .sonarline-footer-formrow input[type="submit"] {
+    width: 100% !important;
+  }
+  .sonarline-footer-card.sonarline-footer-card {
+    padding: 20px 18px !important;
+  }
+}
+
 

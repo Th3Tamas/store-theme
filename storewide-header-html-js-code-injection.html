@@ -6276,4 +6276,363 @@
     setTimeout(enhanceNativeHero, 1000);
     setTimeout(enhanceNativeHero, 2500);
   })();
+
+  // ==========================================================================
+  // Sonarline Footer: Atrum-style newsletter card + link row + [[newsletter-open]]
+  // Rebuilds the native footer section around Payhip's own newsletter form
+  // (moved, never cloned, so submissions keep working). Idempotent.
+  // ==========================================================================
+  (function() {
+    var OPEN_RE = /\[\[\s*newsletter[\s\-–—]*open\s*:\s*(true|false)\s*\]\]/i;
+    var OPEN_RE_G = /\[\[\s*newsletter[\s\-–—]*open\s*:\s*(true|false)\s*\]\]/gi;
+    var SOCIAL_RE = /instagram|facebook|twitter|x\.com|tiktok|youtube|discord|spotify|soundcloud|bandcamp|powered by|payhip/i;
+
+    function findFooter() {
+      try {
+        return document.querySelector('[data-section-key="footer"], #page-section-footer, footer.site-footer, footer');
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function scrubToken(root) {
+      try {
+        var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null, false);
+        var node, targets = [];
+        while ((node = walker.nextNode())) targets.push(node);
+        for (var i = 0; i < targets.length; i++) {
+          var n = targets[i];
+          if (n.nodeValue && OPEN_RE.test(n.nodeValue)) {
+            n.nodeValue = n.nodeValue.replace(OPEN_RE_G, '').trim();
+          }
+        }
+        var leafs = root.querySelectorAll('a, span, h1, h2, h3, h4, p');
+        for (var l = 0; l < leafs.length; l++) {
+          var el = leafs[l];
+          if (el.children.length === 0 && el.textContent && OPEN_RE.test(el.textContent)) {
+            el.textContent = el.textContent.replace(OPEN_RE_G, '').trim();
+          }
+        }
+      } catch (e) {}
+    }
+
+    function readOpenState(text) {
+      try {
+        var m = String(text || '').match(OPEN_RE);
+        if (m && m[1]) return m[1].toLowerCase() === 'true';
+      } catch (e) {}
+      return null;
+    }
+
+    function isVisible(el) {
+      try {
+        if (!el || !el.isConnected) return false;
+        var cs = window.getComputedStyle(el);
+        return cs.display !== 'none' && cs.visibility !== 'hidden' && el.offsetParent !== null;
+      } catch (e) {
+        return true;
+      }
+    }
+
+    function findNewsletterForm(footer) {
+      try {
+        var forms = footer.querySelectorAll('form');
+        for (var i = 0; i < forms.length; i++) {
+          if (forms[i].querySelector('input[type="email"], input[name*="email" i], input[placeholder*="mail" i]')) return forms[i];
+        }
+        if (forms.length === 1) return forms[0];
+      } catch (e) {}
+      return null;
+    }
+
+    function findEmailControl(scope) {
+      try {
+        return scope.querySelector('input[type="email"], input[name*="email" i], input[placeholder*="mail" i], input[type="text"]');
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function findSubmitControl(scope) {
+      try {
+        var btns = scope.querySelectorAll('button, input[type="submit"], input[type="button"], a');
+        for (var i = 0; i < btns.length; i++) {
+          var b = btns[i];
+          if (b.tagName === 'A' && !/subscribe|join|submit|sign|arrow|→|newsletter/i.test(b.textContent || '')) continue;
+          return b;
+        }
+      } catch (e) {}
+      return null;
+    }
+
+    function collectNavLinks(footer, form) {
+      var out = [];
+      var seen = {};
+      try {
+        var anchors = footer.querySelectorAll('nav a, [class*="menu"] a, [class*="nav"] a, [role="navigation"] a, ul a, footer a, [data-section-key="footer"] a');
+        for (var i = 0; i < anchors.length; i++) {
+          var a = anchors[i];
+          if (form && form.contains(a)) continue;
+          var txt = (a.textContent || '').replace(/\s+/g, ' ').trim();
+          var href = a.getAttribute('href') || '';
+          if (!txt || txt.length < 2) continue;
+          if (/^(#|javascript:)/i.test(href)) continue;
+          if (SOCIAL_RE.test(txt) || SOCIAL_RE.test(href)) continue;
+          var key = (txt + '|' + href).toLowerCase();
+          if (seen[key]) continue;
+          seen[key] = true;
+          out.push({ text: txt, href: a.href || href });
+        }
+      } catch (e) {}
+      return out;
+    }
+
+    function isEmptyBlock(el) {
+      try {
+        if (!el || el === document.body) return false;
+        if (el.querySelector('img, svg, canvas, iframe, video, input, button, form')) return false;
+        return (el.textContent || '').trim() === '';
+      } catch (e) {
+        return false;
+      }
+    }
+
+    function hideIfEmptied(el) {
+      try {
+        var cur = el, depth = 0;
+        while (cur && depth < 3 && isEmptyBlock(cur)) {
+          cur.style.setProperty('display', 'none', 'important');
+          cur = cur.parentElement;
+          depth++;
+        }
+      } catch (e) {}
+    }
+
+    function applyOpenState(box, open) {
+      try {
+        box.setAttribute('data-newsletter-open', open ? 'true' : 'false');
+        var pill = box.querySelector('.sonarline-footer-status');
+        var dot = box.querySelector('.sonarline-footer-dot');
+        var card = box.querySelector('.sonarline-footer-card');
+        var label = pill ? pill.querySelector('.sonarline-footer-status-text') : null;
+        if (label) label.textContent = open ? 'OPEN' : 'CLOSED';
+        if (card) {
+          if (open) card.classList.remove('is-closed');
+          else card.classList.add('is-closed');
+        }
+        var ctrls = box.querySelectorAll('.sonarline-footer-formrow input, .sonarline-footer-formrow button');
+        for (var i = 0; i < ctrls.length; i++) {
+          if (open) ctrls[i].removeAttribute('disabled');
+          else ctrls[i].setAttribute('disabled', 'disabled');
+        }
+        void dot;
+      } catch (e) {}
+    }
+
+    function initSonarlineFooter() {
+      try {
+        var footer = findFooter();
+        if (!footer || !footer.isConnected) return { found: false };
+
+        var rawText = footer.textContent || '';
+        var parsed = readOpenState(rawText);
+
+        var existing = footer.querySelector('.sonarline-footer');
+        if (existing) {
+          scrubToken(footer);
+          var stored = existing.getAttribute('data-newsletter-open');
+          var next = (parsed !== null) ? parsed : (stored === 'false' ? false : true);
+          applyOpenState(existing, next);
+          return { found: true, open: next, rebuilt: false };
+        }
+
+        var open = (parsed !== null) ? parsed : true;
+        scrubToken(footer);
+
+        var box = document.createElement('div');
+        box.className = 'sonarline-footer';
+
+        // Brand mark
+        var brand = document.createElement('div');
+        brand.className = 'sonarline-footer-brand';
+        brand.innerHTML = '<span class="sonarline-footer-mark">SL</span><span class="sonarline-footer-word">SONARLINE</span>';
+        box.appendChild(brand);
+
+        // Newsletter card
+        var card = document.createElement('div');
+        card.className = 'sonarline-footer-card';
+        card.innerHTML =
+          '<div class="sonarline-footer-card-top">' +
+            '<span class="sonarline-footer-title">Get exclusive deals</span>' +
+            '<span class="sonarline-footer-status"><span class="sonarline-footer-dot"></span><span class="sonarline-footer-status-text">OPEN</span></span>' +
+          '</div>' +
+          '<p class="sonarline-footer-sub">early access, discounts &amp; free drops. no spam.</p>' +
+          '<div class="sonarline-footer-formrow"></div>';
+        box.appendChild(card);
+        var formRow = card.querySelector('.sonarline-footer-formrow');
+
+        var form = findNewsletterForm(footer);
+        if (form) {
+          var email = findEmailControl(form);
+          if (email && !email.getAttribute('placeholder')) {
+            try { email.setAttribute('placeholder', 'your@email.com'); } catch (e) {}
+          }
+          var submit = findSubmitControl(form);
+          if (submit) {
+            try {
+              submit.classList.add('sonarline-newsletter-join');
+              if (submit.tagName === 'INPUT') submit.value = 'JOIN';
+              else submit.textContent = 'JOIN';
+            } catch (e) {}
+          } else {
+            try {
+              var join = document.createElement('button');
+              join.type = 'submit';
+              join.className = 'sonarline-newsletter-join';
+              join.textContent = 'JOIN';
+              form.appendChild(join);
+            } catch (e) {}
+          }
+          var formParent = form.parentElement;
+          formRow.appendChild(form);
+          if (formParent) hideIfEmptied(formParent);
+        } else {
+          try {
+            var ghostEmail = document.createElement('input');
+            ghostEmail.type = 'email';
+            ghostEmail.setAttribute('placeholder', 'your@email.com');
+            ghostEmail.setAttribute('disabled', 'disabled');
+            var ghostBtn = document.createElement('button');
+            ghostBtn.type = 'button';
+            ghostBtn.className = 'sonarline-newsletter-join';
+            ghostBtn.textContent = 'JOIN';
+            ghostBtn.setAttribute('disabled', 'disabled');
+            formRow.appendChild(ghostEmail);
+            formRow.appendChild(ghostBtn);
+          } catch (e) {}
+        }
+
+        // Nav row (cloned anchors; originals hidden to avoid duplication)
+        var links = collectNavLinks(footer, form);
+        if (links.length) {
+          var nav = document.createElement('nav');
+          nav.className = 'sonarline-footer-nav';
+          nav.setAttribute('aria-label', 'Footer');
+          for (var li = 0; li < links.length; li++) {
+            if (li > 0) {
+              var sep = document.createElement('span');
+              sep.className = 'sonarline-footer-sep';
+              sep.textContent = '\u00b7';
+              nav.appendChild(sep);
+            }
+            var na = document.createElement('a');
+            na.href = links[li].href;
+            na.textContent = links[li].text;
+            nav.appendChild(na);
+          }
+          box.appendChild(nav);
+          try {
+            var harvested = footer.querySelectorAll('nav, ul, [role="navigation"], [class*="menu"]');
+            for (var hi = 0; hi < harvested.length; hi++) {
+              var hc = harvested[hi];
+              if (box.contains(hc)) continue;
+              if (form && form.contains(hc)) continue;
+              if (hc.querySelector('a[href]')) hc.style.setProperty('display', 'none', 'important');
+            }
+          } catch (e) {}
+        }
+
+        // Copyright: move native node if present, else generate.
+        var copy = null;
+        try {
+          var copyCands = footer.querySelectorAll('[class*="copyright"], [class*="copy"], .copyright, small, [class*="rights"]');
+          for (var ci = 0; ci < copyCands.length; ci++) {
+            if (box.contains(copyCands[ci])) continue;
+            if (/©|copyright|all rights/i.test(copyCands[ci].textContent || '')) { copy = copyCands[ci]; break; }
+          }
+          if (!copy) {
+            var walker = document.createTreeWalker(footer, NodeFilter.SHOW_TEXT, null, false);
+            var tn;
+            while ((tn = walker.nextNode())) {
+              if (box.contains(tn.parentElement)) continue;
+              if (/©|all rights/i.test(tn.nodeValue || '')) { copy = tn.parentElement; break; }
+            }
+          }
+        } catch (e) {}
+        var copyEl = document.createElement('div');
+        copyEl.className = 'sonarline-footer-copy';
+        if (copy) {
+          copyEl.textContent = (copy.textContent || '').replace(/\s+/g, ' ').trim();
+          try {
+            if (copy.parentElement) hideIfEmptied(copy.parentElement);
+            if (copy.parentNode) copy.parentNode.removeChild(copy);
+          } catch (e) {}
+        } else {
+          copyEl.textContent = '\u00a9 ' + new Date().getFullYear() + ' SONARLINE';
+        }
+        box.appendChild(copyEl);
+
+        // Hide leftover newsletter-ish headings/text the token lived in.
+        try {
+          var heads = footer.querySelectorAll('h1, h2, h3, h4, .heading-text, [class*="title"], [class*="heading"]');
+          for (var hh = 0; hh < heads.length; hh++) {
+            if (box.contains(heads[hh])) continue;
+            if (/exclusive|newsletter|subscribe|stay in|get.*deals/i.test(heads[hh].textContent || '')) {
+              heads[hh].style.setProperty('display', 'none', 'important');
+            }
+          }
+          var paras = footer.querySelectorAll('p');
+          for (var pp = 0; pp < paras.length; pp++) {
+            if (box.contains(paras[pp])) continue;
+            if (/exclusive deals|newsletter/i.test(paras[pp].textContent || '')) {
+              paras[pp].style.setProperty('display', 'none', 'important');
+            }
+          }
+        } catch (e) {}
+
+        footer.insertBefore(box, footer.firstChild);
+        applyOpenState(box, open);
+        return { found: true, open: open, rebuilt: true, links: links.length, form: !!form };
+      } catch (e) {
+        return { found: false, error: String(e) };
+      }
+    }
+
+    window.slFooterDebug = function() {
+      try {
+        var footer = findFooter();
+        if (!footer) return { found: false };
+        var box = footer.querySelector('.sonarline-footer');
+        return {
+          found: true,
+          built: !!box,
+          open: box ? box.getAttribute('data-newsletter-open') : null,
+          tokenPresent: OPEN_RE.test(footer.textContent || ''),
+          links: box ? box.querySelectorAll('.sonarline-footer-nav a').length : 0,
+          form: !!(box && box.querySelector('.sonarline-footer-formrow form'))
+        };
+      } catch (e) {
+        return { found: false, error: String(e) };
+      }
+    };
+    window.slFooterRebuild = function() {
+      try {
+        var footer = findFooter();
+        var old = footer ? footer.querySelector('.sonarline-footer') : null;
+        if (old && old.parentNode) old.parentNode.removeChild(old);
+        return initSonarlineFooter();
+      } catch (e) {
+        return { found: false, error: String(e) };
+      }
+    };
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initSonarlineFooter);
+    } else {
+      initSonarlineFooter();
+    }
+    setTimeout(initSonarlineFooter, 800);
+    setTimeout(initSonarlineFooter, 2000);
+    setTimeout(initSonarlineFooter, 4500);
+  })();
 </script>

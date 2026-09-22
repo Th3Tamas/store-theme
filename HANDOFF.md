@@ -1,224 +1,203 @@
-# SONARLINE STORE THEME — SYSTEM HANDOFF & RESUMPTION SPECIFICATION (`HANDOFF.md`)
+# OpenCode Emergency Handoff Checkpoint (`HANDOFF.md`)
 
-> **Checkpoint Date:** 2026-09-20  
-> **Repository:** `Th3Tamas/store-theme`  
-> **Production URL:** [https://sonarlineaudio.space](https://sonarlineaudio.space)  
-> **Target Audience:** Incoming Autonomous Coding Agent (OpenCode / Claude Code / Aider) or Lead Systems Engineer
-
----
-
-## 1. Executive Project Brief & Tech Stack
-
-### 1.1 Overview & Domain Context
-- **Platform:** Payhip storefront running on the **Tusk theme** baseline.
-- **Production Storefront URL:** `https://sonarlineaudio.space`
-- **GitHub Repository:** `Th3Tamas/store-theme` (default branch: `main`).
-- **Nature of Project:** Extreme customization of Payhip's closed-source, hosted SaaS CMS via client-side CSS/JS injection and template embeds to transform a stock store into an avant-garde, brutalist sound design archive.
-- **Visual & Design DNA:**
-  - Heavily inspired by **Atrum Lab** (`atrumlab.com`), Teenage Engineering, and brutalist aerospace telemetry.
-  - **Color Palette:** Pure obsidian dark backgrounds (`#080808`, `#0d0d0d`, `#111111`, `#161616`), razor-sharp 1px hairline wireframe borders (`rgba(255, 255, 255, 0.12)` or `rgba(255, 255, 255, 0.18)`), with electric **International Orange** (`#ff5500` / `#ff4400`) and **Crimson Red** (`#FF2A2A` / `#FF3B30`) accents.
-  - **Typography:**
-    - `Space Grotesk` (Google Fonts): Primary display typography, hero headlines, modal headers, uppercase accents.
-    - `Space Mono` (Google Fonts): Technical readouts, terminal syntax, prices, timecodes, ticker items.
-    - `Inter` (Google Fonts): Body descriptions, legal copy, UI secondary labels.
-  - **Zero-Glow Mandate:** The user strictly prohibits text-shadow glows, fuzzy drop-shadows, or neon halos on typography and dividers. All elements must render crisp, solid, and hairline.
-
-### 1.2 Asset Delivery & CDN Architecture
-- Payhip does not allow direct theme file uploads or server-side templating (Liquid/Blade). All overrides operate through Payhip's **Storewide Header / Footer HTML Injection** settings.
-- CSS is imported in Payhip via `@import url("https://cdn.jsdelivr.net/gh/Th3Tamas/store-theme@main/storewide-store-pages-custom.css");` or injected via `<link>` tags.
-- JavaScript and dynamic DOM modifications are executed via `storewide-header-html-js-code-injection.html`.
-- **CDN Edge Caching:**
-  - jsDelivr caches files aggressively. Any push to `main` **must** be followed by a cache purge request:
-    ```powershell
-    curl.exe -s "https://purge.jsdelivr.net/gh/Th3Tamas/store-theme@main/storewide-store-pages-custom.css"
-    curl.exe -s "https://purge.jsdelivr.net/gh/Th3Tamas/store-theme@main/storewide-header-html-js-code-injection.html"
-    ```
-  - Note: jsDelivr enforces rate-limiting/throttling headers (~800ms reset). Always verify JSON response: `{"status": "finished"}`.
-  - In addition, the header injection loader uses dynamic cache-busting `?v=` + `Date.now()` when pulling remote raw fragments.
+**Date:** 2026-09-21  
+**Repository:** `Th3Tamas/store-theme` on branch `main`  
+**Target Store:** `https://sonarlineaudio.space` (Payhip: `https://payhip.com/sonarlineaudio`)  
+**Baseline Theme:** Payhip "Tusk" Theme Engine  
+**Aesthetic Reference:** Atrum Lab brutalist wireframe system (`#0d0d0d` / `#0a0a0a` / `#121212` backgrounds, 1px borders `rgba(255, 255, 255, 0.08)`, `Space Mono` / `Space Grotesk` / `Inter`, crimson red `#FF3B30` / `#FF2A2A` accents).
 
 ---
 
-## 2. File Structure & Architectural Roles
+## 1. Executive Summary & Tech Stack
+
+- **Platform:** Payhip Custom Theme Injection. Payhip enforces a server-side template structure (Tusk theme) with rigid DOM wrappers (`.section-collection`, `.collection-products`, `.grid-list`, `.card-wrapper`).
+- **Delivery Pipeline:**
+  - Files are maintained in git repository `Th3Tamas/store-theme`.
+  - Injected into Payhip store via jsDelivr CDN URLs:
+    - CSS: `https://cdn.jsdelivr.net/gh/Th3Tamas/store-theme@main/storewide-store-pages-custom.css`
+    - JS/HTML Header Injection: `https://cdn.jsdelivr.net/gh/Th3Tamas/store-theme@main/storewide-header-html-js-code-injection.html`
+  - Any commit to `main` must immediately be followed by a CDN cache purge via jsDelivr API.
+- **Visual Design Spec:**
+  - Dark brutalist wireframe panels (`#0f0f0f` card backgrounds, `1px solid rgba(255, 255, 255, 0.08)` borders, `8px` border radius).
+  - Continuous infinite auto-looping marquee rail drifting right-to-left via hardware-accelerated CSS keyframes (`@keyframes sonarlineInfiniteRail { 0% { transform: translate3d(0, 0, 0); } 100% { transform: translate3d(-50%, 0, 0); } }`).
+  - Zero chevrons (`<` and `>` buttons permanently deleted from DOM and CSS).
+  - Hover pause: marquee drift halts immediately on hover over any card or the track.
+  - Zero sideways wheel scroll: vertical mouse wheel scrolling over cards scrolls the page vertically, never horizontally.
+  - Product price tag: naked white Space Mono text (`font-size: 0.88rem`, `font-weight: 700`) pinned strictly to the bottom-right corner of each card with ZERO concentric background ripple or drop shadow.
+  - Single glowing red dot + crimson title (`MOST POPULAR`) in section header strip (`#121212`) above the full-width `#0a0a0a` collection body.
+  - Dynamic highlight shortcode (`[[highlighted: true]]`): applies an electric crimson border (`1px solid #FF3B30 !important; box-shadow: 0 0 12px rgba(255, 59, 48, 0.3) !important;`) that strictly persists across Set 1 and Set 2 clone sets during infinite looping.
+
+---
+
+## 2. File Structure Map
 
 ```
-.
-├── storewide-store-pages-custom.css           # Primary CSS stylesheet overrides (~2500 lines)
-├── storewide-header-html-js-code-injection.html # Master runtime injection: DOM parser, HUD, audio, cursor (~3360 lines)
-├── storewide-footer-html-js-code-injection.html # Footer injection slot (currently empty placeholder)
-├── all-custom-pages-embed.html                # Legacy embed container (collapses safely to 0px)
-├── FEATURES.md                                # Master roadmap, feature status tracker & changelog
-└── HANDOFF.md                                 # This operational resumption document
+store-theme/
+├── storewide-store-pages-custom.css        # Global CSS injected into Payhip's Custom CSS field
+├── storewide-header-html-js-code-injection.html # Main runtime engine injected into Payhip Header Code
+├── storewide-footer-html-js-code-injection.html # Secondary footer script injection
+├── all-collection-pages-embed.html         # Page-specific embed template
+├── all-custom-pages-embed.html             # Custom page embed template
+├── all-product-pages-embed.html            # Product page embed template
+├── FEATURES.md                             # Master feature tracker & changelog (Releases 1–17)
+└── HANDOFF.md                              # This file (OpenCode handoff reference)
 ```
 
-### Detailed File Roles:
-1. **`storewide-store-pages-custom.css`:**
-   - Defines CSS custom properties (`--sonarline-*`), typography imports, dark mode color overrides, CSS grid restructuring.
-   - Enforces brutalist card styling, 1:1 square media ratio, two-tier card metadata rows, flush-right pricing.
-   - Contains high-specificity ("cascade winner") rules to override Payhip's native inline styles and `editorv2-shop-core.bundle.js` styles.
-   - Manages ticker layout, wireframe border treatments, and modal structure.
+### File Responsibilities
 
-2. **`storewide-header-html-js-code-injection.html`:**
-   - **`injectImmediateStyles()`:** Injects critical `<style>` rules synchronously into `<head>` before DOM ready to prevent Flash of Unstyled Content (FOUC).
-   - **HUD Boot Preloader Engine:** Manages the CRT scanline overlay, typing simulation, brand title formatting, dynamic incrementing progress bar, and safe unmount.
-   - **CMS Shortcode Parser:** Intercepts Payhip WYSIWYG text across the page, parses custom tokens (`[[tag:...]]`, `[[audio:...]]`, `{{terminal:...}}`, etc.), converts them into DOM elements, and scrubs raw token text from the viewport.
-   - **Product Card Re-architect:** Rebuilds Payhip's default collection cards into two-tier wireframe cards with circular `!` modal triggers.
-   - **Audio Preview Engine & Modal:** HTML5 audio runtime playing Backblaze B2 streaming audio with timeline scrubber, play/pause state, timecode readout, and volume control.
-   - **Kinetic Custom Cursor:** Smooth lerp physics cursor with `mix-blend-mode: difference`, orange tracking dot, and hover scaling.
-   - **Header Offset Engine (`syncHeaderOffset` / `initHeaderOffsetEngine`):** Measures Payhip's dynamic fixed/collapsing header and synchronizes CSS variables (`--sonarline-header-height`).
+1. **`storewide-store-pages-custom.css`**:
+   - Primary stylesheet injected into Payhip Custom CSS.
+   - Handles full-width section breakout (`100vw`, `left: 50%`, `margin-left: -50vw`).
+   - Two-tone gray background palette (`#0a0a0a` body, `#121212` header strip).
+   - High-specificity container overrides for `.sl-carousel-viewport`, `.sl-carousel-track`, `.card-wrapper`, and `.product-card`.
+   - Card dimension locks (`flex: 0 0 280px !important; width: 280px !important;`).
+   - Price tag clean resets (`background: transparent !important; box-shadow: none !important; -moz-box-shadow: none !important;`).
+   - Mobile media queries (`@media (max-width: 768px)`, `@media (max-width: 640px)`, `@media (max-width: 480px)`).
 
-3. **`storewide-footer-html-js-code-injection.html`:**
-   - Empty placeholder (`<!-- footer empty -->`). Reserved for deferred third-party scripts or closing tags if needed.
+2. **`storewide-header-html-js-code-injection.html`**:
+   - Main JavaScript and immediate critical style injection engine.
+   - `CAROUSEL_CSS` constant: mirrors critical carousel rules so they apply before external stylesheets finish downloading.
+   - `injectImmediateStyles()`: runtime style block injected at `document_start`.
+   - `buildCarousel(grid)`:
+     - Discovers collection cards and filters top-level cards.
+     - Unwraps intermediate `.grid-list` or row wrappers so cards are direct children of `.sl-carousel-track`.
+     - Shortcode parsing: evaluates `[[highlighted: true]]` and `[[tag: ...]]` on cards BEFORE cloning.
+     - Dual-track cloning: duplicates cards if `< 6`, then mirrors Set 1 into Set 2 (`data-sl-clone="true"`).
+     - Cloned cards strictly inherit `.sonarline-card--highlighted`, `data-highlighted="true"`, and `data-sl-highlighted="true"`.
+     - Injects section header: dynamic title (`MOST POPULAR`) with single glowing red dot and unique product counter (`originalCards.length + ' PRODUCTS'`).
+     - Manual drag scrub with seamless linear drift resumption (calculates normalized offset ratio and sets `animation-delay`).
+     - Hover pause listeners (`mouseover`/`mouseout`, `mouseenter`/`mouseleave`) toggling `.is-hovered`.
+   - `cleanProductCards()`: runs two-row metadata builder (`.sonarline-card-metadata`, `.sonarline-card-row-top`, `.sonarline-card-row-bottom`), parses tags and audio, and strips tokens from visible DOM.
+   - `sonarlineExtractTags(raw)`: multi-tag extractor supporting multiple delimiters (commas, semicolons, pipes, bullets, newlines, `//`), preserving `/` in compound tags (e.g. `BUNDLE / KITS`), and stripping HTML formatting.
+   - `sonarlineSyncCardShortcodes()`: background fetcher parsing shortcodes from `/b/...` and `/p/...` product pages and caching in `sessionStorage`.
+   - `sonarlineInjectProductPageTags()`: sitewide tag injection on product detail pages.
 
-4. **`all-custom-pages-embed.html`:**
-   - Legacy embed script that explicitly zeroes out and collapses any section wrappers associated with embed-code sections (`display: none !important; height: 0px !important;`).
+3. **`storewide-footer-html-js-code-injection.html`**:
+   - Secondary deferred script injection; currently houses minimal auxiliary hooks.
 
-5. **`FEATURES.md`:**
-   - Central engineering log tracking completed features (`[x]`), in-progress items (`[/]`), active defects (`[!]`), and future roadmap specs (`[ ]`).
-
----
-
-## 3. Current Live State vs. Broken Regressions
-
-### 3.1 Custom Kinetic Cursor
-- **State:** `[x]` Fully implemented and functional.
-- **Behavior:** Features a centered orange dot (`#ff5500`) and a larger outer trailing circle with smooth linear interpolation (lerp). Uses `mix-blend-mode: difference` so it inverts dynamically over light/dark surfaces.
-- **Hover States:** Automatically expands on interactive targets: `a`, `button`, `input`, `.sonarline-card-info-badge`, and modal triggers.
-- **Fixed Regression:** The cursor was previously stuck on `cursor: crosshair` when hovering over `#sonarline-glitch-title` ("SONARLINE"). This was removed and verified.
-
-### 3.2 CMS Shortcode Engine
-The parser runs during DOM hydration and intercepts the following custom syntax:
-- `[[preloader: <lines>]]`: Multi-line text for the preloader HUD. Prepends `>` prompt and formats `[OK]` status markers with dot leaders (`......... [OK]`).
-- `[[loader-title: FIRST / SECOND]]`: Splits brand title around `/`. `FIRST` is rendered in uppercase white `Space Grotesk`, while the slash (`/`) and `SECOND` are rendered in solid crimson red (`#FF2A2A`).
-- `[[loader-secondary: TEXT]]`: Monospace subtext below title with wide letter-spacing (`0.25em`).
-- `{{terminal: ...}}` or `{{TERMINAL: ...}}`: Renders technical terminal blocks with syntax coloring (green host, cyan command, orange flags).
-- `[[tag: CATEGORY]]`: Extracts category pills (e.g., `DRUM KIT`) for the bottom row of product cards.
-- `[[audio: URL]]`: Extracts Backblaze B2 streaming MP3/WAV URLs and binds them to the card's `!` info badge preview modal.
-- **Regression to Watch:** Shortcodes placed inside product descriptions on individual product pages (`/b/...`, `/p/...`) are currently not scraped into the homepage collection cards unless an asynchronous fetcher is active (see Section 5).
-
-### 3.3 Product Cards
-- **State:** `[x]` Two-tier wireframe layout matching reference specs.
-- **Top Row:** Uppercase product title on the left; circular wireframe info badge (`!`) on the right.
-- **Bottom Row:** Category tag pill on the left (e.g., `DRUM KIT`); price tag flush-right in clean monospace font.
-- **Conditional Visibility:** Tag pill is strictly hidden (`display: none !important`) if no explicit `[[tag: ...]]` token exists. Arbitrary fallback tags (e.g., default `SOUND LAB`) have been completely eradicated.
-
-### 3.4 Preloader & HUD Terminal
-- **State:** `[x]` Active with fail-safe timer.
-- **Homepage Gating:** Executes strictly on the homepage (`/` or `window.location.pathname === '/'`). Suppressed on `/b/...`, `/p/...`, and checkout paths.
-- **Counter:** Dynamic pseudo-random incrementing progress bar (`current += Math.floor(Math.random() * 20) + 10`) holding for 200ms at 100% before smooth fade-out.
-- **Failsafe:** Wrapped in strict `try...catch` with a 2.5-second hard timeout (`setTimeout`) that force-dismisses `#sonarline-preloader` (`display: none !important;`) and restores `document.body.style.overflow = ''` if any error occurs.
-
-### 3.5 Ticker Status: Fixed vs. Sticky vs. Static Flow (CRITICAL)
-- **Background Context:**
-  - Release 2: Ticker was obscured behind Payhip's fixed navbar.
-  - Release 4: Ticker was made `position: sticky` with dynamic offset calculations tracking `header.getBoundingClientRect().bottom`.
-  - **User Reversal (Current Request):** The user explicitly rejected `position: sticky` and `position: fixed`. They demanded that the ticker sit in **normal document flow** (`position: relative !important; top: auto !important;`) so that it sits right below the header on load and **scrolls away naturally with the page**.
-- **Current File State:**
-  - `storewide-store-pages-custom.css`: Ticker rules have been updated to `position: relative !important; top: auto !important; left: auto !important; transform: none !important; z-index: 10 !important; width: 100% !important;`.
-  - `storewide-header-html-js-code-injection.html`: Check `syncHeaderOffset()` and `injectImmediateStyles()` — ensure that runtime JavaScript is NOT dynamically injecting `position: sticky` or `position: fixed` back onto the ticker elements during scroll/resize events!
-
-### 3.6 Desktop Custom Drag-Selection Box (`#sl-selection-box`)
-- **State:** `[/]` PENDING IMPLEMENTATION.
-- **Spec:** A brutalist wireframe rectangle appearing when a desktop user clicks and drags across the page background:
-  - Element `#sl-selection-box` with `position: fixed; pointer-events: none; z-index: 2147483640; display: none;`.
-  - Border: `1px solid rgba(255, 255, 255, 0.45);`.
-  - Inversion Blend: `mix-blend-mode: difference; background: rgba(255, 255, 255, 1);`.
-  - Suppress native browser text selection during active drag (`::selection { background: transparent; }`).
-  - Ignore clicks on interactive elements (`a`, `button`, `input`, `.sonarline-card-info-badge`, product cards).
-  - Touch guard: desktop only (`@media (pointer: fine)`).
+4. **`FEATURES.md`**:
+   - Master changelog through Release 17.
 
 ---
 
-## 4. Critical Payhip Theme Quirks & DOM Selectors
+## 3. Current Status, Regressions Addressed & Active Verification
 
-### 4.1 Payhip DOM Structure & Protected Selectors
-Payhip uses an automated builder framework that will crash or wipe the page if key containers are removed from the DOM:
-- **`header#header`, `.site-header`:** Payhip's native navbar. Contains data attributes like `data-section-setting-fixed-position="yes"` and `data-section-setting-fixed-style="scrollBack"`. When the user scrolls down, Payhip adds `.shrink` or transforms the header off-screen.
-- **`.content-main-wrapper` (or `main.main-content`, `#page-wrap`):** The master content wrapper.
-  - **CRITICAL:** Do NOT remove this container.
-  - **Padding Top:** Must have `padding-top: var(--sonarline-header-height, 132px) !important;` so top content (hero / ticker) is not buried beneath the fixed header on page load.
-- **`[data-section-key="ticker"]`, `#content-section-QW9Kn45mB6`:** The native marquee ticker section.
-- **`#content-section-ZGXLnKKrGq`, `[data-section-key="text-simple"]`:** The CMS section used by admins to store preloader setup text. Must be hidden from display (`display: none !important; height: 0;`) while allowing JS to read its text content.
-- **`.card-wrapper`, `.product-card`, `.grid__item`:** Product collection card wrappers.
-- **`.product-description`:** Rich text area on `/b/...` and `/p/...` pages.
+### A. Firefox Multi-Row Grid Collapse on Collection Rail
+- **Status:** Addressed in Release 16 / Release 17; needs live visual verification in Firefox Gecko.
+- **The Defect:** Payhip's native theme styles (`.collection-products`, `.grid`, `.theme-tusk` grid classes) apply `display: grid` with multiple columns or `flex-wrap: wrap`, causing cards in Firefox to break into a 4-column multi-row grid instead of a single infinite horizontal row.
+- **The Solution Implemented:**
+  1. High-specificity card selectors in CSS lines 1016–1046 (`#page-section-collection .card-wrapper`, `div.card-wrapper.product-card-wrapper`, etc.) were scoped with `:not(.sl-carousel-track *):not([data-sl-rail="done"] *)`, preventing `width: 100% !important` and `flex: 1 1 auto !important` leaks into the carousel.
+  2. In `buildCarousel()`, an unwrapping loop lifts any card wrapped inside an intermediate container up to be a direct child of `.sl-carousel-track`.
+  3. Added `flex-shrink: 0 !important;` to `.sl-carousel-track`.
+  4. Direct inline styles on each card: `card.style.setProperty('flex', '0 0 280px', 'important'); card.style.setProperty('width', '280px', 'important');`.
+- **OpenCode Action Item:** Open `https://sonarlineaudio.space` in desktop Firefox and verify that all cards sit on a single continuous horizontal line with 0 row wrapping.
 
-### 4.2 The `overflow-x: hidden` vs `clip` Hazard
-- Payhip's native `editorv2-shop-core.bundle.js` applies `overflow-x: hidden` inline to `html` and `body`.
-- `overflow-x: hidden` creates a new scroll container and breaks `position: sticky` on all child elements.
-- When sticky behavior is needed, use `overflow-x: clip !important; overflow-y: visible !important;`.
-- When in static/relative flow, `overflow-x: clip` or `overflow-x: hidden` are both safe for preventing horizontal bounce.
-
-### 4.3 Anti-FOUC (Flash of Unstyled Content) Requirements
-- Payhip loads external scripts asynchronously. If styles are only injected via DOM-ready callbacks, the stock theme flashes for 200–500ms.
-- Always inject critical layout overrides synchronously in `injectImmediateStyles()` inside the `<head>`.
-
-### 4.4 CDN Purge Procedure
-After any commit to `main`, execute:
-```bash
-curl.exe -s "https://purge.jsdelivr.net/gh/Th3Tamas/store-theme@main/storewide-store-pages-custom.css"
-curl.exe -s "https://purge.jsdelivr.net/gh/Th3Tamas/store-theme@main/storewide-header-html-js-code-injection.html"
-```
-
----
-
-## 5. Next Immediate Tasks on the Queue
-
-### Task 1: Complete Ticker Static Flow Unpin in JS
-- **Problem:** While `storewide-store-pages-custom.css` has `position: relative !important; top: auto !important;`, `storewide-header-html-js-code-injection.html` still has logic in `syncHeaderOffset()` that programmatically sets `ticker.style.setProperty('position', 'sticky', 'important')` and `ticker.style.setProperty('top', visibleBottom + 'px', 'important')`.
-- **Action Required:**
-  1. In `storewide-header-html-js-code-injection.html`, remove the ticker style assignment inside `syncHeaderOffset()` or change it to:
-     ```javascript
-     tickers[t].style.setProperty('position', 'relative', 'important');
-     tickers[t].style.setProperty('top', 'auto', 'important');
-     tickers[t].style.setProperty('left', 'auto', 'important');
-     tickers[t].style.setProperty('transform', 'none', 'important');
-     tickers[t].style.setProperty('width', '100%', 'important');
-     tickers[t].style.setProperty('z-index', '10', 'important');
-     tickers[t].style.removeProperty('transition');
-     ```
-  2. Also check `injectImmediateStyles()` in the same file to ensure no `position: sticky` or `position: fixed` rules are injected into `<head>`.
-
-### Task 2: Implement Desktop Custom Drag-Selection Box (`#sl-selection-box`)
-- **Action Required:**
-  1. Add CSS in `storewide-store-pages-custom.css`:
+### B. Firefox Nested Price-Tag Opacity Ripple (`FROM €29.99`)
+- **Status:** Addressed in Release 17.
+- **The Defect:** In Firefox, child price elements (`.price`, `.price-item`, `.sonarline-card-price-wrap`) had multiple compounding background fills, borders, and shadows that created a concentric contour map effect. Furthermore, the price tag was floating or left-aligned.
+- **The Solution Implemented:**
+  1. All nested price elements (`.sonarline-card-price-wrap *`, `.sonarline-card-row-bottom .price`, `.sonarline-card-row-bottom [class*="price"]`) have `background: transparent !important; box-shadow: none !important; -moz-box-shadow: none !important; border: none !important; filter: none !important;`.
+  2. Price container pinned to bottom right:
      ```css
-     #sl-selection-box {
-       position: fixed;
-       pointer-events: none;
-       z-index: 2147483640;
-       display: none;
-       border: 1px solid rgba(255, 255, 255, 0.45);
-       background: rgba(255, 255, 255, 1);
-       mix-blend-mode: difference;
-     }
-     body.sl-selecting,
-     body.sl-selecting * {
-       user-select: none !important;
-       -webkit-user-select: none !important;
-     }
-     body.sl-selecting ::selection {
-       background: transparent !important;
+     .sonarline-card-price-wrap {
+       margin-top: auto !important;
+       margin-left: auto !important;
+       text-align: right !important;
+       align-self: flex-end !important;
+       display: inline-flex !important;
+       align-items: flex-end !important;
+       justify-content: flex-end !important;
+       color: #ffffff !important;
+       font-family: 'Space Mono', monospace !important;
+       font-size: 0.88rem !important;
+       font-weight: 700 !important;
+       letter-spacing: 0.05em !important;
      }
      ```
-  2. Add JS module in `storewide-header-html-js-code-injection.html`:
-     - Create `#sl-selection-box` element and append to `document.body`.
-     - Gate to `@media (pointer: fine)` (ignore mobile touch).
-     - On `mousedown`: Ignore if click target is `a`, `button`, `input`, `textarea`, `.sonarline-card-info-badge`, or inside `.card-wrapper`. Record `startX`, `startY`. Add `body.sl-selecting`.
-     - On `mousemove`: If active, compute `left = Math.min(x, startX)`, `top = Math.min(y, startY)`, `width = Math.abs(x - startX)`, `height = Math.abs(y - startY)`. If `width > 3 || height > 3`, set `display: block`.
-     - On `mouseup`: Set `display: none`, remove `body.sl-selecting`, reset state.
+  3. Leftover duplicate price elements outside `sonarline-card-metadata` are cleaned up.
+- **OpenCode Action Item:** Confirm in Firefox that the price tag renders as naked white Space Mono text at the bottom-right of the card with zero contour ripple.
 
-### Task 3: Homepage Cards Shortcode Fetching (Roadmap Issue 2)
-- On homepage collection cards, fetch each card's product URL (`/b/...`, `/p/...`) in the background.
-- Parse `[[tag: ...]]` and `[[audio: ...]]` from the response HTML.
-- Cache in `sessionStorage` (`sonarline_prod_<url>`).
-- Render category tag pill and bind the audio URL to the preview modal.
+### C. `[[highlighted: true]]` Detection & Preservation on Clones
+- **Status:** Addressed in Release 16 / Release 17.
+- **The Defect:** Highlight was dropping on cloned cards during the loop, failing on Firefox, or getting wiped out on hover.
+- **The Solution Implemented:**
+  1. Card iteration uses non-singleton `.forEach()` (no early return/break).
+  2. Regex matches both `.textContent` and `.innerHTML` with `/\[\[highlighted:\s*true\s*\]\]/i` (supports optional trailing whitespace before `]]`).
+  3. Shortcode is evaluated and `.sonarline-card--highlighted` is added BEFORE cloning.
+  4. When cards are cloned into Set 2, classes and data attributes (`data-highlighted="true"`, `data-sl-highlighted="true"`) are explicitly copied.
+  5. Hover specificity override: `.card-wrapper.sonarline-card--highlighted:hover { border-color: #FF3B30 !important; }`.
+- **OpenCode Action Item:** Confirm that cards tagged with `[[highlighted: true]]` (`SILVER` and `STAY BACK`) retain their `#FF3B30` red border continuously as the rail loops.
+
+### D. Sitewide Multiple Tag System
+- **Status:** Implemented in Release 17.
+- **The Defect:** Previously only 1 tag showed, and only on collection cards.
+- **The Solution Implemented:**
+  1. `sonarlineExtractTags()` extracts multiple tags separated by commas, semicolons, pipes, bullets, newlines, or `//`.
+  2. Supports `[[tag: A, B]]`, `[[tags: A, B]]`, `[tag: A, B]`, and multiple separate tokens `[[tag: A]] [[tag: B]]`.
+  3. Renders `.sonarline-card-tags-wrap` with multiple `.sonarline-card-tag-pill` badges on cards.
+  4. Injects `.sonarline-product-tags-wrap` with `.sonarline-product-tag-pill` elements on product detail pages (`/b/...`, `/p/...`, `/product/...`, `/item/...`).
+  5. Injects `.sonarline-modal-tags-wrap` inside the product preview modal.
+- **OpenCode Action Item:** Test assigning `[[tag: DRUM KIT, ONE-SHOT]]` or `[[tag: DRUM KIT]] [[tag: ONE-SHOT]]` to a product and verify that two distinct pills appear on both the card and the product detail page.
 
 ---
 
-## 6. Verification & Testing Checklist
-- [ ] Run `git status` and verify clean working tree.
-- [ ] Push to `main` and execute jsDelivr cache purges.
-- [ ] Open Chrome CDP or desktop browser:
-  - Load `https://sonarlineaudio.space`.
-  - Scroll down 500px: Ticker must scroll away naturally with the page, NOT remain pinned to viewport.
-  - Drag mouse across background: Verify sharp white/gray wireframe box inverts background content via `mix-blend-mode: difference`.
-  - Click on product card `!` info badge: Verify modal opens with audio player and accurate metadata.
+## 4. Critical DOM Rules & Selectors (DO NOT REMOVE)
+
+The following selectors and elements are structurally required by the theme and must **never** be deleted or wiped:
+
+1. **Root Flow Containers:**
+   - `.content-main-wrapper`, `#page-wrap`: Payhip's main document wrappers. Must retain `overflow-x: clip !important; overflow-y: visible !important;` and dynamic `padding-top: var(--sonarline-header-height)`.
+2. **Fixed Navbar:**
+   - `header#header`: Native Payhip navigation bar. Must remain `z-index: 50 !important; position: fixed !important; top: 0 !important;`.
+3. **Hero Section:**
+   - `.section-hero`, `[data-section-type="hero"]`, `#content-section-LBNmnP42zK`: Contains the procedural blueprint grid canvas and centered headline. Mountain image must remain suppressed (`display: none !important;`).
+4. **Collection Section & Carousel Elements:**
+   - `#page-section-collection`, `[data-section-key="collection"]`: Must keep `100vw` breakout styling.
+   - `.sl-carousel-viewport`: The masking container with edge fade gradients. Must keep `overflow: hidden !important; width: 100% !important;`.
+   - `.sl-carousel-track`: The animated marquee track. Must keep `display: flex !important; flex-wrap: nowrap !important; width: max-content !important; flex-shrink: 0 !important; animation: sonarlineInfiniteRail 35s linear infinite !important;`.
+   - `.card-wrapper`, `.product-card`: Must retain `flex: 0 0 280px !important; width: 280px !important; min-width: 280px !important; max-width: 280px !important;`.
+5. **Card Metadata Hierarchy:**
+   - `.sonarline-card-metadata`: Two-row flex column container.
+   - `.sonarline-card-row-top`: Upper row holding title (`h2`, `h3`, `.product-title`).
+   - `.sonarline-card-row-bottom`: Lower row holding `.sonarline-card-tags-wrap` (left) and `.sonarline-card-price-wrap` (right).
+
+---
+
+## 5. Deployment Protocol & CDN Purge
+
+When making any changes:
+
+1. **Commit Convention:**
+   ```bash
+   git add <modified-files>
+   git commit -m "fix(scope): clear description of change"
+   git push origin main
+   ```
+
+2. **Purge jsDelivr CDN Caches (MANDATORY):**
+   Execute these exact curl commands in terminal to ensure live visitors receive updated assets immediately:
+   ```bash
+   curl.exe -s "https://purge.jsdelivr.net/gh/Th3Tamas/store-theme@main/storewide-store-pages-custom.css"
+   curl.exe -s "https://purge.jsdelivr.net/gh/Th3Tamas/store-theme@main/storewide-header-html-js-code-injection.html"
+   ```
+   Both endpoints will return `{"status": "finished"}` on success.
+
+3. **Verify via Commit-Specific URL:**
+   If jsDelivr `@main` cache lags, verify immediately via commit SHA:
+   `https://cdn.jsdelivr.net/gh/Th3Tamas/store-theme@<COMMIT_SHA>/storewide-store-pages-custom.css`
+
+---
+
+## 6. Quick Reference: Shortcodes Supported
+
+| Shortcode | Example | Behavior |
+|---|---|---|
+| `[[highlighted: true]]` | `SILVER [[highlighted: true]]` | Applies crimson red border (`#FF3B30`) + glow. Stripped from visible text. |
+| `[[highlighted: false]]` | `BEAT PACK [[highlighted: false]]` | Explicitly keeps standard border. Stripped from visible text. |
+| `[[tag: ...]]` | `[[tag: DRUM KIT, SAMPLES]]` | Renders individual pills on cards, modal, and product detail pages. |
+| `[[audio: URL]]` | `[[audio: https://.../demo.mp3]]` | Binds audio URL for Backblaze HTML5 preview player in modal. |
+| `[[preloader: ...]]` | `[[preloader: BOOT / INIT]]` | Customizes boot lines in the HUD terminal preloader. |
+| `[[loader-title: A / B]]` | `[[loader-title: SONARLINE / LAB]]` | Customizes brand header in preloader with crimson red accent. |
+| `[[loader-secondary: T]]` | `[[loader-secondary: SOUND LAB]]` | Customizes subtext in preloader. |
+| `[[newsletter-open: true]]` | `GET EXCLUSIVE DEALS [[newsletter-open: true]]` | Footer card status pill shows green OPEN; form enabled. Stripped from visible text. |
+| `[[newsletter-open: false]]` | `[[newsletter-open: false]]` | Footer card status pill shows red CLOSED; form dimmed and disabled. Stripped from visible text. |
