@@ -1461,21 +1461,7 @@ html body .card-wrapper .card__inner .media img {
   line-height: 1.3 !important;
 }
 
-/* Collapse Native Footer Completely */
-[data-section-key="footer"],
-.section-wrapper[data-section-key="footer"],
-div.section-wrapper[data-section-key="footer"],
-div[data-section-key="footer"] {
-  display: none !important;
-  height: 0 !important;
-  min-height: 0 !important;
-  max-height: 0 !important;
-  padding: 0 !important;
-  margin: 0 !important;
-  overflow: hidden !important;
-  visibility: hidden !important;
-  border: none !important;
-}
+/* Native Footer: left at Payhip default (visible, functional) */
 
 /* Native Badges (Sale, New, Out of Stock) */
 .product-badge,
