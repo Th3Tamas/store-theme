@@ -3896,6 +3896,9 @@ div.card-wrapper.product-card-wrapper.sonarline-card--highlighted,
   /* Paint above Payhip's absolute opaque .section-background sheet. */
   position: relative !important;
   z-index: 1 !important;
+  /* No theme entrance animation may override our centering margins. */
+  animation: none !important;
+  transition: none !important;
 }
 /* ID-scoped reinforcement: beats theme margin overrides that pin the box left. */
 body#page-custom [data-section-key="footer"] .sonarline-footer.sonarline-footer {
