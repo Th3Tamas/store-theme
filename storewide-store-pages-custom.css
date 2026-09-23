@@ -1100,6 +1100,104 @@ input:focus-visible {
   aspect-ratio: auto !important;
 }
 
+/* ---------- Aesthetic compaction + watermark layer (Ref 1 parity) ---------- */
+
+/* Tighter hero seating and section rhythm. */
+.lab-hero .row {
+  margin: 2rem auto !important;
+}
+
+[data-section-key="featured-collection"] .section-contents-wrapper {
+  padding-top: 2rem !important;
+}
+
+/* Hero title hierarchy: heavy condensed grotesk. */
+.lab-hero .product-name {
+  font-family: var(--font-display) !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.04em !important;
+  line-height: 0.95 !important;
+  font-size: clamp(2.5rem, 5vw, 4rem) !important;
+}
+
+/* Hero backdrop scale (Ref 1 signature motif). */
+.lab-hero .lab-watermark {
+  font-size: 22vw;
+  font-weight: 900;
+  opacity: 0.035;
+  color: #fff;
+}
+
+/* Collections backdrop scale. */
+[data-section-key="featured-collection"] .lab-watermark {
+  font-size: 14vw;
+  font-weight: 900;
+  opacity: 0.04;
+  letter-spacing: 0.1em;
+}
+
+/* Rack rail: connector line behind the nodes. */
+.lab-rack-nodes {
+  position: relative;
+}
+
+.lab-rack-nodes::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 4%;
+  right: 4%;
+  height: 1px;
+  background: var(--line-soft);
+  pointer-events: none;
+}
+
+.lab-rack-node {
+  z-index: 1;
+}
+
+/* Card text breathing room + clean barcode divider. */
+.lab-card-augmented .card__information {
+  padding: 1rem 1.25rem 0.5rem !important;
+}
+
+.lab-card-foot {
+  border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Hardware frame: registration corners + hover float. */
+.lab-hero .image-column {
+  position: relative;
+}
+
+.lab-hero .image-column::before {
+  content: "";
+  position: absolute;
+  inset: -8px;
+  pointer-events: none;
+  z-index: 2;
+  background:
+    linear-gradient(var(--ink-faint), var(--ink-faint)) left top / 10px 1px,
+    linear-gradient(var(--ink-faint), var(--ink-faint)) left top / 1px 10px,
+    linear-gradient(var(--ink-faint), var(--ink-faint)) right top / 10px 1px,
+    linear-gradient(var(--ink-faint), var(--ink-faint)) right top / 1px 10px,
+    linear-gradient(var(--ink-faint), var(--ink-faint)) left bottom / 10px 1px,
+    linear-gradient(var(--ink-faint), var(--ink-faint)) left bottom / 1px 10px,
+    linear-gradient(var(--ink-faint), var(--ink-faint)) right bottom / 10px 1px,
+    linear-gradient(var(--ink-faint), var(--ink-faint)) right bottom / 1px 10px;
+  background-repeat: no-repeat;
+  opacity: 0.7;
+}
+
+@keyframes lab-float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+.lab-hero .image-column > * {
+  animation: lab-float 7s ease-in-out infinite;
+}
+
 /* ---------- Lab media rack + no-art fallback (Ref 1 lower sections) ---------- */
 
 /* Tagged headlines stay hidden UNLESS explicitly flagged as a title/monitor block
