@@ -925,3 +925,19 @@ input:focus-visible {
 .section-wrapper[data-section-key="footer"] .footer-nav-item:hover a {
   color: var(--ink);
 }
+
+/* Full-bleed hero: uncap Payhip's centered container for edge-to-edge presence. */
+.section-wrapper[data-section-key="featured-product"] .container,
+[class*="featured-product"] .container {
+  max-width: 94vw !important;
+  width: 94vw !important;
+  padding-left: 2rem !important;
+  padding-right: 2rem !important;
+}
+
+.section-wrapper[data-section-key="featured-product"] .section-contents-wrapper {
+  max-width: 94vw !important;
+  width: 100% !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
