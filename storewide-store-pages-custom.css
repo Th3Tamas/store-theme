@@ -1056,6 +1056,50 @@ input:focus-visible {
   filter: none !important;
 }
 
+/* ---------- Forced overrides tail (exact live selectors) ---------- */
+
+/* Unconstrain the hero details column (kills col-md-6 50% caps). */
+[data-section-key="featured-product"] .product-details-wrapper,
+[data-section-key="featured-product"] .product-info-wrapper,
+[data-section-key="featured-product"] .details-column,
+[data-section-key="featured-product"] .text-column,
+[data-section-key="featured-product"] .image-column,
+[data-section-key="featured-product"] .col-md-6,
+[class*="featured-product"] [class*="details"],
+[class*="featured-product"] [class*="info"] {
+  max-width: none !important;
+  min-width: 0 !important;
+}
+
+[data-section-key="featured-product"] .product-details-wrapper,
+[data-section-key="featured-product"] .product-info-wrapper {
+  width: 100% !important;
+  flex: 1 1 50% !important;
+}
+
+/* Flatten the spec panel into horizontal Label: Value metadata rows. */
+.lab-hero-spec dl {
+  display: grid !important;
+  grid-template-columns: auto 1fr !important;
+  width: 100% !important;
+  max-width: 480px !important;
+  height: auto !important;
+}
+
+/* Newsletter bubble kill: absolute shape reset. */
+[data-section-key="footer"] form button,
+[data-section-key="newsletter"] form button,
+.newsletter-form button,
+.lab-terminal-frame .submit-button,
+.lab-terminal-frame button {
+  width: auto !important;
+  height: auto !important;
+  min-width: 80px !important;
+  border-radius: 4px !important;
+  padding: 8px 16px !important;
+  aspect-ratio: auto !important;
+}
+
 /* ---------- Lab media rack + no-art fallback (Ref 1 lower sections) ---------- */
 
 /* Tagged headlines stay hidden UNLESS explicitly flagged as a title/monitor block
