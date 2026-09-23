@@ -842,3 +842,86 @@ input:focus-visible {
   outline: 1px solid var(--cyan);
   outline-offset: 2px;
 }
+
+/* ---------- Live visual alignment (Playwright pass) ---------- */
+
+/* Kill dead flow space: magic header offset + empty embed padding. */
+.js-header-magic-padding-has-been-set {
+  padding-top: 0 !important;
+}
+
+[data-section-key="embed-code"] {
+  min-height: 0 !important;
+}
+
+[data-section-key="embed-code"] .section-contents-wrapper {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+/* Hero order: specs LEFT, hardware RIGHT. */
+.lab-hero .image-column {
+  order: 2;
+}
+
+.lab-hero .text-column {
+  order: 1;
+}
+
+/* Tagged collection headings take the holographic treatment. */
+.lab-tagged[data-section-key="featured-collection"] .heading-text {
+  background: var(--holo);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent !important;
+}
+
+/* Center the modular node rail. */
+.lab-rack-nodes {
+  justify-content: center;
+}
+
+/* Card media: dark bed, clean cover, dim placeholder glyphs. */
+.product-card-wrapper .card__media,
+.product-card-wrapper .card__media .media {
+  background: #0d0d0d !important;
+  color: var(--ink-faint);
+}
+
+.product-card-wrapper .card__media img {
+  object-fit: cover !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Terminal submit hover invert. */
+.lab-terminal-frame .lab-btn-holo:hover,
+.lab-terminal-frame .submit-button:hover,
+.lab-terminal-frame button:hover {
+  filter: invert(1);
+}
+
+/* Footer nav matrix. */
+.section-wrapper[data-section-key="footer"] .footer-nav-item {
+  display: inline-block;
+  border: 1px solid var(--line-soft);
+  padding: 6px 12px;
+  margin: 0 6px 6px 0;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.section-wrapper[data-section-key="footer"] .footer-nav-item a {
+  color: var(--ink-dim);
+  text-decoration: none;
+}
+
+.section-wrapper[data-section-key="footer"] .footer-nav-item:hover {
+  border-color: var(--ink);
+}
+
+.section-wrapper[data-section-key="footer"] .footer-nav-item:hover a {
+  color: var(--ink);
+}
