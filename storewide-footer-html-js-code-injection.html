@@ -9,6 +9,8 @@
      - Grid: native Featured Collection heading + [[lab: watermark=GHOST barcode=on rack=on]] -> watermark, spec footers w/ CSS barcode, rack nodes from native cards.
      - Per-card: product description + [[lab: spec=wav | 48khz code=CAT-002]] -> overrides section spec for that card only.
      - Monitor: native Video/Gallery/Embed + [[lab: monitor=oscilloscope]] -> monitor frame around NATIVE media.
+     - Title: headline section + [[lab: section=title watermark=TEXT]] -> visible lab heading (untagged or
+       otherwise-tagged headlines stay buried by the mountain kill).
      - Terminal: native Newsletter + [[lab: newsletter=terminal]] -> CLI skin on NATIVE form.
      - Frame: any section + [[lab: frame=ticks watermark=TEXT]] -> corner ticks + watermark.
 -->
@@ -650,6 +652,13 @@
 
       var hasLab = Object.keys(d).length > 0;
       if (hasLab) { try { section.classList.add('lab-tagged'); } catch (e) {} }
+      // headline kill has one door: explicit title/monitor intent, nothing else
+      if (key === 'headline' && hasLab) {
+        var intent = String(d.section || d.monitor || d.skin || '').toLowerCase();
+        if (intent === 'title' || intent === 'heading' || intent === 'monitor' || intent === 'lab' || d.monitor === 'oscilloscope') {
+          try { section.classList.add('lab-headline-show'); } catch (e) {}
+        }
+      }
       scanned++;
       if (key && key !== 'header') labLog('section detected', key);
 
