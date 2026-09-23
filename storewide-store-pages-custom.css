@@ -581,11 +581,7 @@ header.header,
 .lab-scrub {
   height: 22px;
   border-top: 1px solid var(--line-soft);
-  background: repeating-linear-gradient(
-    90deg,
-    var(--line-soft) 0 1px,
-    transparent 1px 8px
-  );
+  background: repeating-linear-gradient(90deg, #333 0, #333 1px, transparent 1px, transparent 6px);
   position: relative;
 }
 
@@ -940,4 +936,110 @@ input:focus-visible {
   width: 100% !important;
   margin-left: auto !important;
   margin-right: auto !important;
+}
+
+/* ---------- Lab media rack + no-art fallback (Ref 1 lower sections) ---------- */
+
+/* Tagged headlines opt out of the mountain kill (e.g. IN THE LAB titles). */
+.section-wrapper[data-section-key="headline"].lab-tagged,
+#content-section-jznN5Kyqz7.lab-tagged {
+  display: block !important;
+  height: auto !important;
+  overflow: visible !important;
+}
+
+/* Monitor section heading takes the holographic treatment. */
+.lab-monitor-section .heading-text {
+  background: var(--holo);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent !important;
+}
+
+/* Monitor status bar elements. */
+.lab-monitor-head .lab-dots {
+  color: var(--amber);
+  font-size: 9px;
+  letter-spacing: 0.2em;
+}
+
+.lab-monitor-head .lab-track {
+  color: var(--ink-dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lab-monitor-head .lab-tc {
+  margin-left: auto;
+}
+
+/* Monitor screen framing + scanlines. */
+.lab-monitor-screen {
+  border-top: 1px solid #2a2a2a;
+  border-bottom: 1px solid #2a2a2a;
+}
+
+.lab-monitor-screen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.05) 0 1px, transparent 1px 3px);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Play trigger hover pulse. */
+@keyframes lab-play-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(230, 230, 230, 0.45); }
+  70% { box-shadow: 0 0 0 14px rgba(230, 230, 230, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(230, 230, 230, 0); }
+}
+
+.lab-play:hover {
+  animation: lab-play-pulse 1.2s ease-out infinite;
+}
+
+/* No-art fallback bed (artless products): matrix grid + diagnostic tag + status dot. */
+.product-card-wrapper .card__media.lab-noart {
+  background-color: #0d0d0d !important;
+  background-image:
+    radial-gradient(rgba(184, 241, 255, 0.10) 1px, transparent 1px),
+    linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px) !important;
+  background-size: 10px 10px, 28px 28px, 28px 28px !important;
+  border: 1px solid #222 !important;
+  min-height: 240px;
+  position: relative;
+}
+
+.product-card-wrapper .card__media.lab-noart::before {
+  content: "[NO_AUDIO_DIAGNOSTIC] / " attr(data-lab-code);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  max-width: 92%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--ink-dim);
+  z-index: 2;
+  pointer-events: none;
+}
+
+.product-card-wrapper .card__media.lab-noart::after {
+  content: "●";
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  color: var(--amber);
+  font-size: 10px;
+  text-shadow: 0 0 8px rgba(255, 180, 84, 0.9);
+  z-index: 2;
+  pointer-events: none;
+  background: none !important;
 }
