@@ -254,6 +254,72 @@
 
   /* ---------- section decorators ---------- */
 
+  var RESIZE_TIMER = null;
+  function requestRemeasure() {
+    if (RESIZE_TIMER) return;
+    RESIZE_TIMER = setTimeout(function () {
+      RESIZE_TIMER = null;
+      try { window.dispatchEvent(new Event('resize')); labLog('ticker re-measured'); } catch (e) {}
+    }, 600);
+  }
+
+  /* Ticker clone scrub: Payhip re-renders marquee items from JSON after our
+     first pass, so tag tokens are stripped continuously (no decoration). */
+  var TICK_LOG_AT = 0;
+  var REMEASURE_BUDGET = 5;
+  function scrubTicker(section) {
+    var found = 0;
+    try {
+      var walker = document.createTreeWalker(section, NF.SHOW_TEXT, null);
+      var nodes = [], n;
+      while ((n = walker.nextNode())) nodes.push(n);
+      nodes.forEach(function (tn) {
+        var d = tn.data || '';
+        TAG_RE.lastIndex = 0;
+        if (!TAG_RE.test(d)) return;
+        TAG_RE.lastIndex = 0;
+        var stripped = d.replace(TAG_RE, '');
+        if (!stripped.trim()) {
+          var holder = tn.parentNode;
+          if (holder && holder !== section && /^(TSPAN|TEXT|SPAN|P)$/.test(holder.nodeName || '')) {
+            if (holder.parentNode) holder.parentNode.removeChild(holder);
+            found++;
+          } else {
+            tn.data = stripped;
+            found++;
+          }
+        } else {
+          tn.data = stripped;
+          found++;
+        }
+      });
+    } catch (e) {}
+    try {
+      var j = section.querySelector('.js-ticker-data-json');
+      if (j) {
+        var obj = JSON.parse(j.textContent);
+        if (obj && Array.isArray(obj.tickerItems)) {
+          var changed = false;
+          obj.tickerItems = obj.tickerItems.filter(function (it) {
+            if (!it || typeof it.text !== 'string') return true;
+            TAG_RE.lastIndex = 0;
+            var clean = it.text.replace(TAG_RE, '').trim();
+            if (clean !== it.text) changed = true;
+            it.text = clean;
+            return clean !== '';
+          });
+          if (changed) { j.textContent = JSON.stringify(obj); found++; }
+        }
+      }
+    } catch (e) {}
+    if (found) {
+      var now = Date.now();
+      if (now - TICK_LOG_AT > 5000) { TICK_LOG_AT = now; labLog('ticker scrubbed', { cleaned: found }); }
+      if (REMEASURE_BUDGET > 0) { REMEASURE_BUDGET--; requestRemeasure(); }
+    }
+    return found;
+  }
+
   function decorateTicker(section, d) {
     var fx = String(d.ticker || d.fx || d.ticker_fx || '').toLowerCase();
     section.classList.add('fx-ticker-glow');
@@ -309,11 +375,13 @@
         dl.appendChild(pdt); dl.appendChild(pdd);
       }
       panel.appendChild(dl);
-      textCol.insertBefore(panel, textCol.firstChild);
+      var nameAnchor = (textCol.querySelector && textCol.querySelector('.product-name')) || section.querySelector('.product-name');
+      if (nameAnchor && nameAnchor.parentNode) nameAnchor.parentNode.insertBefore(panel, nameAnchor.nextSibling);
+      else textCol.insertBefore(panel, textCol.firstChild);
     }
-    // Ref 1 pill: hero buttons always take the holo frame (native nodes kept).
+    // Ref 1 pill: hero buttons always take the holo frame (native nodes kept, disabled still unclickable).
     section.querySelectorAll('.btn, button[type="submit"], .visit-product-page-link-wrapper a').forEach(function (btn) {
-      if (btn.closest('.lab-holo-frame') || btn.disabled) return;
+      if (btn.closest('.lab-holo-frame')) return;
       var wrap = document.createElement('span');
       wrap.className = 'lab-holo-frame';
       btn.parentNode.insertBefore(wrap, btn);
@@ -344,6 +412,12 @@
   function decorateCollection(section, d) {
     var cards = section.querySelectorAll('.product-card-wrapper');
     if (!cards.length) cards = section.querySelectorAll('[data-product-key]');
+    // Ref backdrop: explicit watermark wins, else derive from native heading.
+    if (!d.watermark) {
+      var ch = section.querySelector('.heading-text, h2');
+      var hw = sanitizeText((ch && ch.textContent) || '', 18);
+      if (hw) { section.classList.add('lab-frame'); ensureWatermark(section, hw); ensureTicks(section); }
+    }
     var wantBarcode = String(d.barcode || '').toLowerCase() === 'on';
     var sectionSpec = sanitizeText(d.spec || d.meta || d.card_meta || 'WAV | 48KHZ', 80);
     cards.forEach(function (card) {
@@ -547,6 +621,7 @@
       try { section.setAttribute('data-lab-directives', JSON.stringify(d)); } catch (e) {}
 
       var hasLab = Object.keys(d).length > 0;
+      if (hasLab) { try { section.classList.add('lab-tagged'); } catch (e) {} }
       scanned++;
       if (key && key !== 'header') labLog('section detected', key);
 
@@ -563,9 +638,11 @@
         if (d.newsletter || d.skin === 'terminal' || d.section === 'terminal') decorateNewsletter(section, d);
 
         // footer scope: allow terminal tag placed anywhere in footer section
-        if (key === 'footer' && hasLab) decorateNewsletter(section, d);
+        if (key === 'footer' && hasLab) { section.classList.add('lab-frame'); ensureTicks(section); decorateNewsletter(section, d); }
         if (hasLab) { decorated++; labLog('decoration complete', key || 'unknown'); }
       } catch (err) { labLog('section error', String(err && err.message || err)); }
+
+      if (key === 'ticker') { try { scrubTicker(section); } catch (e) {} }
 
       // mark scanned (2 = section-level done; cards use 1)
       try { if (!section.hasAttribute(DONE)) section.setAttribute(DONE, '2'); } catch (e) {}
@@ -634,10 +711,21 @@
         var fire = false;
         for (var i = 0; i < mutations.length && !fire; i++) {
           var mut = mutations[i];
+          var tickSec = null;
           try {
-            var t = mut.target;
-            if (t && t.closest && t.closest('.ticker, [data-section-key="ticker"]')) continue;
-            if (t && t.nodeName && /^(VIDEO|AUDIO)$/.test(t.nodeName)) continue;
+            var tt = mut.target;
+            if (tt && tt.closest) tickSec = tt.closest('[data-section-key="ticker"]');
+            if (!tickSec && mut.addedNodes) {
+              for (var k = 0; k < mut.addedNodes.length; k++) {
+                var an2 = mut.addedNodes[k];
+                if (an2 && an2.closest && an2.closest('[data-section-key="ticker"]')) { tickSec = an2.closest('[data-section-key="ticker"]'); break; }
+              }
+            }
+          } catch (e) {}
+          if (tickSec) { try { scrubTicker(tickSec); } catch (e) {} continue; }
+          try {
+            var t2 = mut.target;
+            if (t2 && t2.nodeName && /^(VIDEO|AUDIO)$/.test(t2.nodeName)) continue;
           } catch (e) {}
           var added = mut.addedNodes;
           if (!added || !added.length) continue;
