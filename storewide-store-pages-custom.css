@@ -359,18 +359,37 @@ header.header,
 .product-card-wrapper.lab-card-augmented .card,
 [data-product-key].lab-card-augmented,
 [class*="product-card"].lab-card-augmented {
-  background: #111111 !important;
-  border: 1px solid var(--line) !important;
-  border-radius: 0 !important;
+  background: #0e0e10 !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 12px !important;
+  overflow: hidden;
   position: relative;
+  padding: 10px;
+  transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .product-card-wrapper.lab-card-augmented .card:hover,
 [data-product-key].lab-card-augmented:hover,
 [class*="product-card"].lab-card-augmented:hover {
-  border-color: var(--ink) !important;
-  transform: translate(-2px, -2px);
-  box-shadow: 4px 4px 0 var(--ink);
+  border-color: rgba(184, 241, 255, 0.35) !important;
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55);
+}
+
+/* Prism sheen follows the pointer (position fed by the engine mouse tracker). */
+.lab-card-augmented .card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(184, 241, 255, 0.15), rgba(224, 184, 255, 0.08), transparent 70%);
+  transition: opacity 0.35s ease;
+}
+
+.lab-card-augmented .card:hover::before {
+  opacity: 1;
 }
 
 .product-card-wrapper.lab-card-augmented .card__media img,
@@ -447,9 +466,12 @@ header.header,
 }
 
 .lab-hero-spec {
-  border: 1px solid var(--line);
-  background: rgba(18, 18, 18, 0.92);
-  padding: 16px;
+  background: transparent;
+  border: none;
+  border-top: 1px solid var(--line-soft);
+  border-bottom: 1px solid var(--line-soft);
+  padding: 12px 0;
+  max-width: 420px;
   font-family: var(--font-mono);
   font-size: 11px;
   letter-spacing: 0.1em;
@@ -457,7 +479,7 @@ header.header,
   color: var(--ink-dim);
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
 .lab-hero-spec .lab-hero-code {
@@ -492,15 +514,19 @@ header.header,
 .lab-holo-frame > button,
 .lab-btn-holo {
   position: relative;
-  background: var(--holo) !important;
-  color: #0a0a0a !important;
-  border: 1px solid var(--ink) !important;
+  background: linear-gradient(90deg, #b8f1ff, #d4b8ff, #ffd1b8) !important;
+  color: #000 !important;
+  border: none !important;
   border-radius: 999px !important;
-  font-family: var(--font-mono) !important;
-  font-size: 11px !important;
-  letter-spacing: 0.16em !important;
+  padding: 10px 24px !important;
+  font-family: 'Space Grotesk', sans-serif !important;
+  font-weight: 600 !important;
+  font-size: 13px !important;
+  letter-spacing: 0.05em !important;
   text-transform: uppercase !important;
   overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.25s ease, filter 0.25s ease;
 }
 
 .lab-holo-frame > .btn::after,
@@ -521,7 +547,8 @@ header.header,
 
 .lab-holo-frame > .btn:hover,
 .lab-btn-holo:hover {
-  filter: invert(1);
+  transform: scale(1.02);
+  filter: brightness(1.1);
 }
 
 /* ---------- Lab monitor ---------- */
@@ -680,8 +707,21 @@ header.header,
 .lab-hero .row {
   display: grid !important;
   grid-template-columns: 1fr 1fr !important;
-  gap: 3rem !important;
+  gap: 4rem !important;
   align-items: center !important;
+  max-width: 1280px !important;
+  width: 90vw !important;
+  margin: 3rem auto !important;
+}
+
+.lab-hero .text-column {
+  min-width: 0;
+  width: 100%;
+}
+
+.lab-hero .image-column {
+  display: flex;
+  justify-content: center;
 }
 
 .lab-hero .text-column {
@@ -888,6 +928,7 @@ input:focus-visible {
   object-fit: cover !important;
   width: 100% !important;
   height: 100% !important;
+  border-radius: 8px;
 }
 
 /* Terminal submit hover invert. */
@@ -936,6 +977,83 @@ input:focus-visible {
   width: 100% !important;
   margin-left: auto !important;
   margin-right: auto !important;
+}
+
+/* ---------- Terminal intake v2 (footer reference) ---------- */
+.lab-terminal-frame {
+  background: #0d0d0d !important;
+  border: 1px solid #282828 !important;
+  padding: 6px 12px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  max-width: 460px !important;
+  margin: 0 auto !important;
+}
+
+.lab-terminal-frame::before {
+  content: "ROOT@_ :~$";
+  flex: none;
+  font-family: var(--font-mono) !important;
+  font-size: 11px !important;
+  letter-spacing: 0.08em !important;
+  color: #a8edea !important;
+  margin: 0 !important;
+}
+
+.lab-terminal-frame form {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  flex: 1 !important;
+  min-width: 0 !important;
+}
+
+.lab-terminal-frame .subscribe-form-field-wrapper {
+  flex: 1 !important;
+  min-width: 0 !important;
+}
+
+.lab-terminal-frame input[type="email"],
+.lab-terminal-frame input[type="text"] {
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  color: #eee !important;
+  font-family: var(--font-mono) !important;
+  font-size: 13px !important;
+  width: 100% !important;
+}
+
+.lab-terminal-frame .lab-btn-holo,
+.lab-terminal-frame .submit-button,
+.lab-terminal-frame button,
+.lab-terminal-frame input[type="submit"] {
+  background: #1a1a1a !important;
+  color: #fff !important;
+  border: 1px solid #333 !important;
+  border-radius: 3px !important;
+  padding: 6px 14px !important;
+  font-family: var(--font-mono) !important;
+  font-size: 11px !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  cursor: pointer;
+  flex: none;
+  transform: none !important;
+  filter: none !important;
+}
+
+.lab-terminal-frame .lab-btn-holo:hover,
+.lab-terminal-frame .submit-button:hover,
+.lab-terminal-frame button:hover,
+.lab-terminal-frame input[type="submit"]:hover {
+  background: #fff !important;
+  color: #000 !important;
+  border-color: #fff !important;
+  transform: none !important;
+  filter: none !important;
 }
 
 /* ---------- Lab media rack + no-art fallback (Ref 1 lower sections) ---------- */
