@@ -336,7 +336,8 @@
     var text = sanitizeText(d.watermark || d.code || d.hero_code || '', 24);
     if (!text) {
       var nameEl = section.querySelector('.product-name');
-      text = sanitizeText(((nameEl && nameEl.textContent) || '').split(/\s+/)[0] || '', 12);
+      var words = ((nameEl && nameEl.textContent) || '').trim().split(/\s+/);
+      text = sanitizeText(words[0] || '', 12);
     }
     if (!text) return;
     section.classList.add('lab-frame');
