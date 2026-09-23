@@ -727,6 +727,41 @@
     return false;
   }
 
+  /* Pointer-tracked card sheen: feeds --mouse-x/--mouse-y for the prism hover. */
+  var SHEEN_STATE = { raf: false, last: null, bound: false };
+  function updateSheen(e) {
+    try {
+      var card = (e && e.target && e.target.closest) ? e.target.closest('.product-card-wrapper.lab-card-augmented') : null;
+      if (SHEEN_STATE.last && SHEEN_STATE.last !== card) {
+        try { SHEEN_STATE.last.style.removeProperty('--mouse-x'); } catch (e1) {}
+        try { SHEEN_STATE.last.style.removeProperty('--mouse-y'); } catch (e2) {}
+      }
+      SHEEN_STATE.last = card;
+      if (card) {
+        var r = card.getBoundingClientRect();
+        if (r && r.width > 0 && r.height > 0) {
+          card.style.setProperty('--mouse-x', ((e.clientX - r.left) / r.width * 100).toFixed(1) + '%');
+          card.style.setProperty('--mouse-y', ((e.clientY - r.top) / r.height * 100).toFixed(1) + '%');
+        }
+      }
+    } catch (err) {}
+  }
+  function attachCardSheen() {
+    if (SHEEN_STATE.bound) return;
+    SHEEN_STATE.bound = true;
+    try {
+      var raf = window.requestAnimationFrame || function (cb) { return setTimeout(cb, 16); };
+      document.addEventListener('mousemove', function (ev) {
+        if (SHEEN_STATE.raf) return;
+        SHEEN_STATE.raf = true;
+        raf(function () {
+          SHEEN_STATE.raf = false;
+          updateSheen(ev);
+        });
+      }, { passive: true });
+    } catch (e) {}
+  }
+
   /* ---------- boot + observers (covers side-cart / cart modal) ---------- */
 
   var scheduled = false;
@@ -743,6 +778,7 @@
     labLog('Initializing decorator...');
     labLog('version ' + LAB_VERSION + ' readyState=' + document.readyState);
     try { decorateRoot(document); } catch (e) { labLog('boot pass failed', String(e && e.message || e)); }
+    try { attachCardSheen(); } catch (e) {}
     try {
       var obs = new MutationObserver(function (mutations) {
         var fire = false;
