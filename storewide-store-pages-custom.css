@@ -940,9 +940,10 @@ input:focus-visible {
 
 /* ---------- Lab media rack + no-art fallback (Ref 1 lower sections) ---------- */
 
-/* Tagged headlines opt out of the mountain kill (e.g. IN THE LAB titles). */
-.section-wrapper[data-section-key="headline"].lab-tagged,
-#content-section-jznN5Kyqz7.lab-tagged {
+/* Tagged headlines stay hidden UNLESS explicitly flagged as a title/monitor block
+   ([[lab: section=title ...]]). Untitled tag carriers (e.g. hero specs) remain buried. */
+.section-wrapper[data-section-key="headline"].lab-tagged.lab-headline-show,
+#content-section-jznN5Kyqz7.lab-tagged.lab-headline-show {
   display: block !important;
   height: auto !important;
   overflow: visible !important;
