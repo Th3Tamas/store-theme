@@ -15,34 +15,38 @@
       n.setAttribute('aria-hidden', 'true');
       (document.body || document.documentElement).appendChild(n);
     }
-    // Cache-busted theme CSS: same timestamp technique as the footer loader,
-    // so style updates apply without manual CDN purges or stale browser cache.
+    // Cache-busted theme CSS as TEXT (not <link>): the jsDelivr edge mirror can
+    // trail the repo by minutes, while raw.githubusercontent tracks it in seconds.
+    // Sequential fetch — jsDelivr first for speed, raw last as the authority.
     try {
       var cv = Date.now();
       var cssUrls = [
         'https://cdn.jsdelivr.net/gh/Th3Tamas/store-theme@main/storewide-store-pages-custom.css?v=' + cv,
         'https://raw.githubusercontent.com/Th3Tamas/store-theme/main/storewide-store-pages-custom.css?v=' + cv
       ];
-      var existingCss = document.querySelector('link[data-lab-remote="css-dynamic"]');
-      if (existingCss) {
-        existingCss.href = cssUrls[0];
-      } else {
-        var cssLink = document.createElement('link');
-        cssLink.rel = 'stylesheet';
-        cssLink.setAttribute('data-lab-remote', 'css-dynamic');
-        cssLink.onerror = function () {
-          if (document.querySelector('link[data-lab-remote="css-dynamic-fallback"]')) return;
-          try {
-            var fb = document.createElement('link');
-            fb.rel = 'stylesheet';
-            fb.setAttribute('data-lab-remote', 'css-dynamic-fallback');
-            fb.href = cssUrls[1];
-            document.head.appendChild(fb);
-          } catch (e2) {}
-        };
-        cssLink.href = cssUrls[0];
-        document.head.appendChild(cssLink);
-      }
+      var applyCssText = function (css) {
+        try {
+          var old = document.querySelector('style[data-lab-remote="css-text"]');
+          if (old && old.parentNode) old.parentNode.removeChild(old);
+          var st = document.createElement('style');
+          st.setAttribute('data-lab-remote', 'css-text');
+          st.textContent = css;
+          document.head.appendChild(st);
+        } catch (eApply) {}
+      };
+      var fetchCss = function (i) {
+        if (i >= cssUrls.length) return;
+        fetch(cssUrls[i], { cache: 'no-cache' }).then(function (r) {
+          if (!r.ok) throw new Error('HTTP ' + r.status);
+          return r.text();
+        }).then(function (css) {
+          applyCssText(css);
+          fetchCss(i + 1);
+        }).catch(function () {
+          fetchCss(i + 1);
+        });
+      };
+      fetchCss(0);
     } catch (e3) {}
   } catch (e) { /* no-op: never break native header */ }
 })();
