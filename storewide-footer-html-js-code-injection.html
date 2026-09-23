@@ -330,15 +330,23 @@
     else section.classList.add('lab-ticker-plain-mono');
   }
 
+  /* Self-healing hero backdrop: explicit tag wins, then code, then product name. */
+  function ensureHeroWatermark(section, d) {
+    d = d || {};
+    var text = sanitizeText(d.watermark || d.code || d.hero_code || '', 24);
+    if (!text) {
+      var nameEl = section.querySelector('.product-name');
+      text = sanitizeText(((nameEl && nameEl.textContent) || '').split(/\s+/)[0] || '', 12);
+    }
+    if (!text) return;
+    section.classList.add('lab-frame');
+    ensureWatermark(section, text);
+    ensureTicks(section);
+  }
+
   function decorateHero(section, d) {
     section.classList.add('lab-frame', 'lab-hero');
-    // Ref 1 backdrop: explicit watermark tag wins, else derive from native product name.
-    if (d.watermark) ensureWatermark(section, d.watermark);
-    else {
-      var nameEl = section.querySelector('.product-name');
-      var firstWord = sanitizeText(((nameEl && nameEl.textContent) || '').split(/\s+/)[0] || '', 12);
-      if (firstWord) ensureWatermark(section, firstWord);
-    }
+    ensureHeroWatermark(section, d);
     ensureTicks(section);
     var textCol = section.querySelector('.text-column, .product-details-wrapper') || section;
     var imgCol = section.querySelector('.image-column') || section.querySelector('.card__media, .media');
@@ -643,6 +651,13 @@
             try { cc = JSON.parse(section.getAttribute('data-lab-directives') || '{}'); } catch (e) { cc = {}; }
             try { decorateCollection(section, cc); } catch (e) {}
           }
+        }
+        // self-heal: re-seat the hero backdrop if the section was re-rendered
+        if (key === 'featured-product' && !section.querySelector(':scope > .lab-watermark')) {
+          try {
+            var hd = JSON.parse(section.getAttribute('data-lab-directives') || '{}');
+            ensureHeroWatermark(section, hd);
+          } catch (e) {}
         }
         return;
       }
