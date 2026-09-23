@@ -430,8 +430,15 @@
       var code = sanitizeCode(codeRaw).slice(0, 12) || 'UNIT';
       var spec = sanitizeText(cardD.spec || cardD.meta || sectionSpec, 80);
       card.classList.add('lab-card-augmented');
-      var media = card.querySelector('.card__media');
-      if (media) media.classList.add('lab-halftone');
+      var media = card.querySelector('.card__media, .media');
+      var hasImg = !!(media && media.querySelector('img'));
+      if (media) {
+        media.classList.add('lab-halftone');
+        if (!hasImg) {
+          media.classList.add('lab-noart');
+          try { media.setAttribute('data-lab-code', code); } catch (e) {}
+        }
+      }
       cardFoot(card, code, spec);
       if (wantBarcode || String(cardD.barcode || '').toLowerCase() === 'on') {
         var foot = card.querySelector('.lab-card-foot');
@@ -476,14 +483,35 @@
     }
   }
 
-  function decorateMonitor(section) {
+  function decorateMonitor(section, d) {
+    d = d || {};
     if (section.querySelector(':scope > .lab-monitor')) return;
+    section.classList.add('lab-frame', 'lab-monitor-section');
+    if (d.watermark) ensureWatermark(section, d.watermark);
+    else {
+      var mh = section.querySelector('.heading-text, h2');
+      var mw = sanitizeText((mh && mh.textContent) || '', 18);
+      if (mw) ensureWatermark(section, mw);
+    }
+    ensureTicks(section);
     var target = section.querySelector('.section-contents') || section;
     var media = section.querySelector('video, audio, img, iframe');
     var frame = document.createElement('div');
     frame.className = 'lab-monitor';
     var head = document.createElement('div');
     head.className = 'lab-monitor-head';
+    var dots = document.createElement('span');
+    dots.className = 'lab-dots';
+    dots.textContent = '● ● ●';
+    dots.setAttribute('aria-hidden', 'true');
+    head.appendChild(dots);
+    var mTitle = section.querySelector('.heading-text, h2');
+    if (mTitle && mTitle.textContent.trim()) {
+      var track = document.createElement('span');
+      track.className = 'lab-track';
+      track.textContent = sanitizeText(mTitle.textContent, 18);
+      head.appendChild(track);
+    }
     var tc = document.createElement('span');
     tc.className = 'lab-tc';
     tc.textContent = 'CH-01 00:00:00';
@@ -634,7 +662,7 @@
         if (key === 'featured-product') decorateHero(section, d);
         if (key === 'featured-collection' && (d.barcode || d.rack || d.nodes || d.spec || d.meta || d.watermark || d.card_meta)) decorateCollection(section, d);
         else if (key === 'featured-collection' && hasLab) decorateCollection(section, d);
-        if ((key === 'video-simple' || key === 'gallery' || key === 'embed-code') && (d.monitor === 'oscilloscope' || d.skin === 'oscilloscope' || d.section === 'monitor')) decorateMonitor(section);
+        if ((key === 'video-simple' || key === 'gallery' || key === 'embed-code') && (d.monitor === 'oscilloscope' || d.skin === 'oscilloscope' || d.section === 'monitor')) decorateMonitor(section, d);
         if (d.newsletter || d.skin === 'terminal' || d.section === 'terminal') decorateNewsletter(section, d);
 
         // footer scope: allow terminal tag placed anywhere in footer section
