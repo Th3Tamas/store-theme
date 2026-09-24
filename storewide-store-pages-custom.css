@@ -212,6 +212,7 @@ header.header,
 
 .lab-frame {
   position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .lab-tick {
@@ -359,9 +360,9 @@ header.header,
 .product-card-wrapper.lab-card-augmented .card,
 [data-product-key].lab-card-augmented,
 [class*="product-card"].lab-card-augmented {
-  background: #0e0e10 !important;
+  background: #0c0c0e !important;
   border: 1px solid rgba(255, 255, 255, 0.08) !important;
-  border-radius: 12px !important;
+  border-radius: 14px !important;
   overflow: hidden;
   position: relative;
   padding: 10px;
@@ -384,12 +385,38 @@ header.header,
   z-index: 3;
   pointer-events: none;
   opacity: 0;
-  background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(184, 241, 255, 0.15), rgba(224, 184, 255, 0.08), transparent 70%);
+  background:
+    radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(184, 241, 255, 0.15), rgba(224, 184, 255, 0.08), transparent 70%),
+    repeating-radial-gradient(circle at 50% 50%, transparent 0 5px, rgba(255, 255, 255, 0.04) 5px 6px);
   transition: opacity 0.35s ease;
+}
+
+.lab-card-augmented .card::after {
+  content: '';
+  position: absolute;
+  inset: -50%;
+  background: conic-gradient(
+    from 180deg at var(--mouse-x, 50%) var(--mouse-y, 50%),
+    rgba(255, 0, 128, 0.25),
+    rgba(0, 255, 255, 0.35),
+    rgba(138, 43, 226, 0.3),
+    rgba(255, 215, 0, 0.25),
+    rgba(255, 0, 128, 0.25)
+  );
+  opacity: 0;
+  mix-blend-mode: screen;
+  pointer-events: none;
+  transition: opacity 0.35s ease;
+  filter: blur(24px);
+  z-index: 2;
 }
 
 .lab-card-augmented .card:hover::before {
   opacity: 1;
+}
+
+.lab-card-augmented:hover .card::after {
+  opacity: 0.85;
 }
 
 .product-card-wrapper.lab-card-augmented .card__media img,
@@ -1158,6 +1185,113 @@ html body .product-card-wrapper.lab-card-augmented .card__media img {
   object-position: center !important;
   filter: contrast(1.15) !important;
 }
+
+/* ---------- Industrial masthead (Ref 2 density) ---------- */
+.lab-masthead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 20px;
+  background: var(--carbon-0);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.lab-masthead-title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(2rem, 6vw, 5rem);
+  letter-spacing: -0.04em;
+  line-height: 0.9;
+  text-transform: uppercase;
+  color: var(--ink);
+  text-align: center;
+  white-space: nowrap;
+}
+
+.lab-masthead-side {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: var(--ink-faint);
+  text-transform: uppercase;
+}
+
+.lab-masthead-side:last-child {
+  align-items: flex-end;
+  text-align: right;
+}
+
+@media (max-width: 760px) {
+  .lab-masthead {
+    flex-wrap: wrap;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .lab-masthead-side:last-child {
+    align-items: center;
+    text-align: center;
+  }
+}
+
+/* ---------- Hero hardware chassis plate ---------- */
+.lab-gear-placeholder.lab-chassis {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  text-align: left;
+  background-color: #111114;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  border: none;
+  position: relative;
+  min-height: 280px;
+}
+
+.lab-chassis-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--ink-dim);
+  text-transform: uppercase;
+}
+
+.lab-chassis-body {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  color: var(--ink-faint);
+}
+
+.lab-screw {
+  position: absolute;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1;
+  color: var(--ink-faint);
+  opacity: 0.8;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.lab-screw-tl { top: 4px; left: 6px; }
+.lab-screw-tr { top: 4px; right: 6px; }
+.lab-screw-bl { bottom: 4px; left: 6px; }
+.lab-screw-br { bottom: 4px; right: 6px; }
 
 /* Deterministic card fill: own the inner box, overlay inner content, fill media. */
 html body .product-card-wrapper.lab-card-augmented .card__inner {
