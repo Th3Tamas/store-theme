@@ -1198,6 +1198,62 @@ input:focus-visible {
   animation: lab-float 7s ease-in-out infinite;
 }
 
+/* ---------- Final polish: overlap, share, card ratio ---------- */
+
+/* 1. Description containment + styling. */
+.lab-hero .text-column {
+  grid-column: 1 / 2;
+}
+
+.lab-hero .image-column {
+  grid-column: 2 / 3;
+}
+
+.lab-hero .text-column,
+.lab-hero .product-details-wrapper {
+  max-width: 520px;
+  overflow: hidden;
+}
+
+.lab-hero .product-description {
+  max-width: 100% !important;
+  overflow-wrap: break-word !important;
+  word-break: break-word;
+  margin-top: 1.5rem !important;
+  line-height: 1.6 !important;
+  color: #888 !important;
+  font-size: 13px !important;
+}
+
+/* 2. Hide native share icons (decorator keeps all nodes intact). */
+.product-share-wrapper,
+.product-details .share-links,
+[class*="product-share"],
+.lab-hero .social-media-buttons-wrapper,
+.lab-hero .share-list,
+.lab-hero .share-title {
+  display: none !important;
+}
+
+/* 3. Card media: strict 1:1 square frame. */
+.lab-card-augmented .card__media,
+.lab-card-augmented [class*="media-wrapper"],
+.lab-card-augmented [class*="image-wrapper"] {
+  width: 100% !important;
+  aspect-ratio: 1 / 1 !important;
+  overflow: hidden !important;
+  border-radius: 8px 8px 0 0 !important;
+  background: #0d0d0d !important;
+}
+
+.lab-card-augmented .card__media img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: center !important;
+  filter: contrast(1.15) !important;
+}
+
 /* ---------- Lab media rack + no-art fallback (Ref 1 lower sections) ---------- */
 
 /* Tagged headlines stay hidden UNLESS explicitly flagged as a title/monitor block
