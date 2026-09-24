@@ -362,15 +362,33 @@
         ph.setAttribute('aria-hidden', 'true');
         imgCol.appendChild(ph);
       }
-      // Payhip placeholder art is not real product media: bury it, raise a gear bed.
+      // Payhip placeholder art is not real product media: bury it, raise a chassis bed.
       try {
         var deadArt = imgCol.querySelector('.media-not-provided-thumbnail-wrapper');
         if (deadArt && !imgCol.querySelector('.lab-gear-placeholder')) {
           deadArt.style.display = 'none';
           var bed = document.createElement('div');
-          bed.className = 'lab-gear-placeholder lab-halftone';
-          bed.textContent = heroCode + ' // NO SIGNAL';
+          bed.className = 'lab-gear-placeholder lab-halftone lab-chassis';
           bed.setAttribute('aria-hidden', 'true');
+          var chead = document.createElement('div');
+          chead.className = 'lab-chassis-head';
+          var cleft = document.createElement('span');
+          cleft.textContent = '[ HW CHASSIS // ACTIVE MONITOR ]';
+          var cright = document.createElement('span');
+          cright.textContent = 'SAMPLER ENGINE 48KHZ';
+          chead.appendChild(cleft);
+          chead.appendChild(cright);
+          var cbody = document.createElement('div');
+          cbody.className = 'lab-chassis-body';
+          cbody.textContent = heroCode + ' // NO SIGNAL';
+          bed.appendChild(chead);
+          bed.appendChild(cbody);
+          ['lab-screw-tl', 'lab-screw-tr', 'lab-screw-bl', 'lab-screw-br'].forEach(function (sc) {
+            var screw = document.createElement('span');
+            screw.className = 'lab-screw ' + sc;
+            screw.textContent = '+';
+            bed.appendChild(screw);
+          });
           imgCol.appendChild(bed);
         }
       } catch (eDead) {}
@@ -755,6 +773,44 @@
     return false;
   }
 
+  /* Industrial masthead under the main navigation (brand derived, never hardcoded). */
+  function ensureMasthead() {
+    try {
+      if (document.querySelector('.lab-masthead')) return;
+      var header = document.getElementById('header');
+      if (!header || !header.parentNode) return;
+      var brand = sanitizeText(getBrand(), 28);
+      var mast = document.createElement('div');
+      mast.className = 'lab-masthead';
+      var left = document.createElement('div');
+      left.className = 'lab-masthead-side';
+      left.setAttribute('aria-hidden', 'true');
+      var stamp = document.createElement('div');
+      stamp.textContent = 'CATALOG: 001 // REV-04';
+      var bar = document.createElement('div');
+      bar.className = 'lab-barcode is-small';
+      left.appendChild(stamp);
+      left.appendChild(bar);
+      var title = document.createElement('div');
+      title.className = 'lab-masthead-title';
+      title.textContent = brand ? '[ ' + brand + ' / LABS ]' : '[ LABS ]';
+      var right = document.createElement('div');
+      right.className = 'lab-masthead-side';
+      right.setAttribute('aria-hidden', 'true');
+      var tele = document.createElement('div');
+      tele.textContent = 'SYS.ONLINE // 48KHZ 24-BIT';
+      var bar2 = document.createElement('div');
+      bar2.className = 'lab-barcode is-small';
+      right.appendChild(tele);
+      right.appendChild(bar2);
+      mast.appendChild(left);
+      mast.appendChild(title);
+      mast.appendChild(right);
+      header.parentNode.insertBefore(mast, header.nextSibling);
+      labLog('masthead built');
+    } catch (e) {}
+  }
+
   /* Pointer-tracked card sheen: feeds --mouse-x/--mouse-y for the prism hover. */
   var SHEEN_STATE = { raf: false, last: null, bound: false };
   function updateSheen(e) {
@@ -807,6 +863,7 @@
     labLog('version ' + LAB_VERSION + ' readyState=' + document.readyState);
     try { decorateRoot(document); } catch (e) { labLog('boot pass failed', String(e && e.message || e)); }
     try { attachCardSheen(); } catch (e) {}
+    try { ensureMasthead(); } catch (e) {}
     try {
       var obs = new MutationObserver(function (mutations) {
         var fire = false;
