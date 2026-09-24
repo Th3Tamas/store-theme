@@ -704,7 +704,7 @@ header.header,
 }
 
 /* Hero spec layout: native featured-product row becomes a 2-col technical grid. */
-.lab-hero .row {
+.lab-hero .section-contents > .row {
   display: grid !important;
   grid-template-columns: 1fr 1fr !important;
   gap: 4rem !important;
@@ -739,7 +739,7 @@ header.header,
 }
 
 @media (max-width: 900px) {
-  .lab-hero .row {
+  .lab-hero .section-contents > .row {
     grid-template-columns: 1fr !important;
   }
 
@@ -1162,7 +1162,7 @@ html body .product-card-wrapper.lab-card-augmented .card__media img {
 /* ---------- Aesthetic compaction + watermark layer (Ref 1 parity) ---------- */
 
 /* Tighter hero seating and section rhythm. */
-.lab-hero .row {
+.lab-hero .section-contents > .row {
   margin: 2rem auto !important;
 }
 
