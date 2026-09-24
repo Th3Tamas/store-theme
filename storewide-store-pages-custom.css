@@ -374,6 +374,7 @@ header.header,
 [data-product-key].lab-card-augmented:hover,
 [class*="product-card"].lab-card-augmented:hover {
   border-color: rgba(184, 241, 255, 0.35) !important;
+  transform: none !important;
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55);
 }
 
