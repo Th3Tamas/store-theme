@@ -1389,8 +1389,20 @@ html body .product-card-wrapper.lab-card-augmented .card__media {
   50% { transform: translateY(-8px); }
 }
 
-.lab-hero .image-column > * {
-  animation: lab-float 7s ease-in-out infinite;
+.lab-gear-placeholder,
+.lab-hero .image-column,
+.product-media-wrapper {
+  animation: none !important;
+  transform: none !important;
+  will-change: auto !important;
+}
+
+.lab-gear-placeholder {
+  aspect-ratio: 16 / 10 !important;
+  width: 100% !important;
+  height: auto !important;
+  position: relative !important;
+  overflow: hidden !important;
 }
 
 /* ---------- Final polish: overlap, share, card ratio ---------- */
