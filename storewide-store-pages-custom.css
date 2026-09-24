@@ -1100,6 +1100,65 @@ input:focus-visible {
   aspect-ratio: auto !important;
 }
 
+/* ---------- Nuclear overrides tail (beats cross-origin theme sheets) ---------- */
+
+/* 1. Description containment + styling. */
+html body [data-section-key="featured-product"].lab-hero .image-column {
+  grid-column: 2 / 3;
+}
+
+html body [data-section-key="featured-product"].lab-hero .text-column {
+  grid-column: 1 / 2;
+  max-width: 520px;
+  overflow: hidden;
+}
+
+html body [data-section-key="featured-product"].lab-hero .text-column .product-details-wrapper {
+  max-width: 520px;
+  overflow: hidden;
+}
+
+html body [data-section-key="featured-product"].lab-hero .text-column .product-description {
+  max-width: 100% !important;
+  overflow-wrap: break-word !important;
+  word-break: break-word;
+  margin-top: 1.5rem !important;
+  line-height: 1.6 !important;
+  color: #888 !important;
+  font-size: 13px !important;
+}
+
+/* 2. Hide native share icons (decorator keeps all nodes intact). */
+html body .product-share-wrapper,
+html body .product-details .share-links,
+html body [class*="product-share"],
+html body [data-section-key="featured-product"] .social-media-buttons-wrapper,
+html body [data-section-key="featured-product"] .share-list,
+html body [data-section-key="featured-product"] .share-title {
+  display: none !important;
+}
+
+/* 3. Card media: strict 1:1 square frame (align-self defeats flex stretch). */
+html body .product-card-wrapper.lab-card-augmented .card__media,
+html body .lab-card-augmented [class*="media-wrapper"],
+html body .lab-card-augmented [class*="image-wrapper"] {
+  width: 100% !important;
+  height: auto !important;
+  aspect-ratio: 1 / 1 !important;
+  align-self: center !important;
+  overflow: hidden !important;
+  border-radius: 8px 8px 0 0 !important;
+  background: #0d0d0d !important;
+}
+
+html body .product-card-wrapper.lab-card-augmented .card__media img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: center !important;
+  filter: contrast(1.15) !important;
+}
+
 /* ---------- Aesthetic compaction + watermark layer (Ref 1 parity) ---------- */
 
 /* Tighter hero seating and section rhythm. */
