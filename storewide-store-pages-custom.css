@@ -1167,17 +1167,13 @@ html body .product-card-wrapper.lab-card-augmented .card__inner {
   position: relative !important;
 }
 
-html body .product-card-wrapper.lab-card-augmented .card__inner > .card__content {
-  position: absolute !important;
-  inset: 0 !important;
-}
-
 html body .product-card-wrapper.lab-card-augmented .card__media {
   position: absolute !important;
-  inset: 0 !important;
-  width: auto !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
   height: auto !important;
-  aspect-ratio: auto !important;
+  aspect-ratio: 1 / 1 !important;
   margin: 0 !important;
   padding: 0 !important;
 }
