@@ -140,6 +140,10 @@
     var re = /\[\s*\[\s*lab\s*:\s*[^\]]+?\s*\]\s*\]/gi;
     var mm;
     while ((mm = re.exec(norm)) !== null) ranges.push({ s: mm.index, e: mm.index + mm[0].length });
+    // legacy display tags ([[audio: ...]], [[tag: ...]]): scrubbed from view, never parsed
+    var lr = /\[\s*\[\s*(?:audio|tag)\s*:[^\]]+?\s*\]\s*\]/gi;
+    var lm;
+    while ((lm = lr.exec(norm)) !== null) ranges.push({ s: lm.index, e: lm.index + lm[0].length });
     for (var i = ranges.length - 1; i >= 0; i--) deleteRange(map, ranges[i].s, ranges[i].e);
 
     // hide blocks left empty by scrub (never hide media/form/button carriers)
@@ -350,7 +354,14 @@
     ensureHeroWatermark(section, d);
     ensureTicks(section);
     var textCol = section.querySelector('.text-column, .product-details-wrapper') || section;
-    var imgCol = section.querySelector('.image-column') || section.querySelector('.card__media, .media');
+    var imgCol = section.querySelector('.image-column, .media-wrapper-outer, .product-media-wrapper') || section.querySelector('.card__media, .media') || section;
+    // canonical hooks so both Payhip hero templates share one style system
+    try {
+      var mediaBox = section.querySelector('.image-column, .media-wrapper-outer, .product-media-wrapper');
+      if (mediaBox) mediaBox.classList.add('lab-hero-media');
+      var detailsBox = section.querySelector('.text-column, .product-details-wrapper, .product-info-wrapper');
+      if (detailsBox) detailsBox.classList.add('lab-hero-details');
+    } catch (eHook) {}
     var heroCode = sanitizeCode(d.code || d.hero_code || 'UNIT-001');
     if (imgCol) {
       imgCol.classList.add('lab-halftone');
@@ -420,11 +431,14 @@
       if (nameAnchor && nameAnchor.parentNode) nameAnchor.parentNode.insertBefore(panel, nameAnchor.nextSibling);
       else textCol.insertBefore(panel, textCol.firstChild);
     }
-    // Ref 1 pill: hero buttons always take the holo frame (native nodes kept, disabled still unclickable).
+    // Button hierarchy: BUY NOW (and checkout) take the holo pill, ADD TO CART
+    // drops to a wireframe (native nodes kept, disabled still unclickable).
     section.querySelectorAll('.btn, button[type="submit"], .visit-product-page-link-wrapper a').forEach(function (btn) {
       if (btn.closest('.lab-holo-frame')) return;
+      var label = '';
+      try { label = (btn.textContent || '').toLowerCase(); } catch (eLabel) {}
       var wrap = document.createElement('span');
-      wrap.className = 'lab-holo-frame';
+      wrap.className = 'lab-holo-frame' + (/add\s*to\s*cart/.test(label) ? ' lab-btn-wire' : '');
       btn.parentNode.insertBefore(wrap, btn);
       wrap.appendChild(btn);
     });
