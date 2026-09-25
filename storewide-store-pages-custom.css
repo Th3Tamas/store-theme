@@ -513,9 +513,10 @@ header.header,
   display: block;
 }
 
-.lab-holo-frame > .btn,
-.lab-holo-frame > button,
-.lab-btn-holo {
+html body [data-section-key="featured-product"] .lab-holo-frame > .btn,
+html body [data-section-key="featured-product"] .lab-holo-frame > button,
+html body [data-section-key="featured-product"] .lab-holo-frame > a,
+html body .lab-btn-holo {
   position: relative;
   background: linear-gradient(90deg, #b8f1ff, #d4b8ff, #ffd1b8) !important;
   color: #000 !important;
@@ -1208,9 +1209,9 @@ html body .product-card-wrapper.lab-card-augmented .card__media img {
 }
 
 /* Secondary wireframe pill (ADD TO CART) vs primary holo (BUY NOW). */
-.lab-holo-frame.lab-btn-wire > .btn,
-.lab-holo-frame.lab-btn-wire > button,
-.lab-holo-frame.lab-btn-wire > a {
+html body [data-section-key="featured-product"] .lab-holo-frame.lab-btn-wire > .btn,
+html body [data-section-key="featured-product"] .lab-holo-frame.lab-btn-wire > button,
+html body [data-section-key="featured-product"] .lab-holo-frame.lab-btn-wire > a {
   background: transparent !important;
   color: #e6e6e6 !important;
   border: 1px solid rgba(255, 255, 255, 0.2) !important;
@@ -1223,9 +1224,9 @@ html body .product-card-wrapper.lab-card-augmented .card__media img {
   text-transform: uppercase !important;
 }
 
-.lab-holo-frame.lab-btn-wire > .btn:hover,
-.lab-holo-frame.lab-btn-wire > button:hover,
-.lab-holo-frame.lab-btn-wire > a:hover {
+html body [data-section-key="featured-product"] .lab-holo-frame.lab-btn-wire > .btn:hover,
+html body [data-section-key="featured-product"] .lab-holo-frame.lab-btn-wire > button:hover,
+html body [data-section-key="featured-product"] .lab-holo-frame.lab-btn-wire > a:hover {
   border-color: #fff !important;
   background: rgba(255, 255, 255, 0.05) !important;
   transform: none !important;
