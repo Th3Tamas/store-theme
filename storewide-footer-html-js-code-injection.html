@@ -901,10 +901,23 @@
           } catch (e) {}
           var added = mut.addedNodes;
           if (!added || !added.length) continue;
+          var genuine = false;
+          var doneSec = null;
           for (var j = 0; j < added.length; j++) {
-            if (isIgnorableNode(added[j])) continue;
-            if (isGenuineAddition(added[j])) { fire = true; break; }
-            // unknown additions are ignored to starve loops (timed passes cover late embeds)
+            if (isGenuineAddition(added[j])) { genuine = true; break; }
+            if (!doneSec) {
+              try {
+                var scope = added[j] && added[j].closest ? added[j].closest('.section-wrapper, [data-section-key]') : null;
+                if (scope && scope.hasAttribute && scope.hasAttribute(DONE)) doneSec = scope;
+              } catch (eScope) {}
+            }
+          }
+          if (genuine) { fire = true; break; }
+          // light re-scrub: async content inside scanned sections still gets tag-stripped
+          if (doneSec) {
+            for (var k = 0; k < added.length; k++) {
+              if (added[k] && added[k].nodeType === 1) { try { scrubContainer(added[k]); } catch (eScrub) {} }
+            }
           }
         }
         if (fire) schedule(document);
