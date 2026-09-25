@@ -135,7 +135,7 @@
       var parsed = parseTokenInner(tok);
       Object.keys(parsed).forEach(function (k) { directives[k] = parsed[k]; });
     });
-    labLog('tag matched', { tokens: matches.length, directives: directives });
+    labLog('tag matched', { tokens: (matches || []).length + (legacies || []).length, directives: directives });
 
     // delete ranges reverse order so offsets stay valid (norm is length-preserving vs combined)
     var ranges = [];
