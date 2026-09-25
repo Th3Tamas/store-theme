@@ -19,6 +19,7 @@
   'use strict';
 
   var TAG_RE = /\[\s*\[\s*lab\s*:\s*([^\]]+?)\s*\]\s*\]/gi;
+  var LEGACY_RE = /\[\s*\[\s*(?:audio|tag)\s*:[^\]]+?\s*\]\s*\]/gi;
   var DONE = 'data-lab-done';
   var CLOCK_TIMER = null;
   var LAB_VERSION = '1.1.0';
@@ -126,10 +127,11 @@
     var norm = combined.replace(/\u00a0/g, ' ');
 
     var matches = norm.match(TAG_RE);
-    if (!matches) return {};
+    var legacies = norm.match(LEGACY_RE);
+    if (!matches && !legacies) return {};
 
     var directives = {};
-    matches.forEach(function (tok) {
+    (matches || []).forEach(function (tok) {
       var parsed = parseTokenInner(tok);
       Object.keys(parsed).forEach(function (k) { directives[k] = parsed[k]; });
     });
