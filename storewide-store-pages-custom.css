@@ -523,7 +523,7 @@ header.header,
   border-radius: 999px !important;
   padding: 10px 24px !important;
   font-family: 'Space Grotesk', sans-serif !important;
-  font-weight: 600 !important;
+  font-weight: 700 !important;
   font-size: 13px !important;
   letter-spacing: 0.05em !important;
   text-transform: uppercase !important;
@@ -1161,6 +1161,106 @@ html body .product-card-wrapper.lab-card-augmented .card__media img {
   object-fit: cover !important;
   object-position: center !important;
   filter: contrast(1.15) !important;
+}
+
+/* ---------- Hero reversal + button hierarchy (Ref 1) ---------- */
+
+/* Live template container: flex row, details LEFT, media RIGHT. */
+.lab-hero .media-and-details-wrapper-outer {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 4rem !important;
+  max-width: 1280px !important;
+  width: 90vw !important;
+  margin: 2rem auto !important;
+}
+
+.lab-hero .media-and-details-wrapper-outer > .product-details-wrapper,
+.lab-hero .product-details-wrapper,
+.lab-hero .product-info-wrapper,
+.lab-hero [class*="details"] {
+  order: 1 !important;
+}
+
+.lab-hero .media-and-details-wrapper-outer > .media-wrapper-outer,
+.lab-hero .image-column,
+.lab-hero .product-media-wrapper,
+.lab-hero [class*="media"] {
+  order: 2 !important;
+}
+
+/* Canonical column hooks (both Payhip hero templates). */
+.lab-hero .lab-hero-details {
+  flex: 1 1 50%;
+  min-width: 0;
+  font-family: var(--font-mono) !important;
+}
+
+.lab-hero .lab-hero-media {
+  flex: 1 1 50%;
+  min-width: 0;
+  border: 1px solid var(--line) !important;
+}
+
+.lab-hero .lab-hero-media img {
+  filter: grayscale(1) contrast(1.25) !important;
+}
+
+/* Secondary wireframe pill (ADD TO CART) vs primary holo (BUY NOW). */
+.lab-holo-frame.lab-btn-wire > .btn,
+.lab-holo-frame.lab-btn-wire > button,
+.lab-holo-frame.lab-btn-wire > a {
+  background: transparent !important;
+  color: #e6e6e6 !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  border-radius: 999px !important;
+  padding: 10px 24px !important;
+  font-family: 'Space Grotesk', sans-serif !important;
+  font-weight: 600 !important;
+  font-size: 13px !important;
+  letter-spacing: 0.05em !important;
+  text-transform: uppercase !important;
+}
+
+.lab-holo-frame.lab-btn-wire > .btn:hover,
+.lab-holo-frame.lab-btn-wire > button:hover,
+.lab-holo-frame.lab-btn-wire > a:hover {
+  border-color: #fff !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  transform: none !important;
+  filter: none !important;
+}
+
+/* Legible spec rows. */
+.lab-hero-spec dl,
+.lab-hero-spec dt,
+.lab-hero-spec dd {
+  font-size: 12px !important;
+  line-height: 1.6 !important;
+  color: #aaa !important;
+}
+
+.lab-hero-spec dl {
+  row-gap: 6px;
+}
+
+@media (max-width: 900px) {
+  .lab-hero .media-and-details-wrapper-outer {
+    flex-direction: column !important;
+  }
+
+  .lab-hero .lab-hero-details {
+    border-left: none !important;
+    border-top: 1px solid var(--line) !important;
+    padding-left: 0 !important;
+    padding-top: 1.5rem !important;
+  }
+}
+
+/* Title keeps its grotesk hierarchy above the mono details treatment. */
+.lab-hero .lab-hero-details .product-name {
+  font-family: var(--font-display) !important;
 }
 
 /* ---------- Industrial masthead (Ref 2 density) ---------- */
