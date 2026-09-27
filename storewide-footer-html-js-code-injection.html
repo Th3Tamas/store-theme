@@ -203,6 +203,16 @@
     cross.style.cssText = 'top:6px;left:50%;';
     cross.setAttribute('aria-hidden', 'true');
     el.appendChild(cross);
+    // exterior registration marks for plated enclosures (offset outside the frame)
+    if (el.classList && el.classList.contains('lab-plate') && !el.querySelector(':scope > .lab-tick-out-tl')) {
+      ['lab-tick-out-tl', 'lab-tick-out-tr', 'lab-tick-out-bl', 'lab-tick-out-br'].forEach(function (c) {
+        var o = document.createElement('span');
+        o.className = 'lab-tick-out ' + c;
+        o.textContent = '+';
+        o.setAttribute('aria-hidden', 'true');
+        el.appendChild(o);
+      });
+    }
   }
 
   function ensureWatermark(el, text) {
@@ -358,7 +368,7 @@
   }
 
   function decorateHero(section, d) {
-    section.classList.add('lab-frame', 'lab-hero');
+    section.classList.add('lab-frame', 'lab-hero', 'lab-plate');
     ensureHeroWatermark(section, d);
     ensureTicks(section);
     var textCol = section.querySelector('.text-column, .product-details-wrapper') || section;
@@ -804,7 +814,7 @@
       if (!header || !header.parentNode) return;
       var brand = sanitizeText(getBrand(), 28);
       var mast = document.createElement('div');
-      mast.className = 'lab-masthead';
+      mast.className = 'lab-masthead lab-plate';
       var left = document.createElement('div');
       left.className = 'lab-masthead-side';
       left.setAttribute('aria-hidden', 'true');
@@ -829,6 +839,7 @@
       mast.appendChild(left);
       mast.appendChild(title);
       mast.appendChild(right);
+      ensureTicks(mast);
       header.parentNode.insertBefore(mast, header.nextSibling);
       labLog('masthead built');
     } catch (e) {}
@@ -985,7 +996,7 @@
     screen.className = 'lab-monitor-screen';
     var idle = document.createElement('div');
     idle.className = 'lab-standby';
-    idle.textContent = 'STANDBY // NO SIGNAL';
+    idle.textContent = 'STANDBY // FREQ-NULL';
     screen.appendChild(idle);
     var scrub = document.createElement('div');
     scrub.className = 'lab-scrub';
