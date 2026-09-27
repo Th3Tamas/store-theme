@@ -1264,6 +1264,21 @@ html body [data-section-key="featured-product"] .lab-holo-frame.lab-btn-wire > a
   font-family: var(--font-display) !important;
 }
 
+/* Hero equipment bed: dot-matrix chassis housing behind the artwork. */
+html body [data-section-key="featured-product"] .lab-hero-media,
+html body [data-section-key="featured-product"] .media-wrapper-outer {
+  background: #0d0d10 radial-gradient(circle, rgba(255, 255, 255, 0.04) 1px, transparent 1px) !important;
+  background-size: 16px 16px !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 8px !important;
+  padding: 1.5rem !important;
+}
+
+html body [data-section-key="featured-product"] .lab-hero-media img,
+html body [data-section-key="featured-product"] .media-wrapper-outer img {
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.06) !important;
+}
+
 /* ---------- Industrial masthead (Ref 2 density) ---------- */
 .lab-masthead {
   display: flex;
