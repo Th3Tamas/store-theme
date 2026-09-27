@@ -23,7 +23,7 @@
   var LAB_AUDIO = []; // native merchant audio URLs harvested from [[audio: ...]] tokens (max 3)
   var DONE = 'data-lab-done';
   var CLOCK_TIMER = null;
-  var LAB_VERSION = '1.2.0';
+  var LAB_VERSION = '1.3.0';
   var DEBOUNCE_MS = 450; // ticker animation guard: collapse churn into sparse passes
   var NF = (typeof NodeFilter !== 'undefined') ? NodeFilter : { SHOW_TEXT: 4, FILTER_ACCEPT: 1, FILTER_REJECT: 2 };
 
@@ -814,61 +814,54 @@
     return false;
   }
 
-  /* Industrial masthead under the main navigation (brand derived, never hardcoded). */
+  /* Aged newsprint masthead under the main navigation (brand derived, never hardcoded).
+     Newsprint spec plate: top ticker strip, stamped black title, bottom
+     catalog/barcode telemetry, black corner registration. Rebuilds legacy
+     dark plates so the upgrade applies without native changes. */
   function ensureMasthead() {
     try {
-      if (document.querySelector('.lab-masthead')) return;
+      var stale = document.querySelector('.lab-masthead:not(.lab-newsprint)');
+      if (stale && stale.parentNode) stale.parentNode.removeChild(stale);
+      if (document.querySelector('.lab-masthead.lab-newsprint')) return;
       var header = document.getElementById('header');
       if (!header || !header.parentNode) return;
       var brand = sanitizeText(getBrand(), 28);
       var mast = document.createElement('div');
-      mast.className = 'lab-masthead lab-plate';
-      var left = document.createElement('div');
-      left.className = 'lab-masthead-side';
-      left.setAttribute('aria-hidden', 'true');
-      var stamp = document.createElement('div');
-      stamp.textContent = 'CATALOG: 001 // REV-04';
-      var bar = document.createElement('div');
-      bar.className = 'lab-barcode is-small';
-      left.appendChild(stamp);
-      left.appendChild(bar);
+      mast.className = 'lab-masthead lab-plate lab-newsprint';
+      var top = document.createElement('div');
+      top.className = 'lab-masthead-topbar';
+      top.setAttribute('aria-hidden', 'true');
+      var topL = document.createElement('span');
+      topL.textContent = 'SYSTEM TICKER // REV-04';
+      var topR = document.createElement('span');
+      topR.textContent = '~ DYNAMICS ~';
+      top.appendChild(topL);
+      top.appendChild(topR);
       var title = document.createElement('div');
       title.className = 'lab-masthead-title';
-      /* Dynamic holo split: first brand token takes spectral fill, rest stays
-         solid. Brand still read from the DOM — zero hardcoded strings. */
-      try {
-        var open = document.createTextNode('[ ');
-        title.appendChild(open);
-        if (brand) {
-          var parts = brand.split(/\s+/).filter(function (w) { return w; });
-          var first = document.createElement('span');
-          first.className = 'lab-holo-word';
-          first.textContent = parts[0] || brand;
-          title.appendChild(first);
-          if (parts.length > 1) {
-            var rest = document.createTextNode(' ' + parts.slice(1).join(' '));
-            title.appendChild(rest);
-          }
-          title.appendChild(document.createTextNode(' / LABS ]'));
-        } else {
-          title.appendChild(document.createTextNode('LABS ]'));
-        }
-      } catch (eTitle) {
-        try { title.textContent = brand ? '[ ' + brand + ' / LABS ]' : '[ LABS ]'; } catch (e2) {}
-      }
-      var right = document.createElement('div');
-      right.className = 'lab-masthead-side';
-      right.setAttribute('aria-hidden', 'true');
-      var tele = document.createElement('div');
-      tele.textContent = 'SYS.ONLINE // 48KHZ 24-BIT';
-      var bar2 = document.createElement('div');
-      bar2.className = 'lab-barcode is-small';
-      right.appendChild(tele);
-      right.appendChild(bar2);
-      mast.appendChild(left);
+      try { title.textContent = (brand ? brand + ' / LAB' : 'LAB'); }
+      catch (eTitle) { try { title.textContent = 'LAB'; } catch (e2) {} }
+      var bottom = document.createElement('div');
+      bottom.className = 'lab-masthead-bottombar';
+      bottom.setAttribute('aria-hidden', 'true');
+      var stamp = document.createElement('span');
+      stamp.className = 'lab-stamp';
+      stamp.textContent = 'CATALOG // 001';
+      var inkBar = document.createElement('div');
+      inkBar.className = 'lab-barcode-ink';
+      inkBar.setAttribute('aria-hidden', 'true');
+      bottom.appendChild(stamp);
+      bottom.appendChild(inkBar);
+      mast.appendChild(top);
       mast.appendChild(title);
-      mast.appendChild(right);
-      ensureTicks(mast);
+      mast.appendChild(bottom);
+      ['lab-newsprint-cross-tl', 'lab-newsprint-cross-tr', 'lab-newsprint-cross-bl', 'lab-newsprint-cross-br'].forEach(function (c) {
+        var cross = document.createElement('span');
+        cross.className = 'lab-newsprint-cross ' + c;
+        cross.textContent = '+';
+        cross.setAttribute('aria-hidden', 'true');
+        mast.appendChild(cross);
+      });
       header.parentNode.insertBefore(mast, header.nextSibling);
       labLog('masthead built');
     } catch (e) {}

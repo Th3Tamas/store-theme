@@ -8,14 +8,22 @@
    ============================================================ */
 
 :root {
-  --carbon-0: #0a0a0a;
-  --carbon-1: #121212;
-  --carbon-2: #181818;
-  --ink: #e6e6e6;
-  --ink-dim: #d1d1d1;
-  --ink-faint: #8a8a8a;
-  --line: #333333;
-  --line-soft: #222222;
+  --carbon-void: #1a1916;
+  --carbon-0: #23221E;
+  --carbon-1: #282723;
+  --carbon-2: #201f1b;
+  --carbon-plate: #282723;
+  --carbon-card: #201f1b;
+  --ink: #EDEBE6;
+  --ink-dim: #C9C7BD;
+  --ink-faint: #9E9C94;
+  --ink-primary: #EDEBE6;
+  --ink-muted: #9E9C94;
+  --line: rgba(232, 230, 223, 0.12);
+  --line-soft: rgba(232, 230, 223, 0.06);
+  --line-subtle: rgba(232, 230, 223, 0.06);
+  --paper: #E6E3DA;
+  --paper-ink: #11110F;
   --cyan: #b8f1ff;
   --amber: #ffb454;
   --holo: linear-gradient(90deg, #b8f1ff 0%, #e0b8ff 45%, #ffd1b8 100%);
@@ -36,6 +44,33 @@ body {
   color: var(--ink) !important;
   font-family: var(--font-display);
   -webkit-font-smoothing: antialiased;
+}
+
+/* Warm carbon wash: every native wrapper inherits the earthy bed. */
+html, body, #site, .site-wrapper, .section-wrapper {
+  background-color: var(--carbon-0) !important;
+}
+
+/* Chassis enclosure beds (excludes the newsprint masthead — restyled below). */
+.lab-hero-enclosure,
+[data-section-key="featured-product"] .container,
+.lab-collections-enclosure,
+.lab-rack-enclosure,
+html body .section-wrapper.lab-plate:not(.lab-newsprint),
+[data-section-key="featured-collection"],
+.lab-rack {
+  background-color: var(--carbon-plate) !important;
+  border-color: var(--line) !important;
+}
+
+/* Cards hold contrast against #23221E. */
+.lab-card-augmented,
+.product-card-wrapper .card,
+.product-card-wrapper.lab-card-augmented .card,
+[data-product-key].lab-card-augmented,
+[class*="product-card"].lab-card-augmented {
+  background-color: var(--carbon-card) !important;
+  border-color: var(--line) !important;
 }
 
 /* Keep native scheme wrappers but force carbon */
@@ -2059,4 +2094,205 @@ html body .lab-masthead .lab-masthead-title:has(.lab-holo-word) {
 html body [data-section-key="featured-product"] .lab-hero-media,
 html body [data-section-key="featured-product"] .media-wrapper-outer {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 20px 60px rgba(0, 0, 0, 0.55) !important;
+}
+
+/* ============================================================
+   WARM CARBON ENFORCEMENT (#23221E) — wins over legacy cold beds
+   ============================================================ */
+
+html body .section-wrapper.lab-plate:not(.lab-newsprint) {
+  background-color: var(--carbon-plate) !important;
+  border-color: var(--line) !important;
+}
+
+html body [data-section-key="featured-collection"],
+html body [data-section-key="featured-collection"] > .section-background,
+html body .lab-rack {
+  background-color: var(--carbon-plate) !important;
+}
+
+html body .lab-card-augmented .card,
+html body .product-card-wrapper.lab-card-augmented .card,
+html body [data-product-key].lab-card-augmented,
+html body [class*="product-card"].lab-card-augmented {
+  background-color: var(--carbon-card) !important;
+  border-color: var(--line) !important;
+}
+
+/* ============================================================
+   AGED DISTRESSED NEWSPRINT MASTHEAD (Ref 2 top plate)
+   Decorator chrome only. Brand text stays dynamic via getBrand().
+   No holo gradient on this plate — stark stamped black ink.
+   ============================================================ */
+
+html body .lab-masthead.lab-plate.lab-newsprint {
+  max-width: 1320px;
+  margin: 1.5rem auto;
+  padding: 0;
+  border-radius: 3px;
+  background-color: var(--paper) !important;
+  background-image: radial-gradient(rgba(17, 17, 15, 0.055) 1px, transparent 1px) !important;
+  background-size: 5px 5px !important;
+  border: 2px solid #11110F !important;
+  outline: 1px dashed rgba(17, 17, 15, 0.4) !important;
+  outline-offset: -5px !important;
+  box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.18), inset 0 0 3px rgba(0, 0, 0, 0.35) !important;
+  color: var(--paper-ink) !important;
+  display: block;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Paper grain bed over the micro-dot print. */
+html body .lab-masthead.lab-newsprint::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.1;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23p)'/%3E%3C/svg%3E");
+}
+
+html body .lab-masthead.lab-newsprint > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Top micro-header strip: hairline-ruled system ticker. */
+html body .lab-masthead .lab-masthead-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 7px 16px;
+  border-bottom: 1px solid rgba(17, 17, 15, 0.55);
+  font-family: var(--font-mono) !important;
+  font-size: 10px !important;
+  letter-spacing: 0.18em !important;
+  text-transform: uppercase !important;
+  color: #11110F !important;
+}
+
+/* Main title: heavy black industrial grotesk, never holo on newsprint. */
+html body .lab-masthead.lab-newsprint .lab-masthead-title,
+html body .lab-masthead.lab-newsprint .lab-masthead-title:not(:has(.lab-holo-word)),
+html body .lab-masthead.lab-newsprint .lab-masthead-title:has(.lab-holo-word) {
+  background: none !important;
+  color: #11110F !important;
+  font-family: var(--font-display) !important;
+  font-weight: 800 !important;
+  font-size: clamp(2.2rem, 7vw, 5.5rem) !important;
+  letter-spacing: -0.03em !important;
+  line-height: 0.95 !important;
+  text-transform: uppercase !important;
+  text-align: center !important;
+  white-space: nowrap !important;
+  padding: 12px 52px !important;
+}
+
+html body .lab-masthead.lab-newsprint .lab-holo-word {
+  background: none !important;
+  color: #11110F !important;
+}
+
+/* Bottom telemetry strip: stamped catalog + ink barcode. */
+html body .lab-masthead .lab-masthead-bottombar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 16px;
+  border-top: 1px solid rgba(17, 17, 15, 0.55);
+  font-family: var(--font-mono) !important;
+  font-size: 10px !important;
+  letter-spacing: 0.18em !important;
+  text-transform: uppercase !important;
+  color: #11110F !important;
+}
+
+html body .lab-masthead .lab-stamp {
+  border: 1px solid rgba(17, 17, 15, 0.6);
+  padding: 3px 8px;
+  font-weight: 500;
+  transform: rotate(-0.5deg);
+}
+
+html body .lab-masthead .lab-barcode-ink {
+  height: 22px;
+  width: 130px;
+  max-width: 40%;
+  background: repeating-linear-gradient(
+    90deg,
+    #11110F 0 2px,
+    transparent 2px 5px,
+    #11110F 5px 6px,
+    transparent 6px 10px,
+    #11110F 10px 12px,
+    transparent 12px 15px
+  );
+}
+
+/* Bold black corner registration inside the newsprint plate. */
+html body .lab-masthead .lab-newsprint-cross {
+  position: absolute;
+  font-family: var(--font-mono) !important;
+  font-size: 16px !important;
+  font-weight: 500 !important;
+  line-height: 1 !important;
+  color: #11110F !important;
+  pointer-events: none;
+  z-index: 2;
+}
+
+html body .lab-masthead .lab-newsprint-cross-tl { top: 8px; left: 10px; }
+html body .lab-masthead .lab-newsprint-cross-tr { top: 8px; right: 10px; }
+html body .lab-masthead .lab-newsprint-cross-bl { bottom: 8px; left: 10px; }
+html body .lab-masthead .lab-newsprint-cross-br { bottom: 8px; right: 10px; }
+
+/* Legacy decorator marks inside newsprint read as black ink. */
+html body .lab-masthead.lab-newsprint .lab-tick {
+  border-color: #11110F !important;
+  opacity: 0.8 !important;
+}
+
+html body .lab-masthead.lab-newsprint .lab-cross,
+html body .lab-masthead.lab-newsprint .lab-tick-out {
+  color: #11110F !important;
+  opacity: 0.55 !important;
+}
+
+html body .lab-masthead.lab-newsprint .lab-masthead-side {
+  color: #11110F !important;
+}
+
+html body .lab-masthead.lab-newsprint .lab-barcode {
+  background: repeating-linear-gradient(
+    90deg,
+    #11110F 0 1px,
+    transparent 1px 3px,
+    #11110F 3px 4px,
+    transparent 4px 7px,
+    #11110F 7px 9px,
+    transparent 9px 11px
+  ) !important;
+  opacity: 0.9 !important;
+}
+
+@media (max-width: 760px) {
+  html body .lab-masthead.lab-plate.lab-newsprint {
+    margin: 1rem;
+  }
+
+  html body .lab-masthead.lab-newsprint .lab-masthead-title,
+  html body .lab-masthead.lab-newsprint .lab-masthead-title:not(:has(.lab-holo-word)) {
+    white-space: normal !important;
+    padding: 10px 40px !important;
+  }
+
+  html body .lab-masthead .lab-masthead-topbar,
+  html body .lab-masthead .lab-masthead-bottombar {
+    font-size: 9px !important;
+    flex-wrap: wrap;
+  }
 }
