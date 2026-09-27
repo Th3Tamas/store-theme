@@ -23,7 +23,7 @@
   var LAB_AUDIO = []; // native merchant audio URLs harvested from [[audio: ...]] tokens (max 3)
   var DONE = 'data-lab-done';
   var CLOCK_TIMER = null;
-  var LAB_VERSION = '1.1.0';
+  var LAB_VERSION = '1.2.0';
   var DEBOUNCE_MS = 450; // ticker animation guard: collapse churn into sparse passes
   var NF = (typeof NodeFilter !== 'undefined') ? NodeFilter : { SHOW_TEXT: 4, FILTER_ACCEPT: 1, FILTER_REJECT: 2 };
 
@@ -834,7 +834,28 @@
       left.appendChild(bar);
       var title = document.createElement('div');
       title.className = 'lab-masthead-title';
-      title.textContent = brand ? '[ ' + brand + ' / LABS ]' : '[ LABS ]';
+      /* Dynamic holo split: first brand token takes spectral fill, rest stays
+         solid. Brand still read from the DOM — zero hardcoded strings. */
+      try {
+        var open = document.createTextNode('[ ');
+        title.appendChild(open);
+        if (brand) {
+          var parts = brand.split(/\s+/).filter(function (w) { return w; });
+          var first = document.createElement('span');
+          first.className = 'lab-holo-word';
+          first.textContent = parts[0] || brand;
+          title.appendChild(first);
+          if (parts.length > 1) {
+            var rest = document.createTextNode(' ' + parts.slice(1).join(' '));
+            title.appendChild(rest);
+          }
+          title.appendChild(document.createTextNode(' / LABS ]'));
+        } else {
+          title.appendChild(document.createTextNode('LABS ]'));
+        }
+      } catch (eTitle) {
+        try { title.textContent = brand ? '[ ' + brand + ' / LABS ]' : '[ LABS ]'; } catch (e2) {}
+      }
       var right = document.createElement('div');
       right.className = 'lab-masthead-side';
       right.setAttribute('aria-hidden', 'true');
@@ -853,21 +874,33 @@
     } catch (e) {}
   }
 
-  /* Pointer-tracked card sheen: feeds --mouse-x/--mouse-y for the prism hover. */
-  var SHEEN_STATE = { raf: false, last: null, bound: false };
+  /* Pointer-tracked card sheen: feeds --mouse-x/--mouse-y for the prism hover.
+     Sets vars on the wrapper AND the inner .card so the ::before flare
+     resolves even when inheritance is cut by theme sheets. */
+  var SHEEN_STATE = { raf: false, last: null, lastInner: null, bound: false };
+  function setSheenVars(el, x, y) {
+    try { if (el) { el.style.setProperty('--mouse-x', x); el.style.setProperty('--mouse-y', y); } } catch (e) {}
+  }
+  function clearSheenVars(el) {
+    try { if (el) { el.style.removeProperty('--mouse-x'); el.style.removeProperty('--mouse-y'); } } catch (e) {}
+  }
   function updateSheen(e) {
     try {
       var card = (e && e.target && e.target.closest) ? e.target.closest('.product-card-wrapper.lab-card-augmented') : null;
       if (SHEEN_STATE.last && SHEEN_STATE.last !== card) {
-        try { SHEEN_STATE.last.style.removeProperty('--mouse-x'); } catch (e1) {}
-        try { SHEEN_STATE.last.style.removeProperty('--mouse-y'); } catch (e2) {}
+        clearSheenVars(SHEEN_STATE.last);
+        clearSheenVars(SHEEN_STATE.lastInner);
       }
       SHEEN_STATE.last = card;
       if (card) {
+        var inner = card.querySelector('.card') || card;
+        SHEEN_STATE.lastInner = inner;
         var r = card.getBoundingClientRect();
         if (r && r.width > 0 && r.height > 0) {
-          card.style.setProperty('--mouse-x', ((e.clientX - r.left) / r.width * 100).toFixed(1) + '%');
-          card.style.setProperty('--mouse-y', ((e.clientY - r.top) / r.height * 100).toFixed(1) + '%');
+          var x = ((e.clientX - r.left) / r.width * 100).toFixed(1) + '%';
+          var y = ((e.clientY - r.top) / r.height * 100).toFixed(1) + '%';
+          setSheenVars(card, x, y);
+          setSheenVars(inner, x, y);
         }
       }
     } catch (err) {}
