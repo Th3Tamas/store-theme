@@ -460,6 +460,14 @@
       btn.parentNode.insertBefore(wrap, btn);
       wrap.appendChild(btn);
     });
+    // Enforce description measure directly: theme sheets use section IDs we must not chase.
+    try {
+      var descEl = section.querySelector('.product-description');
+      if (descEl) {
+        descEl.style.setProperty('color', '#777', 'important');
+        descEl.style.setProperty('max-width', '480px', 'important');
+      }
+    } catch (eDesc) {}
     labLog('hero holo applied');
   }
 
