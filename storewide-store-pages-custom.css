@@ -676,6 +676,8 @@ html body .lab-btn-holo {
   padding: 12px 4px;
   position: relative;
   z-index: 1;
+  justify-content: center;
+  margin: 0 auto 2.5rem auto;
 }
 
 .lab-rack-node {
@@ -697,7 +699,7 @@ html body .lab-btn-holo {
   content: "→";
   position: absolute;
   right: -14px;
-  color: var(--ink-faint);
+  color: #666;
 }
 
 .lab-rack-node:last-child::after {
@@ -1270,6 +1272,32 @@ html body [data-section-key="featured-product"] .lab-holo-frame.lab-btn-wire > a
   font-family: var(--font-display) !important;
 }
 
+/* Centered newsletter axis: heading sits centered above the CLI prompt bar. */
+.group-footer-item[data-group-complex-type-id="newsletter"] {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+}
+
+.group-footer-item[data-group-complex-type-id="newsletter"] .heading-text {
+  text-align: center !important;
+}
+
+.lab-terminal-frame {
+  margin: 0 auto !important;
+}
+
+/* Hero description breathing room. */
+html body [data-section-key="featured-product"].lab-hero .text-column .product-description {
+  margin-top: 1.5rem !important;
+  line-height: 1.6 !important;
+  color: #777 !important;
+  font-size: 13px !important;
+  max-width: 480px !important;
+}
+
 /* ---------- Hardware console convergence (Ref 1 & 2 parity) ---------- */
 
 /* Plated enclosures: hero + masthead read as bounded chassis, not floating text. */
@@ -1657,11 +1685,14 @@ html body .product-card-wrapper.lab-card-augmented .card__media {
   content: "";
   position: absolute;
   top: 50%;
-  left: 4%;
-  right: 4%;
+  left: 50%;
+  transform: translateX(-50%);
   height: 1px;
-  background: var(--line-soft);
+  width: 100%;
+  max-width: 480px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1) 20%, rgba(255, 255, 255, 0.1) 80%, transparent);
   pointer-events: none;
+  z-index: 0;
 }
 
 .lab-rack-node {
