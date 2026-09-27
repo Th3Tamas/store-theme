@@ -1,0 +1,1141 @@
+/* LAB DECORATOR ENGINE v1.4.0 — remote script (decorator-only).
+   Loaded by the Payhip footer bootstrap; never paste this file into Payhip.
+   Marker namespace: [[lab: ...]] — all other [[...]] left untouched.
+   No hardcoded products/players/tickers. No brand strings (brand via getBrand()).
+   ------------------------------------------------------------------
+   EDITOR GUIDE (Action -> Result):
+   - Ticker: native Ticker + [[lab: ticker=glow-holo]] -> holo glow.
+     values: glow-holo | glow-cyan | plain-mono
+   - Hero: native Featured Product + [[lab: section=hero spec=... code=...]].
+   - Grid: native Featured Collection heading + [[lab: watermark=... barcode=on]].
+   - Per-card: product description + [[lab: spec=... code=...]].
+   - Monitor: native Video/Gallery/Embed + [[lab: monitor=oscilloscope]].
+   - Title: headline section + [[lab: section=title watermark=TEXT]].
+   - Terminal: native Newsletter + [[lab: newsletter=terminal]].
+   - Frame: any section + [[lab: frame=ticks watermark=TEXT]].
+ */
+(function () {
+  'use strict';
+
+  var TAG_RE = /\[\s*\[\s*lab\s*:\s*([^\]]+?)\s*\]\s*\]/gi;
+  var LEGACY_RE = /\[\s*\[\s*(?:audio|tag)\s*:[^\]]+?\s*\]\s*\]/gi;
+  var LAB_AUDIO = []; // native merchant audio URLs harvested from [[audio: ...]] tokens (max 3)
+  var DONE = 'data-lab-done';
+  var CLOCK_TIMER = null;
+  var LAB_VERSION = '1.4.0';
+  var DEBOUNCE_MS = 450; // ticker animation guard: collapse churn into sparse passes
+  var NF = (typeof NodeFilter !== 'undefined') ? NodeFilter : { SHOW_TEXT: 4, FILTER_ACCEPT: 1, FILTER_REJECT: 2 };
+
+  function labLog(msg, data) {
+    try {
+      if (data !== undefined) console.log('[Lab] ' + msg, data);
+      else console.log('[Lab] ' + msg);
+    } catch (e) {}
+  }
+
+  /* ---------- utils ---------- */
+
+  function sanitizeText(s, max) {
+    s = String(s == null ? '' : s).replace(/[\u201C\u201D]/g, '"').replace(/[\u2018\u2019]/g, "'").trim();
+    s = s.replace(/[<>&"']/g, '').replace(/\s+/g, ' ').trim();
+    if (s.length > max) s = s.slice(0, max);
+    return s;
+  }
+
+  function sanitizeCode(s) {
+    s = sanitizeText(s, 32).toUpperCase().replace(/[^A-Z0-9\-_\/ ]/g, '').trim();
+    return s;
+  }
+
+  function getBrand() {
+    try {
+      var img = document.querySelector('.js-header-logo-image');
+      if (img && img.getAttribute('alt')) {
+        var a = img.getAttribute('alt').trim();
+        if (a) return a;
+      }
+      var t = document.querySelector('.header-title a');
+      if (t && t.textContent.trim()) return t.textContent.trim();
+      var title = (document.title || '').split(/[-|/]/)[0].trim();
+      if (title) return title;
+    } catch (e) {}
+    return '';
+  }
+
+  /* Parse inner of [[lab: ...]] into {directives}. Supports:
+     key=value pairs where value runs until next " key=" or end (spaces/pipes allowed),
+     plus bare flags (barcode) -> "on". Keys case-insensitive, dots kept. */
+  function parseTokenInner(inner) {
+    var out = {};
+    var body = String(inner || '');
+    body = body.replace(/[\u201C\u201D]/g, '"').replace(/[\u2018\u2019]/g, "'").replace(/\u00a0/g, ' ').replace(/[\u200B-\u200D\uFEFF]/g, '').trim();
+    body = body.replace(/^\s*\[\s*\[\s*lab\s*:\s*/i, '').replace(/\s*\]\s*\]\s*$/, '');
+    if (!body) return out;
+    var re = /([a-z0-9_.\-]+)\s*=\s*([^=]*?)(?=\s+[a-z0-9_.\-]+\s*=|$)/gi;
+    var m, found = false;
+    while ((m = re.exec(body)) !== null) {
+      found = true;
+      var k = m[1].toLowerCase().replace(/\./g, '_');
+      out[k] = m[2].trim();
+    }
+    if (!found) {
+      // bare flags: "barcode rack ticks"
+      body.split(/\s+/).forEach(function (w) {
+        w = w.toLowerCase().replace(/[^a-z0-9_\-]/g, '');
+        if (w) out[w] = 'on';
+      });
+    }
+    return out;
+  }
+
+  /* Robust scrub: handles tags split across child spans.
+     Builds combined string + node map, parses, then deletes ranges. */
+  function scrubContainer(root) {
+    // skip code nodes: never scrub inside scripts/styles/form fields
+    var filter = function (node) {
+      try {
+        var p = node.parentNode;
+        if (p && /^(SCRIPT|STYLE|NOSCRIPT|TEXTAREA|INPUT)$/.test(p.nodeName)) return NF.FILTER_REJECT;
+      } catch (e) {}
+      return NF.FILTER_ACCEPT;
+    };
+    var walker = null;
+    try { walker = document.createTreeWalker(root, NF.SHOW_TEXT, filter); }
+    catch (e1) { try { walker = document.createTreeWalker(root, NF.SHOW_TEXT, null); } catch (e2) { return {}; } }
+    var nodes = [];
+    var n;
+    while ((n = walker.nextNode())) nodes.push(n);
+    if (!nodes.length) return {};
+
+    // pre-pass: drop invisible chars the editor may inject (map built after, stays consistent)
+    nodes.forEach(function (tn) {
+      try {
+        var raw = tn.data || '';
+        var clean = raw.replace(/[\u200B-\u200D\uFEFF]/g, '').replace(/&nbsp;/gi, ' ');
+        if (clean !== raw) tn.data = clean;
+      } catch (e) {}
+    });
+
+    var combined = '';
+    var map = []; // {node, start, end}
+    nodes.forEach(function (tn) {
+      var d = tn.data || '';
+      map.push({ node: tn, start: combined.length, end: combined.length + d.length });
+      combined += d;
+    });
+    // length-preserving normalization for matching (nbsp -> space)
+    var norm = combined.replace(/\u00a0/g, ' ');
+
+    var matches = norm.match(TAG_RE);
+    var legacies = norm.match(LEGACY_RE);
+    // harvest native audio references for the lab rack (display strip happens below)
+    (legacies || []).forEach(function (tok) {
+      var um = /\[\s*\[\s*audio\s*:\s*([^\]]+?)\s*\]\s*\]/i.exec(tok);
+      if (um) queueAudioUrl(um[1]);
+    });
+    if (!matches && !legacies) return {};
+
+    var directives = {};
+    (matches || []).forEach(function (tok) {
+      var parsed = parseTokenInner(tok);
+      Object.keys(parsed).forEach(function (k) { directives[k] = parsed[k]; });
+    });
+    labLog('tag matched', { tokens: (matches || []).length + (legacies || []).length, directives: directives });
+
+    // delete ranges reverse order so offsets stay valid (norm is length-preserving vs combined)
+    var ranges = [];
+    var re = /\[\s*\[\s*lab\s*:\s*[^\]]+?\s*\]\s*\]/gi;
+    var mm;
+    while ((mm = re.exec(norm)) !== null) ranges.push({ s: mm.index, e: mm.index + mm[0].length });
+    // legacy display tags ([[audio: ...]], [[tag: ...]]): scrubbed from view, never parsed
+    var lr = /\[\s*\[\s*(?:audio|tag)\s*:[^\]]+?\s*\]\s*\]/gi;
+    var lm;
+    while ((lm = lr.exec(norm)) !== null) ranges.push({ s: lm.index, e: lm.index + lm[0].length });
+    for (var i = ranges.length - 1; i >= 0; i--) deleteRange(map, ranges[i].s, ranges[i].e);
+
+    // hide blocks left empty by scrub (never hide media/form/button carriers)
+    try {
+      root.querySelectorAll('p, h1, h2, h3, span').forEach(function (el) {
+        if (el.hasAttribute(DONE)) return;
+        var txt = (el.textContent || '').trim();
+        if (txt !== '') return;
+        if (el.querySelector('img, video, audio, input, button, a, iframe')) return;
+        if (el.children.length > 0) return;
+        el.classList.add('lab-tag-scrubbed');
+      });
+    } catch (e) {}
+
+    return directives;
+  }
+
+  function deleteRange(map, s, e) {
+    map.forEach(function (entry) {
+      if (entry.end <= s || entry.start >= e) return;
+      var node = entry.node;
+      var data = node.data || '';
+      var localS = Math.max(0, s - entry.start);
+      var localE = Math.min(data.length, e - entry.start);
+      if (localS >= localE) return;
+      try { node.data = data.slice(0, localS) + data.slice(localE); } catch (err) {}
+    });
+  }
+
+  function ensureNoise() {
+    if (document.querySelector('.lab-noise-overlay')) return;
+    var d = document.createElement('div');
+    d.className = 'lab-noise-overlay';
+    d.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(d);
+  }
+
+  function ensureTicks(el) {
+    if (el.querySelector(':scope > .lab-tick-tl')) return;
+    ['lab-tick-tl', 'lab-tick-tr', 'lab-tick-bl', 'lab-tick-br'].forEach(function (c) {
+      var s = document.createElement('span');
+      s.className = 'lab-tick ' + c;
+      s.setAttribute('aria-hidden', 'true');
+      el.appendChild(s);
+    });
+    var cross = document.createElement('span');
+    cross.className = 'lab-cross';
+    cross.textContent = '+';
+    cross.style.cssText = 'top:6px;left:50%;';
+    cross.setAttribute('aria-hidden', 'true');
+    el.appendChild(cross);
+    // exterior registration marks for plated enclosures (offset outside the frame)
+    if (el.classList && el.classList.contains('lab-plate') && !el.querySelector(':scope > .lab-tick-out-tl')) {
+      ['lab-tick-out-tl', 'lab-tick-out-tr', 'lab-tick-out-bl', 'lab-tick-out-br'].forEach(function (c) {
+        var o = document.createElement('span');
+        o.className = 'lab-tick-out ' + c;
+        o.textContent = '+';
+        o.setAttribute('aria-hidden', 'true');
+        el.appendChild(o);
+      });
+    }
+  }
+
+  function ensureWatermark(el, text) {
+    var clean = sanitizeText(text, 24);
+    if (!clean) return;
+    var ex = el.querySelector(':scope > .lab-watermark');
+    if (ex) { ex.textContent = clean; return; }
+    var w = document.createElement('div');
+    w.className = 'lab-watermark';
+    w.textContent = clean;
+    w.setAttribute('aria-hidden', 'true');
+    el.insertBefore(w, el.firstChild);
+  }
+
+  function ensureBarcode(parent, small) {
+    if (parent.querySelector(':scope > .lab-barcode')) return;
+    var b = document.createElement('div');
+    b.className = 'lab-barcode' + (small ? ' is-small' : '');
+    b.setAttribute('aria-hidden', 'true');
+    // CSS-only bars; accessible label kept on parent card instead.
+    parent.appendChild(b);
+  }
+
+  /* ---------- telemetry (dynamic brand, generic otherwise) ---------- */
+
+  function ensureTelemetry() {
+    if (document.getElementById('lab-telemetry-bar')) return;
+    var bar = document.createElement('div');
+    bar.id = 'lab-telemetry-bar';
+    bar.setAttribute('aria-hidden', 'false');
+    var brand = sanitizeText(getBrand(), 40);
+    var dot = document.createElement('span');
+    dot.innerHTML = '<span class="lab-dot is-ok"></span>SYS.ONLINE';
+    bar.appendChild(dot);
+    if (brand) {
+      var b = document.createElement('span');
+      b.className = 'lab-brand';
+      b.textContent = brand + ' / LAB';
+      bar.appendChild(b);
+    }
+    var spec = document.createElement('span');
+    spec.className = 'lab-hide-mobile';
+    spec.textContent = '48KHZ 24-BIT';
+    bar.appendChild(spec);
+    var clock = document.createElement('span');
+    clock.className = 'lab-clock';
+    clock.textContent = '--:--:--';
+    bar.appendChild(clock);
+    // never detach or reorder #header: bar goes to the very top of <body>
+    if (document.body.firstChild) document.body.insertBefore(bar, document.body.firstChild);
+    else document.body.appendChild(bar);
+    if (!CLOCK_TIMER) {
+      var tick = function () {
+        try {
+          var c = document.querySelector('#lab-telemetry-bar .lab-clock');
+          if (c) c.textContent = new Date().toLocaleTimeString('en-GB');
+        } catch (e) {}
+      };
+      tick();
+      CLOCK_TIMER = setInterval(tick, 1000);
+    }
+  }
+
+  /* ---------- section decorators ---------- */
+
+  var RESIZE_TIMER = null;
+  function requestRemeasure() {
+    if (RESIZE_TIMER) return;
+    RESIZE_TIMER = setTimeout(function () {
+      RESIZE_TIMER = null;
+      try { window.dispatchEvent(new Event('resize')); labLog('ticker re-measured'); } catch (e) {}
+    }, 600);
+  }
+
+  /* Ticker clone scrub: Payhip re-renders marquee items from JSON after our
+     first pass, so tag tokens are stripped continuously (no decoration). */
+  var TICK_LOG_AT = 0;
+  var REMEASURE_BUDGET = 5;
+  function scrubTicker(section) {
+    var found = 0;
+    try {
+      var walker = document.createTreeWalker(section, NF.SHOW_TEXT, null);
+      var nodes = [], n;
+      while ((n = walker.nextNode())) nodes.push(n);
+      nodes.forEach(function (tn) {
+        var d = tn.data || '';
+        TAG_RE.lastIndex = 0;
+        if (!TAG_RE.test(d)) return;
+        TAG_RE.lastIndex = 0;
+        var stripped = d.replace(TAG_RE, '');
+        if (!stripped.trim()) {
+          var holder = tn.parentNode;
+          if (holder && holder !== section && /^(TSPAN|TEXT|SPAN|P)$/.test(holder.nodeName || '')) {
+            if (holder.parentNode) holder.parentNode.removeChild(holder);
+            found++;
+          } else {
+            tn.data = stripped;
+            found++;
+          }
+        } else {
+          tn.data = stripped;
+          found++;
+        }
+      });
+    } catch (e) {}
+    try {
+      var j = section.querySelector('.js-ticker-data-json');
+      if (j) {
+        var obj = JSON.parse(j.textContent);
+        if (obj && Array.isArray(obj.tickerItems)) {
+          var changed = false;
+          obj.tickerItems = obj.tickerItems.filter(function (it) {
+            if (!it || typeof it.text !== 'string') return true;
+            TAG_RE.lastIndex = 0;
+            var clean = it.text.replace(TAG_RE, '').trim();
+            if (clean !== it.text) changed = true;
+            it.text = clean;
+            return clean !== '';
+          });
+          if (changed) { j.textContent = JSON.stringify(obj); found++; }
+        }
+      }
+    } catch (e) {}
+    if (found) {
+      var now = Date.now();
+      if (now - TICK_LOG_AT > 5000) { TICK_LOG_AT = now; labLog('ticker scrubbed', { cleaned: found }); }
+      if (REMEASURE_BUDGET > 0) { REMEASURE_BUDGET--; requestRemeasure(); }
+    }
+    return found;
+  }
+
+  function decorateTicker(section, d) {
+    var fx = String(d.ticker || d.fx || d.ticker_fx || '').toLowerCase();
+    section.classList.add('fx-ticker-glow');
+    if (fx.indexOf('holo') >= 0) section.classList.add('lab-ticker-glow-holo');
+    else if (fx.indexOf('cyan') >= 0) section.classList.add('lab-ticker-glow-cyan');
+    else section.classList.add('lab-ticker-plain-mono');
+  }
+
+  /* Self-healing hero backdrop: explicit tag wins, then code, then product name. */
+  function ensureHeroWatermark(section, d) {
+    d = d || {};
+    var text = sanitizeText(d.watermark || d.code || d.hero_code || '', 24);
+    if (!text) {
+      var nameEl = section.querySelector('.product-name');
+      var words = ((nameEl && nameEl.textContent) || '').trim().split(/\s+/);
+      text = sanitizeText(words[0] || '', 12);
+    }
+    if (!text) return;
+    section.classList.add('lab-frame');
+    ensureWatermark(section, text);
+    ensureTicks(section);
+  }
+
+  function decorateHero(section, d) {
+    section.classList.add('lab-frame', 'lab-hero', 'lab-plate');
+    ensureHeroWatermark(section, d);
+    ensureTicks(section);
+    var textCol = section.querySelector('.text-column, .product-details-wrapper') || section;
+    var imgCol = section.querySelector('.image-column, .media-wrapper-outer, .product-media-wrapper') || section.querySelector('.card__media, .media') || section;
+    // canonical hooks so both Payhip hero templates share one style system
+    try {
+      var mediaBox = section.querySelector('.image-column, .media-wrapper-outer, .product-media-wrapper');
+      if (mediaBox) mediaBox.classList.add('lab-hero-media');
+      var detailsBox = section.querySelector('.text-column, .product-details-wrapper, .product-info-wrapper');
+      if (detailsBox) detailsBox.classList.add('lab-hero-details');
+    } catch (eHook) {}
+    var heroCode = sanitizeCode(d.code || d.hero_code || 'UNIT-001');
+    if (imgCol) {
+      imgCol.classList.add('lab-halftone');
+      var hasImg = imgCol.querySelector('img');
+      if (!hasImg && !imgCol.querySelector('.lab-gear-placeholder')) {
+        var ph = document.createElement('div');
+        ph.className = 'lab-gear-placeholder lab-halftone';
+        ph.textContent = 'HW // NO SIGNAL';
+        ph.setAttribute('aria-hidden', 'true');
+        imgCol.appendChild(ph);
+      }
+      // Payhip placeholder art is not real product media: bury it, raise a chassis bed.
+      try {
+        var deadArt = imgCol.querySelector('.media-not-provided-thumbnail-wrapper');
+        if (deadArt && !imgCol.querySelector('.lab-gear-placeholder')) {
+          deadArt.style.display = 'none';
+          var bed = document.createElement('div');
+          bed.className = 'lab-gear-placeholder lab-halftone lab-chassis';
+          bed.setAttribute('aria-hidden', 'true');
+          var chead = document.createElement('div');
+          chead.className = 'lab-chassis-head';
+          var cleft = document.createElement('span');
+          cleft.textContent = '[ HW CHASSIS // ACTIVE MONITOR ]';
+          var cright = document.createElement('span');
+          cright.textContent = 'SAMPLER ENGINE 48KHZ';
+          chead.appendChild(cleft);
+          chead.appendChild(cright);
+          var cbody = document.createElement('div');
+          cbody.className = 'lab-chassis-body';
+          cbody.textContent = heroCode + ' // NO SIGNAL';
+          bed.appendChild(chead);
+          bed.appendChild(cbody);
+          ['lab-screw-tl', 'lab-screw-tr', 'lab-screw-bl', 'lab-screw-br'].forEach(function (sc) {
+            var screw = document.createElement('span');
+            screw.className = 'lab-screw ' + sc;
+            screw.textContent = '+';
+            bed.appendChild(screw);
+          });
+          imgCol.appendChild(bed);
+        }
+      } catch (eDead) {}
+    }
+    if (textCol && !textCol.querySelector(':scope > .lab-hero-spec')) {
+      var panel = document.createElement('div');
+      panel.className = 'lab-hero-spec';
+      var spec = sanitizeText(d.spec || d.hero_spec || d.meta || 'WAV | 48KHZ | 24-BIT', 120);
+      var priceEl = section.querySelector('.js-product-price-value');
+      var price = priceEl ? priceEl.textContent.trim() : '';
+      panel.innerHTML = '';
+      var codeEl = document.createElement('div');
+      codeEl.className = 'lab-hero-code';
+      codeEl.textContent = 'MODEL ' + heroCode;
+      panel.appendChild(codeEl);
+      var dl = document.createElement('dl');
+      [['SPEC', spec], ['FORMAT', 'STEMS / ONE-SHOTS'], ['RATE', '48KHZ 24-BIT']].forEach(function (row) {
+        var dt = document.createElement('dt'); dt.textContent = row[0];
+        var dd = document.createElement('dd'); dd.textContent = row[1];
+        dl.appendChild(dt); dl.appendChild(dd);
+      });
+      if (price) {
+        var pdt = document.createElement('dt'); pdt.textContent = 'PRICE';
+        var pdd = document.createElement('dd'); pdd.textContent = price;
+        dl.appendChild(pdt); dl.appendChild(pdd);
+      }
+      panel.appendChild(dl);
+      var nameAnchor = (textCol.querySelector && textCol.querySelector('.product-name')) || section.querySelector('.product-name');
+      if (nameAnchor && nameAnchor.parentNode) nameAnchor.parentNode.insertBefore(panel, nameAnchor.nextSibling);
+      else textCol.insertBefore(panel, textCol.firstChild);
+    }
+    // Button hierarchy: BUY NOW (and checkout) take the holo pill, ADD TO CART
+    // drops to a wireframe (native nodes kept, disabled still unclickable).
+    section.querySelectorAll('.btn, button[type="submit"], .visit-product-page-link-wrapper a').forEach(function (btn) {
+      if (btn.closest('.lab-holo-frame')) return;
+      var label = '';
+      try { label = (btn.textContent || '').toLowerCase(); } catch (eLabel) {}
+      var wrap = document.createElement('span');
+      wrap.className = 'lab-holo-frame' + (/add\s*to\s*cart/.test(label) ? ' lab-btn-wire' : '');
+      btn.parentNode.insertBefore(wrap, btn);
+      wrap.appendChild(btn);
+    });
+    // Enforce description measure directly: theme sheets use section IDs we must not chase.
+    try {
+      var descEl = section.querySelector('.product-description');
+      if (descEl) {
+        descEl.style.setProperty('color', '#777', 'important');
+        descEl.style.setProperty('max-width', '480px', 'important');
+      }
+    } catch (eDesc) {}
+    labLog('hero holo applied');
+  }
+
+  function cardFoot(card, code, spec) {
+    var foot = card.querySelector(':scope > .card > .lab-card-foot, :scope > .lab-card-foot');
+    if (!foot) {
+      foot = document.createElement('div');
+      foot.className = 'lab-card-foot';
+      var cardInner = card.querySelector('.card');
+      (cardInner || card).appendChild(foot);
+    }
+    foot.innerHTML = '';
+    var c = document.createElement('span');
+    c.className = 'lab-card-code';
+    c.textContent = code;
+    var s = document.createElement('span');
+    s.className = 'lab-card-spec';
+    s.textContent = spec;
+    foot.appendChild(c); foot.appendChild(s);
+    ensureBarcode(foot, true);
+  }
+
+  function decorateCollection(section, d) {
+    var cards = section.querySelectorAll('.product-card-wrapper');
+    if (!cards.length) cards = section.querySelectorAll('[data-product-key]');
+    // Ref backdrop: explicit watermark wins, else derive from native heading.
+    if (!d.watermark) {
+      var ch = section.querySelector('.heading-text, h2');
+      var hw = sanitizeText((ch && ch.textContent) || '', 18);
+      if (hw) { section.classList.add('lab-frame'); ensureWatermark(section, hw); ensureTicks(section); }
+    }
+    var wantBarcode = String(d.barcode || '').toLowerCase() === 'on';
+    var sectionSpec = sanitizeText(d.spec || d.meta || d.card_meta || 'WAV | 48KHZ', 80);
+    cards.forEach(function (card) {
+      if (card.hasAttribute(DONE)) {
+        // still refresh foot if section spec changed? skip for idempotency
+      }
+      var cardD = {};
+      try { cardD = scrubContainer(card); } catch (e) {}
+      var codeRaw = cardD.code || cardD.card_code || card.getAttribute('data-product-key') || 'UNIT';
+      var code = sanitizeCode(codeRaw).slice(0, 12) || 'UNIT';
+      var spec = sanitizeText(cardD.spec || cardD.meta || sectionSpec, 80);
+      card.classList.add('lab-card-augmented');
+      var media = card.querySelector('.card__media, .media');
+      var hasImg = !!(media && media.querySelector('img'));
+      if (media) {
+        media.classList.add('lab-halftone');
+        if (!hasImg) {
+          media.classList.add('lab-noart');
+          try { media.setAttribute('data-lab-code', code); } catch (e) {}
+        }
+      }
+      cardFoot(card, code, spec);
+      if (wantBarcode || String(cardD.barcode || '').toLowerCase() === 'on') {
+        var foot = card.querySelector('.lab-card-foot');
+        if (foot) ensureBarcode(foot, true);
+      }
+      card.setAttribute(DONE, '1');
+    });
+
+    var wantRack = String(d.rack || d.nodes || d.rack_nodes || '').toLowerCase() === 'on';
+    // prune stale/empty rails so no ghost boxes linger above the grid
+    try {
+      section.querySelectorAll('.lab-rack-nodes').forEach(function (rail) {
+        var kids = rail.querySelectorAll('.lab-rack-node');
+        var hasLabel = false;
+        kids.forEach(function (k) { if ((k.textContent || '').trim()) hasLabel = true; });
+        if (!kids.length || !hasLabel) { if (rail.parentNode) rail.parentNode.removeChild(rail); }
+      });
+    } catch (e) {}
+    // no config or no items: return immediately, inject nothing
+    if (!wantRack || !cards.length) return;
+    if (!section.querySelector(':scope .lab-rack-nodes')) {
+      var labels = [];
+      Array.prototype.slice.call(cards, 0, 4).forEach(function (card) {
+        var rawKey = '';
+        try { rawKey = card.getAttribute('data-product-key') || ''; } catch (e) {}
+        labels.push(rawKey.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6) || 'MOD');
+      });
+      if (!labels.length) return;
+      var rail = document.createElement('div');
+      rail.className = 'lab-rack-nodes';
+      rail.setAttribute('aria-hidden', 'true');
+      labels.forEach(function (key) {
+        var node = document.createElement('div');
+        node.className = 'lab-rack-node';
+        node.textContent = key;
+        rail.appendChild(node);
+      });
+      var grid = section.querySelector('.grid-block, .grid-list');
+      if (grid && grid.parentNode) grid.parentNode.insertBefore(rail, grid);
+      else section.appendChild(rail);
+      labLog('rack built', { nodes: labels.length });
+    }
+  }
+
+  function decorateMonitor(section, d) {
+    d = d || {};
+    if (section.querySelector(':scope > .lab-monitor')) return;
+    section.classList.add('lab-frame', 'lab-monitor-section');
+    if (d.watermark) ensureWatermark(section, d.watermark);
+    else {
+      var mh = section.querySelector('.heading-text, h2');
+      var mw = sanitizeText((mh && mh.textContent) || '', 18);
+      if (mw) ensureWatermark(section, mw);
+    }
+    ensureTicks(section);
+    var target = section.querySelector('.section-contents') || section;
+    var media = section.querySelector('video, audio, img, iframe');
+    var frame = document.createElement('div');
+    frame.className = 'lab-monitor';
+    var head = document.createElement('div');
+    head.className = 'lab-monitor-head';
+    var dots = document.createElement('span');
+    dots.className = 'lab-dots';
+    dots.textContent = '● ● ●';
+    dots.setAttribute('aria-hidden', 'true');
+    head.appendChild(dots);
+    var mTitle = section.querySelector('.heading-text, h2');
+    if (mTitle && mTitle.textContent.trim()) {
+      var track = document.createElement('span');
+      track.className = 'lab-track';
+      track.textContent = sanitizeText(mTitle.textContent, 18);
+      head.appendChild(track);
+    }
+    var tc = document.createElement('span');
+    tc.className = 'lab-tc';
+    tc.textContent = 'CH-01 00:00:00';
+    head.appendChild(tc);
+    var rec = document.createElement('span');
+    rec.textContent = '[REC]';
+    head.appendChild(rec);
+    var screen = document.createElement('div');
+    screen.className = 'lab-monitor-screen';
+    if (media) {
+      // move native media inside screen — keeps all listeners/handlers intact
+      screen.appendChild(media);
+    } else {
+      var ph = document.createElement('div');
+      ph.className = 'lab-gear-placeholder';
+      ph.textContent = 'AV // NO SIGNAL';
+      screen.appendChild(ph);
+    }
+    // play toggles native media only; placeholder has no media so button hidden
+    var nativeMedia = screen.querySelector('video, audio');
+    if (nativeMedia) {
+      var play = document.createElement('button');
+      play.type = 'button';
+      play.className = 'lab-play';
+      play.textContent = '▶';
+      play.setAttribute('aria-label', 'Play preview');
+      play.addEventListener('click', function () {
+        try {
+          if (nativeMedia.paused) { nativeMedia.play(); play.textContent = '❚❚'; }
+          else { nativeMedia.pause(); play.textContent = '▶'; }
+        } catch (e) {}
+      });
+      try {
+        nativeMedia.addEventListener('play', function () { play.textContent = '❚❚'; });
+        nativeMedia.addEventListener('pause', function () { play.textContent = '▶'; });
+        nativeMedia.addEventListener('timeupdate', function () {
+          var cur = nativeMedia.currentTime || 0;
+          var h = String(Math.floor(cur / 3600)).padStart(2, '0');
+          var m = String(Math.floor((cur % 3600) / 60)).padStart(2, '0');
+          var s = String(Math.floor(cur % 60)).padStart(2, '0');
+          tc.textContent = 'CH-01 ' + h + ':' + m + ':' + s;
+          var dur = nativeMedia.duration || 0;
+          if (dur > 0) fill.style.width = (cur / dur * 100).toFixed(1) + '%';
+        });
+      } catch (e) {}
+      screen.appendChild(play);
+    }
+    var scrub = document.createElement('div');
+    scrub.className = 'lab-scrub';
+    scrub.setAttribute('aria-hidden', 'true');
+    var fill = document.createElement('div');
+    fill.className = 'lab-scrub-fill';
+    scrub.appendChild(fill);
+    frame.appendChild(head); frame.appendChild(screen); frame.appendChild(scrub);
+    target.appendChild(frame);
+  }
+
+  function decorateNewsletter(scope, d) {
+    var want = String(d.newsletter || d.skin || d.section || '').toLowerCase().indexOf('terminal') >= 0;
+    if (!want) return;
+    scope.querySelectorAll('form').forEach(function (form) {
+      var email = form.querySelector('input[type="email"], input[type="text"]');
+      if (!email) return;
+      var frame = form.closest('.lab-terminal-frame');
+      if (!frame) {
+        frame = document.createElement('div');
+        frame.className = 'lab-terminal-frame';
+        form.parentNode.insertBefore(frame, form);
+        frame.appendChild(form);
+      }
+      try {
+        if (!email.getAttribute('placeholder')) email.setAttribute('placeholder', 'enter email address..._');
+        email.setAttribute('autocomplete', 'email');
+      } catch (e) {}
+      form.querySelectorAll('button, .btn, input[type="submit"]').forEach(function (b) {
+        b.classList.add('lab-btn-holo');
+      });
+    });
+  }
+
+  /* Infer section role from native content (IDs rotate per instance — never match them). */
+  function sectionKey(section) {
+    try {
+      var k = section.getAttribute && section.getAttribute('data-section-key');
+      if (k) return k;
+    } catch (e) {}
+    try {
+      if (section.id === 'header' || section.querySelector('.header-nav')) return 'header';
+      if (section.querySelector('.ticker, [class*="ticker"]')) return 'ticker';
+      if (section.querySelector('.product-card-wrapper, [data-product-key]')) return 'featured-collection';
+      if (section.querySelector('.product-details-wrapper, .js-product-price-value')) return 'featured-product';
+      if (section.querySelector('video, audio')) return 'video-simple';
+    } catch (e) {}
+    return '';
+  }
+
+  /* ---------- root scan ---------- */
+
+  function decorateRoot(root) {
+    try { ensureNoise(); } catch (e) {}
+    try { ensureTelemetry(); } catch (e) {}
+
+    var sections = [];
+    try {
+      var SEL = '.section-wrapper, #header, [data-section-key]';
+      if (root.matches && root.matches(SEL) && sections.indexOf(root) === -1) sections.push(root);
+      if (root.querySelectorAll) root.querySelectorAll(SEL).forEach(function (s) { if (sections.indexOf(s) === -1) sections.push(s); });
+      // cart drawer / modal nodes carry no lab tags but get baseline consistency via CSS;
+      // still scrub them in case editor text leaks inside.
+    } catch (e) {}
+    var scanned = 0, decorated = 0;
+
+    sections.forEach(function (section) {
+      var key = sectionKey(section);
+      var isDone = section.hasAttribute && section.hasAttribute(DONE) && section.getAttribute(DONE) === '2';
+      if (isDone) {
+        // catch-up: cards appended after first scan (pagination / ajax) reuse cached directives
+        if (key === 'featured-collection') {
+          var hasFresh = false;
+          try {
+            var list = section.querySelectorAll('.product-card-wrapper');
+            if (!list.length) list = section.querySelectorAll('[data-product-key]');
+            list.forEach(function (c) { if (!c.hasAttribute(DONE)) hasFresh = true; });
+          } catch (e) {}
+          if (hasFresh) {
+            var cc = {};
+            try { cc = JSON.parse(section.getAttribute('data-lab-directives') || '{}'); } catch (e) { cc = {}; }
+            try { decorateCollection(section, cc); } catch (e) {}
+          }
+        }
+        // self-heal: re-seat the hero backdrop if the section was re-rendered
+        if (key === 'featured-product' && !section.querySelector(':scope > .lab-watermark')) {
+          try {
+            var hd = JSON.parse(section.getAttribute('data-lab-directives') || '{}');
+            ensureHeroWatermark(section, hd);
+          } catch (e) {}
+        }
+        return;
+      }
+      var d = {};
+      try { d = scrubContainer(section) || {}; } catch (e) { d = {}; }
+      try { section.setAttribute('data-lab-directives', JSON.stringify(d)); } catch (e) {}
+
+      var hasLab = Object.keys(d).length > 0;
+      if (hasLab) { try { section.classList.add('lab-tagged'); } catch (e) {} }
+      // headline kill has one door: explicit title/monitor intent, nothing else
+      if (key === 'headline' && hasLab) {
+        var intent = String(d.section || d.monitor || d.skin || '').toLowerCase();
+        if (intent === 'title' || intent === 'heading' || intent === 'monitor' || intent === 'lab' || d.monitor === 'oscilloscope') {
+          try { section.classList.add('lab-headline-show'); } catch (e) {}
+        }
+      }
+      scanned++;
+      if (key && key !== 'header') labLog('section detected', key);
+
+      try {
+        if (d.frame === 'ticks') { section.classList.add('lab-frame'); ensureTicks(section); }
+        if (d.watermark) { section.classList.add('lab-frame'); ensureWatermark(section, d.watermark); ensureTicks(section); }
+
+        if (key === 'ticker' && (d.ticker || d.fx || d.ticker_fx)) decorateTicker(section, d);
+        // hero is always treated: the featured product is the primary focal block (tags only customize it)
+        if (key === 'featured-product') decorateHero(section, d);
+        if (key === 'featured-collection' && (d.barcode || d.rack || d.nodes || d.spec || d.meta || d.watermark || d.card_meta)) decorateCollection(section, d);
+        else if (key === 'featured-collection' && hasLab) decorateCollection(section, d);
+        if ((key === 'video-simple' || key === 'gallery' || key === 'embed-code') && (d.monitor === 'oscilloscope' || d.skin === 'oscilloscope' || d.section === 'monitor')) decorateMonitor(section, d);
+        if (d.newsletter || d.skin === 'terminal' || d.section === 'terminal') decorateNewsletter(section, d);
+
+        // footer scope: allow terminal tag placed anywhere in footer section
+        if (key === 'footer' && hasLab) { section.classList.add('lab-frame'); ensureTicks(section); decorateNewsletter(section, d); }
+        if (hasLab) { decorated++; labLog('decoration complete', key || 'unknown'); }
+      } catch (err) { labLog('section error', String(err && err.message || err)); }
+
+      if (key === 'ticker') { try { scrubTicker(section); } catch (e) {} }
+
+      // mark scanned (2 = section-level done; cards use 1)
+      try { if (!section.hasAttribute(DONE)) section.setAttribute(DONE, '2'); } catch (e) {}
+    });
+    if (decorated > 0) labLog('pass complete', { scanned: scanned, decorated: decorated });
+    try { buildLabRack(); } catch (eRack) {}
+
+    // standalone newsletter forms outside footer sections
+    try {
+      var pending = [];
+      (root.querySelectorAll ? root.querySelectorAll('form') : []).forEach(function (f) {
+        if (f.closest('.lab-terminal-frame') || f.hasAttribute(DONE)) return;
+        pending.push(f);
+      });
+      // scrub each candidate form container for tags (handles split spans inside labels)
+      pending.forEach(function (form) {
+        var holder = form.parentNode || form;
+        var fd = {};
+        try { fd = scrubContainer(holder) || {}; } catch (e) {}
+        if (fd.newsletter || fd.skin === 'terminal' || fd.section === 'terminal') decorateNewsletter(holder, fd);
+        try { form.setAttribute(DONE, '1'); } catch (e) {}
+      });
+    } catch (e) {}
+  }
+
+  /* Mutation filters: ticker animation + our own chrome must never retrigger scans. */
+  function isIgnorableNode(an) {
+    try {
+      if (!an || an.nodeType !== 1) return true;
+      if (an.closest && an.closest('.ticker, [data-section-key="ticker"]')) return true;
+      if (an.closest && an.closest('#lab-telemetry-bar, .lab-noise-overlay')) return true;
+      var cls = an.className;
+      if (cls && typeof cls !== 'string' && cls.baseVal !== undefined) cls = ''; // SVG nodes
+      if (typeof cls === 'string' && /(^|\s)lab-[\w-]+/.test(cls)) return true;
+      if (/^(SCRIPT|STYLE|LINK)$/.test(an.nodeName || '')) return true;
+    } catch (e) { return false; }
+    return false;
+  }
+
+  function isGenuineAddition(an) {
+    try {
+      var SEL = '.product-card-wrapper, [data-product-key], .section-wrapper, [data-section-key], form, [class*="cart"], [id*="cart"]';
+      if (an.matches && an.matches(SEL)) return true;
+      if (an.querySelector && an.querySelector(SEL)) return true;
+    } catch (e) {}
+    return false;
+  }
+
+  /* Vintage broadsheet masthead under the main navigation (brand derived,
+     never hardcoded). Editorial dateline up top, ink-pressed brand title,
+     colophon under a double rule. Zero tech chrome. Rebuilds legacy plates
+     so the upgrade applies without native changes. */
+  function ensureMasthead() {
+    try {
+      var stale = document.querySelector('.lab-masthead:not(.lab-newsprint)');
+      if (stale && stale.parentNode) stale.parentNode.removeChild(stale);
+      if (document.querySelector('.lab-masthead.lab-newsprint')) return;
+      var header = document.getElementById('header');
+      if (!header || !header.parentNode) return;
+      var brand = sanitizeText(getBrand(), 28);
+      var mast = document.createElement('div');
+      mast.className = 'lab-masthead lab-plate lab-newsprint';
+      var top = document.createElement('div');
+      top.className = 'lab-masthead-topbar';
+      top.setAttribute('aria-hidden', 'true');
+      var topL = document.createElement('span');
+      topL.textContent = 'VOL. 01 \u2014 ISSUE 26';
+      var topR = document.createElement('span');
+      topR.textContent = 'AUTUMN 2026';
+      top.appendChild(topL);
+      top.appendChild(topR);
+      var title = document.createElement('div');
+      title.className = 'lab-masthead-title';
+      try { title.textContent = (brand ? brand + ' / LAB' : 'LAB'); }
+      catch (eTitle) { try { title.textContent = 'LAB'; } catch (e2) {} }
+      var bottom = document.createElement('div');
+      bottom.className = 'lab-masthead-bottombar';
+      bottom.setAttribute('aria-hidden', 'true');
+      var botL = document.createElement('span');
+      botL.textContent = 'EST. MMXXVI';
+      var botR = document.createElement('span');
+      botR.textContent = 'EDITION NO. 001';
+      bottom.appendChild(botL);
+      bottom.appendChild(botR);
+      mast.appendChild(top);
+      mast.appendChild(title);
+      mast.appendChild(bottom);
+      header.parentNode.insertBefore(mast, header.nextSibling);
+      labLog('masthead built');
+    } catch (e) {}
+  }
+
+  /* Pointer-tracked card sheen: feeds --mouse-x/--mouse-y for the prism hover.
+     Sets vars on the wrapper AND the inner .card so the ::before flare
+     resolves even when inheritance is cut by theme sheets. */
+  var SHEEN_STATE = { raf: false, last: null, lastInner: null, bound: false };
+  function setSheenVars(el, x, y) {
+    try { if (el) { el.style.setProperty('--mouse-x', x); el.style.setProperty('--mouse-y', y); } } catch (e) {}
+  }
+  function clearSheenVars(el) {
+    try { if (el) { el.style.removeProperty('--mouse-x'); el.style.removeProperty('--mouse-y'); } } catch (e) {}
+  }
+  function updateSheen(e) {
+    try {
+      var card = (e && e.target && e.target.closest) ? e.target.closest('.product-card-wrapper.lab-card-augmented') : null;
+      if (SHEEN_STATE.last && SHEEN_STATE.last !== card) {
+        clearSheenVars(SHEEN_STATE.last);
+        clearSheenVars(SHEEN_STATE.lastInner);
+      }
+      SHEEN_STATE.last = card;
+      if (card) {
+        var inner = card.querySelector('.card') || card;
+        SHEEN_STATE.lastInner = inner;
+        var r = card.getBoundingClientRect();
+        if (r && r.width > 0 && r.height > 0) {
+          var x = ((e.clientX - r.left) / r.width * 100).toFixed(1) + '%';
+          var y = ((e.clientY - r.top) / r.height * 100).toFixed(1) + '%';
+          setSheenVars(card, x, y);
+          setSheenVars(inner, x, y);
+        }
+      }
+    } catch (err) {}
+  }
+  function attachCardSheen() {
+    if (SHEEN_STATE.bound) return;
+    SHEEN_STATE.bound = true;
+    try {
+      var raf = window.requestAnimationFrame || function (cb) { return setTimeout(cb, 16); };
+      document.addEventListener('mousemove', function (ev) {
+        if (SHEEN_STATE.raf) return;
+        SHEEN_STATE.raf = true;
+        raf(function () {
+          SHEEN_STATE.raf = false;
+          updateSheen(ev);
+        });
+      }, { passive: true });
+    } catch (e) {}
+  }
+
+  /* IN THE LAB rack: built ONLY from native merchant [[audio: ...]] URLs.
+     No URLs -> no rack. Extra bays render as standby chambers, never fake players. */
+  function validateAudioUrl(u) {
+    u = String(u == null ? '' : u).trim();
+    if (!u || u.length > 300) return '';
+    if (!/^https:\/\//i.test(u)) return '';
+    if (!/^[A-Za-z0-9\-._~:/?#\[\]@!$&'()*+,;=%]+$/.test(u)) return '';
+    if (!/\.(mp3|wav|ogg|m4a|flac)(\?|#|$)/i.test(u)) return '';
+    return u;
+  }
+
+  function queueAudioUrl(u) {
+    var clean = validateAudioUrl(u);
+    if (!clean) return;
+    for (var i = 0; i < LAB_AUDIO.length; i++) { if (LAB_AUDIO[i] === clean) return; }
+    if (LAB_AUDIO.length < 3) LAB_AUDIO.push(clean);
+  }
+
+  function trackNameFromUrl(url, idx) {
+    try {
+      var seg = String(url).split('/').pop().split('?')[0].split('#')[0];
+      try { seg = decodeURIComponent(seg); } catch (eDec) {}
+      var clean = seg.replace(/[^A-Za-z0-9\-_. ]/g, '').trim().toUpperCase().slice(0, 24);
+      if (clean) return clean;
+    } catch (e) {}
+    return 'TRACK-0' + (idx + 1);
+  }
+
+  function labTimecode(sec) {
+    sec = Math.max(0, Math.floor(sec || 0));
+    var h = String(Math.floor(sec / 3600)).padStart(2, '0');
+    var m = String(Math.floor((sec % 3600) / 60)).padStart(2, '0');
+    var s = String(sec % 60).padStart(2, '0');
+    return h + ':' + m + ':' + s;
+  }
+
+  function buildLabBay(url, idx) {
+    var frame = document.createElement('article');
+    frame.className = 'lab-monitor';
+    var head = document.createElement('div');
+    head.className = 'lab-monitor-head';
+    var dots = document.createElement('span');
+    dots.className = 'lab-dots';
+    dots.textContent = '● ● ●';
+    dots.setAttribute('aria-hidden', 'true');
+    var track = document.createElement('span');
+    track.className = 'lab-track';
+    track.textContent = trackNameFromUrl(url, idx);
+    var tc = document.createElement('span');
+    tc.className = 'lab-tc';
+    tc.textContent = 'CH-0' + (idx + 1) + ' // 00:00:00';
+    head.appendChild(dots);
+    head.appendChild(track);
+    head.appendChild(tc);
+    var screen = document.createElement('div');
+    screen.className = 'lab-monitor-screen';
+    var audio = document.createElement('audio');
+    audio.preload = 'none';
+    audio.src = url;
+    audio.style.display = 'none';
+    var play = document.createElement('button');
+    play.type = 'button';
+    play.className = 'lab-play';
+    play.textContent = '▶';
+    play.setAttribute('aria-label', 'Play preview CH-0' + (idx + 1));
+    var fill = document.createElement('div');
+    fill.className = 'lab-scrub-fill';
+    play.addEventListener('click', function () {
+      try {
+        if (audio.paused) audio.play().catch(function () {});
+        else audio.pause();
+      } catch (e) {}
+    });
+    try {
+      audio.addEventListener('play', function () { play.textContent = '❚❚'; });
+      audio.addEventListener('pause', function () { play.textContent = '▶'; });
+      audio.addEventListener('ended', function () { play.textContent = '▶'; fill.style.width = '0%'; });
+      audio.addEventListener('timeupdate', function () {
+        tc.textContent = 'CH-0' + (idx + 1) + ' // ' + labTimecode(audio.currentTime);
+        var dur = audio.duration || 0;
+        if (dur > 0) fill.style.width = (audio.currentTime / dur * 100).toFixed(1) + '%';
+      });
+      audio.addEventListener('error', function () {
+        track.textContent = trackNameFromUrl(url, idx) + ' // OFFLINE';
+      });
+    } catch (e) {}
+    screen.appendChild(audio);
+    screen.appendChild(play);
+    var scrub = document.createElement('div');
+    scrub.className = 'lab-scrub';
+    scrub.setAttribute('aria-hidden', 'true');
+    scrub.appendChild(fill);
+    frame.appendChild(head);
+    frame.appendChild(screen);
+    frame.appendChild(scrub);
+    return frame;
+  }
+
+  function buildStandbyBay(idx) {
+    var frame = document.createElement('article');
+    frame.className = 'lab-monitor';
+    frame.setAttribute('aria-hidden', 'true');
+    var head = document.createElement('div');
+    head.className = 'lab-monitor-head';
+    var dots = document.createElement('span');
+    dots.className = 'lab-dots';
+    dots.textContent = '● ● ●';
+    var tc = document.createElement('span');
+    tc.className = 'lab-tc';
+    tc.textContent = 'CH-0' + (idx + 1) + ' // --:--:--';
+    head.appendChild(dots);
+    head.appendChild(tc);
+    var screen = document.createElement('div');
+    screen.className = 'lab-monitor-screen';
+    var idle = document.createElement('div');
+    idle.className = 'lab-standby';
+    idle.textContent = 'STANDBY // FREQ-NULL';
+    screen.appendChild(idle);
+    var scrub = document.createElement('div');
+    scrub.className = 'lab-scrub';
+    frame.appendChild(head);
+    frame.appendChild(screen);
+    frame.appendChild(scrub);
+    return frame;
+  }
+
+  function buildLabRack() {
+    if (!LAB_AUDIO.length) return;
+    if (document.querySelector('.lab-rack[data-lab-built]')) return;
+    var anchor = document.querySelector('[data-section-key="featured-collection"]');
+    var rack = document.createElement('div');
+    rack.className = 'section-wrapper lab-frame lab-rack';
+    rack.setAttribute('data-lab-built', '1');
+    ensureWatermark(rack, 'OSCILLOSCOPE / 001');
+    ensureTicks(rack);
+    var inner = document.createElement('div');
+    inner.className = 'lab-rack-inner';
+    var title = document.createElement('h2');
+    title.className = 'lab-rack-title';
+    title.textContent = 'IN THE LAB';
+    var grid = document.createElement('div');
+    grid.className = 'lab-rack-grid';
+    for (var i = 0; i < 3; i++) {
+      grid.appendChild(i < LAB_AUDIO.length ? buildLabBay(LAB_AUDIO[i], i) : buildStandbyBay(i));
+    }
+    inner.appendChild(title);
+    inner.appendChild(grid);
+    rack.appendChild(inner);
+    try {
+      if (anchor && anchor.parentNode) anchor.parentNode.insertBefore(rack, anchor.nextSibling);
+      else {
+        var foot = document.querySelector('[data-section-key="footer"]');
+        if (foot && foot.parentNode) foot.parentNode.insertBefore(rack, foot);
+        else (document.querySelector('.content-main-wrapper') || document.body).appendChild(rack);
+      }
+      labLog('rack built', { bays: 3, live: LAB_AUDIO.length });
+    } catch (e) {}
+  }
+
+  /* ---------- boot + observers (covers side-cart / cart modal) ---------- */
+
+  var scheduled = false;
+  function schedule(root) {
+    if (scheduled) return;
+    scheduled = true;
+    setTimeout(function () {
+      scheduled = false;
+      try { decorateRoot(root || document); } catch (e) {}
+    }, DEBOUNCE_MS);
+  }
+
+  function boot() {
+    labLog('Initializing decorator...');
+    labLog('version ' + LAB_VERSION + ' readyState=' + document.readyState);
+    try { decorateRoot(document); } catch (e) { labLog('boot pass failed', String(e && e.message || e)); }
+    try { attachCardSheen(); } catch (e) {}
+    try { ensureMasthead(); } catch (e) {}
+    try {
+      var obs = new MutationObserver(function (mutations) {
+        var fire = false;
+        for (var i = 0; i < mutations.length && !fire; i++) {
+          var mut = mutations[i];
+          var tickSec = null;
+          try {
+            var tt = mut.target;
+            if (tt && tt.closest) tickSec = tt.closest('[data-section-key="ticker"]');
+            if (!tickSec && mut.addedNodes) {
+              for (var k = 0; k < mut.addedNodes.length; k++) {
+                var an2 = mut.addedNodes[k];
+                if (an2 && an2.closest && an2.closest('[data-section-key="ticker"]')) { tickSec = an2.closest('[data-section-key="ticker"]'); break; }
+              }
+            }
+          } catch (e) {}
+          if (tickSec) { try { scrubTicker(tickSec); } catch (e) {} continue; }
+          try {
+            var t2 = mut.target;
+            if (t2 && t2.nodeName && /^(VIDEO|AUDIO)$/.test(t2.nodeName)) continue;
+          } catch (e) {}
+          var added = mut.addedNodes;
+          if (!added || !added.length) continue;
+          var genuine = false;
+          var doneSec = null;
+          for (var j = 0; j < added.length; j++) {
+            if (isGenuineAddition(added[j])) { genuine = true; break; }
+            if (!doneSec) {
+              try {
+                var scope = added[j] && added[j].closest ? added[j].closest('.section-wrapper, [data-section-key]') : null;
+                if (scope && scope.hasAttribute && scope.hasAttribute(DONE)) doneSec = scope;
+              } catch (eScope) {}
+            }
+          }
+          if (genuine) { fire = true; break; }
+          // light re-scrub: async content inside scanned sections still gets tag-stripped
+          if (doneSec) {
+            for (var k = 0; k < added.length; k++) {
+              if (added[k] && added[k].nodeType === 1) { try { scrubContainer(added[k]); } catch (eScrub) {} }
+            }
+          }
+        }
+        if (fire) schedule(document);
+      });
+      obs.observe(document.body || document.documentElement, { childList: true, subtree: true });
+      labLog('watching dynamic cart + sections');
+    } catch (e) { labLog('observer failed', String(e && e.message || e)); }
+    window.addEventListener('load', function () { schedule(document); });
+    // fallback passes for late-rendered native sections / remote embeds
+    setTimeout(function () { schedule(document); }, 800);
+    setTimeout(function () { schedule(document); }, 2500);
+  }
+
+  try { window.LabDecorator = { rescan: function () { schedule(document); }, version: LAB_VERSION }; } catch (e) {}
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();

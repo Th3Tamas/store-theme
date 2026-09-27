@@ -23,3 +23,6 @@ base-site-source/
 .DS_Store
 Thumbs.db
 *.log
+
+# Lab decorator remote engine (loaded by the Payhip footer bootstrap)
+!storewide-footer-engine.js
