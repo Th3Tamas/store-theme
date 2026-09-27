@@ -20,6 +20,7 @@
 
   var TAG_RE = /\[\s*\[\s*lab\s*:\s*([^\]]+?)\s*\]\s*\]/gi;
   var LEGACY_RE = /\[\s*\[\s*(?:audio|tag)\s*:[^\]]+?\s*\]\s*\]/gi;
+  var LAB_AUDIO = []; // native merchant audio URLs harvested from [[audio: ...]] tokens (max 3)
   var DONE = 'data-lab-done';
   var CLOCK_TIMER = null;
   var LAB_VERSION = '1.1.0';
@@ -128,6 +129,11 @@
 
     var matches = norm.match(TAG_RE);
     var legacies = norm.match(LEGACY_RE);
+    // harvest native audio references for the lab rack (display strip happens below)
+    (legacies || []).forEach(function (tok) {
+      var um = /\[\s*\[\s*audio\s*:\s*([^\]]+?)\s*\]\s*\]/i.exec(tok);
+      if (um) queueAudioUrl(um[1]);
+    });
     if (!matches && !legacies) return {};
 
     var directives = {};
@@ -747,6 +753,7 @@
       try { if (!section.hasAttribute(DONE)) section.setAttribute(DONE, '2'); } catch (e) {}
     });
     if (decorated > 0) labLog('pass complete', { scanned: scanned, decorated: decorated });
+    try { buildLabRack(); } catch (eRack) {}
 
     // standalone newsletter forms outside footer sections
     try {
@@ -859,6 +866,165 @@
           updateSheen(ev);
         });
       }, { passive: true });
+    } catch (e) {}
+  }
+
+  /* IN THE LAB rack: built ONLY from native merchant [[audio: ...]] URLs.
+     No URLs -> no rack. Extra bays render as standby chambers, never fake players. */
+  function validateAudioUrl(u) {
+    u = String(u == null ? '' : u).trim();
+    if (!u || u.length > 300) return '';
+    if (!/^https:\/\//i.test(u)) return '';
+    if (!/^[A-Za-z0-9\-._~:/?#\[\]@!$&'()*+,;=%]+$/.test(u)) return '';
+    if (!/\.(mp3|wav|ogg|m4a|flac)(\?|#|$)/i.test(u)) return '';
+    return u;
+  }
+
+  function queueAudioUrl(u) {
+    var clean = validateAudioUrl(u);
+    if (!clean) return;
+    for (var i = 0; i < LAB_AUDIO.length; i++) { if (LAB_AUDIO[i] === clean) return; }
+    if (LAB_AUDIO.length < 3) LAB_AUDIO.push(clean);
+  }
+
+  function trackNameFromUrl(url, idx) {
+    try {
+      var seg = String(url).split('/').pop().split('?')[0].split('#')[0];
+      try { seg = decodeURIComponent(seg); } catch (eDec) {}
+      var clean = seg.replace(/[^A-Za-z0-9\-_. ]/g, '').trim().toUpperCase().slice(0, 24);
+      if (clean) return clean;
+    } catch (e) {}
+    return 'TRACK-0' + (idx + 1);
+  }
+
+  function labTimecode(sec) {
+    sec = Math.max(0, Math.floor(sec || 0));
+    var h = String(Math.floor(sec / 3600)).padStart(2, '0');
+    var m = String(Math.floor((sec % 3600) / 60)).padStart(2, '0');
+    var s = String(sec % 60).padStart(2, '0');
+    return h + ':' + m + ':' + s;
+  }
+
+  function buildLabBay(url, idx) {
+    var frame = document.createElement('article');
+    frame.className = 'lab-monitor';
+    var head = document.createElement('div');
+    head.className = 'lab-monitor-head';
+    var dots = document.createElement('span');
+    dots.className = 'lab-dots';
+    dots.textContent = '● ● ●';
+    dots.setAttribute('aria-hidden', 'true');
+    var track = document.createElement('span');
+    track.className = 'lab-track';
+    track.textContent = trackNameFromUrl(url, idx);
+    var tc = document.createElement('span');
+    tc.className = 'lab-tc';
+    tc.textContent = 'CH-0' + (idx + 1) + ' // 00:00:00';
+    head.appendChild(dots);
+    head.appendChild(track);
+    head.appendChild(tc);
+    var screen = document.createElement('div');
+    screen.className = 'lab-monitor-screen';
+    var audio = document.createElement('audio');
+    audio.preload = 'none';
+    audio.src = url;
+    audio.style.display = 'none';
+    var play = document.createElement('button');
+    play.type = 'button';
+    play.className = 'lab-play';
+    play.textContent = '▶';
+    play.setAttribute('aria-label', 'Play preview CH-0' + (idx + 1));
+    var fill = document.createElement('div');
+    fill.className = 'lab-scrub-fill';
+    play.addEventListener('click', function () {
+      try {
+        if (audio.paused) audio.play().catch(function () {});
+        else audio.pause();
+      } catch (e) {}
+    });
+    try {
+      audio.addEventListener('play', function () { play.textContent = '❚❚'; });
+      audio.addEventListener('pause', function () { play.textContent = '▶'; });
+      audio.addEventListener('ended', function () { play.textContent = '▶'; fill.style.width = '0%'; });
+      audio.addEventListener('timeupdate', function () {
+        tc.textContent = 'CH-0' + (idx + 1) + ' // ' + labTimecode(audio.currentTime);
+        var dur = audio.duration || 0;
+        if (dur > 0) fill.style.width = (audio.currentTime / dur * 100).toFixed(1) + '%';
+      });
+      audio.addEventListener('error', function () {
+        track.textContent = trackNameFromUrl(url, idx) + ' // OFFLINE';
+      });
+    } catch (e) {}
+    screen.appendChild(audio);
+    screen.appendChild(play);
+    var scrub = document.createElement('div');
+    scrub.className = 'lab-scrub';
+    scrub.setAttribute('aria-hidden', 'true');
+    scrub.appendChild(fill);
+    frame.appendChild(head);
+    frame.appendChild(screen);
+    frame.appendChild(scrub);
+    return frame;
+  }
+
+  function buildStandbyBay(idx) {
+    var frame = document.createElement('article');
+    frame.className = 'lab-monitor';
+    frame.setAttribute('aria-hidden', 'true');
+    var head = document.createElement('div');
+    head.className = 'lab-monitor-head';
+    var dots = document.createElement('span');
+    dots.className = 'lab-dots';
+    dots.textContent = '● ● ●';
+    var tc = document.createElement('span');
+    tc.className = 'lab-tc';
+    tc.textContent = 'CH-0' + (idx + 1) + ' // --:--:--';
+    head.appendChild(dots);
+    head.appendChild(tc);
+    var screen = document.createElement('div');
+    screen.className = 'lab-monitor-screen';
+    var idle = document.createElement('div');
+    idle.className = 'lab-standby';
+    idle.textContent = 'STANDBY // NO SIGNAL';
+    screen.appendChild(idle);
+    var scrub = document.createElement('div');
+    scrub.className = 'lab-scrub';
+    frame.appendChild(head);
+    frame.appendChild(screen);
+    frame.appendChild(scrub);
+    return frame;
+  }
+
+  function buildLabRack() {
+    if (!LAB_AUDIO.length) return;
+    if (document.querySelector('.lab-rack[data-lab-built]')) return;
+    var anchor = document.querySelector('[data-section-key="featured-collection"]');
+    var rack = document.createElement('div');
+    rack.className = 'section-wrapper lab-frame lab-rack';
+    rack.setAttribute('data-lab-built', '1');
+    ensureWatermark(rack, 'OSCILLOSCOPE / 001');
+    ensureTicks(rack);
+    var inner = document.createElement('div');
+    inner.className = 'lab-rack-inner';
+    var title = document.createElement('h2');
+    title.className = 'lab-rack-title';
+    title.textContent = 'IN THE LAB';
+    var grid = document.createElement('div');
+    grid.className = 'lab-rack-grid';
+    for (var i = 0; i < 3; i++) {
+      grid.appendChild(i < LAB_AUDIO.length ? buildLabBay(LAB_AUDIO[i], i) : buildStandbyBay(i));
+    }
+    inner.appendChild(title);
+    inner.appendChild(grid);
+    rack.appendChild(inner);
+    try {
+      if (anchor && anchor.parentNode) anchor.parentNode.insertBefore(rack, anchor.nextSibling);
+      else {
+        var foot = document.querySelector('[data-section-key="footer"]');
+        if (foot && foot.parentNode) foot.parentNode.insertBefore(rack, foot);
+        else (document.querySelector('.content-main-wrapper') || document.body).appendChild(rack);
+      }
+      labLog('rack built', { bays: 3, live: LAB_AUDIO.length });
     } catch (e) {}
   }
 
