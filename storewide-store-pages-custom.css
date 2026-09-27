@@ -2041,6 +2041,20 @@ html body .lab-masthead .lab-holo-word {
   color: transparent !important;
 }
 
+/* CSS-only fallback until the 1.2.0 footer is pasted in Payhip admin:
+   whole-title holo when no split span exists yet. */
+html body .lab-masthead .lab-masthead-title:not(:has(.lab-holo-word)) {
+  background: linear-gradient(90deg, #e6e6e6 0%, #b8f1ff 35%, #e0b8ff 60%, #e6e6e6 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent !important;
+}
+
+html body .lab-masthead .lab-masthead-title:has(.lab-holo-word) {
+  background: none !important;
+  color: var(--ink) !important;
+}
+
 /* Hero media frame: tighter chassis seating per Ref 1. */
 html body [data-section-key="featured-product"] .lab-hero-media,
 html body [data-section-key="featured-product"] .media-wrapper-outer {
